@@ -20,12 +20,12 @@
   <title>腾讯云函数的三种常见利用方式 - T0x1c</title>
 
   
-    <meta name="description" content="云函数(变相代理池)的三种常见利用0x01 云函数简介云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。以下为云函数的几个特点 多种开发环境使用云函数时，只需使用平台支持的语言（Pyth">
+    <meta name="description" content="云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="腾讯云函数的三种常见利用方式">
 <meta property="og:url" content="https://toxic80l.github.io/post/5bb1bf38/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="云函数(变相代理池)的三种常见利用0x01 云函数简介云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。以下为云函数的几个特点 多种开发环境使用云函数时，只需使用平台支持的语言（Pyth">
+<meta property="og:description" content="云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8A%E5%8D%889.06.08.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.47.13.png">
@@ -56,7 +56,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.26.03.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.39.41.png">
 <meta property="article:published_time" content="2021-12-24T01:36:05.000Z">
-<meta property="article:modified_time" content="2021-12-24T02:15:44.322Z">
+<meta property="article:modified_time" content="2021-12-24T02:27:47.371Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="CobaltStrike">
 <meta property="article:tag" content="代理">
@@ -97,7 +97,7 @@
 
 <div class="widgets">
 
-<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BA%91%E5%87%BD%E6%95%B0%E7%AE%80%E4%BB%8B"><span class="toc-text">0x01 云函数简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E7%A7%8D%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-text">多种开发环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E5%9C%B0%E9%83%A8%E7%BD%B2"><span class="toc-text">多地部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A7%E8%A1%8C%E6%97%B6%E6%9C%BA"><span class="toc-text">自定义执行时机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E9%98%B2%E6%BA%AF%E6%BA%90%E8%BF%9E%E6%8E%A5Webshell"><span class="toc-text">0x02 防溯源连接Webshell</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C"><span class="toc-text">测试效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%B3%A8%E5%85%A5-%E7%9B%AE%E5%BD%95%E7%88%86%E7%A0%B4%E7%88%86%E7%A0%B4%E9%98%B2Ban"><span class="toc-text">0x03 注入&#x2F;目录爆破爆破防Ban</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0-1"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C-1"><span class="toc-text">测试效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-C2%E9%9A%90%E8%97%8F"><span class="toc-text">0x04 C2隐藏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0-2"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C-2"><span class="toc-text">测试效果</span></a></li></ol></li></ol></div></div></div>
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BA%91%E5%87%BD%E6%95%B0%E7%89%B9%E7%82%B9"><span class="toc-text">0x01 云函数特点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E7%A7%8D%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-text">多种开发环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E5%9C%B0%E9%83%A8%E7%BD%B2"><span class="toc-text">多地部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A7%E8%A1%8C%E6%97%B6%E6%9C%BA"><span class="toc-text">自定义执行时机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E9%98%B2%E6%BA%AF%E6%BA%90%E8%BF%9E%E6%8E%A5Webshell"><span class="toc-text">0x02 防溯源连接Webshell</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C"><span class="toc-text">测试效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%B3%A8%E5%85%A5-%E7%9B%AE%E5%BD%95%E7%88%86%E7%A0%B4%E7%88%86%E7%A0%B4%E9%98%B2Ban"><span class="toc-text">0x03 注入&#x2F;目录爆破爆破防Ban</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0-1"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C-1"><span class="toc-text">测试效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-C2%E9%9A%90%E8%97%8F"><span class="toc-text">0x04 C2隐藏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0-2"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C-2"><span class="toc-text">测试效果</span></a></li></ol></li></ol></div></div></div>
 
 
 </div>
@@ -114,7 +114,8 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>腾讯云函数的三种常见利用方式</span></h1>
-<h1 id="云函数-变相代理池-的三种常见利用"><a href="#云函数-变相代理池-的三种常见利用" class="headerlink" title="云函数(变相代理池)的三种常见利用"></a>云函数(变相代理池)的三种常见利用</h1><h2 id="0x01-云函数简介"><a href="#0x01-云函数简介" class="headerlink" title="0x01 云函数简介"></a>0x01 云函数简介</h2><p>云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。以下为云函数的几个特点</p>
+<p>云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。<span id="more"></span></p>
+<h2 id="0x01-云函数特点"><a href="#0x01-云函数特点" class="headerlink" title="0x01 云函数特点"></a>0x01 云函数特点</h2><p>云函数最有用的地方是可以帮助我们隐藏自己，在红蓝对抗时一般情况不会被蓝队溯源到真实IP，同时也无法封锁IP，究其原因可以查看它的几个特点</p>
 <h3 id="多种开发环境"><a href="#多种开发环境" class="headerlink" title="多种开发环境"></a>多种开发环境</h3><p>使用云函数时，只需使用平台支持的语言（Python、Node.js、PHP、Golang、Java 及 Custom Runtime）编写代码。腾讯云将完全管理底层计算资源，包括服务器 CPU、内存、网络和其他配置/资源维护、代码部署、弹性伸缩、负载均衡、安全升级、资源运行情况监控等。但这也意味着我们无法登录或管理服务器、无法自定义系统和环境。</p>
 <h3 id="多地部署"><a href="#多地部署" class="headerlink" title="多地部署"></a>多地部署</h3><p>云函数自动地在同一地域内的多个可用区部署，同时提供极高的容错性。云函数在执行时将根据请求负载扩缩容，从每天几个请求到每秒数千个请求，都由云函数底层自行伸缩。无需人工配置和介入，只需为运行中的云函数付费，即可满足不同情景下服务的可用性和稳定性。若云函数未运行，则不产生任何费用。</p>
 <h3 id="自定义执行时机"><a href="#自定义执行时机" class="headerlink" title="自定义执行时机"></a>自定义执行时机</h3><p>可以自定义运行云函数的时机，例如，在 COS Bucket 上传时、删除文件时运行云函数、使用 Ckafka 中的消息时运行云函数、应用程序通过 SDK 调用时运行云函数，或指定云函数定期执行。我们可以使用云函数作为 COS 服务的数据处理触发程序轻松实现 IFTTT 逻辑，也可以通过构建灵活的定时自动化任务，用于覆盖手工完成的操作，轻松构建灵活可控的软件架构。</p>
