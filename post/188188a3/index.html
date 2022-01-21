@@ -20,12 +20,12 @@
   <title>HTB: Bastion - T0x1c</title>
 
   
-    <meta name="description" content="Bastion是一个简单的靶机，其中主要涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码的相关知识，有趣的是该靶机并没有涉及许多漏洞知识，仅靠凭证获取和密码破解可完成一系列操作。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。其中并没有涉及许多漏洞知识，而是仅靠凭证获取和密码破解即可完成靶机攻克。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Bastion">
 <meta property="og:url" content="https://toxic80l.github.io/post/188188a3/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Bastion是一个简单的靶机，其中主要涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码的相关知识，有趣的是该靶机并没有涉及许多漏洞知识，仅靠凭证获取和密码破解可完成一系列操作。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。其中并没有涉及许多漏洞知识，而是仅靠凭证获取和密码破解即可完成靶机攻克。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0080.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-11%20%E4%B8%8B%E5%8D%884.23.32.png">
@@ -48,7 +48,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.52.42.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.54.55.png">
 <meta property="article:published_time" content="2022-01-07T08:20:19.000Z">
-<meta property="article:modified_time" content="2022-01-08T20:23:24.542Z">
+<meta property="article:modified_time" content="2022-01-21T08:21:27.717Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -104,7 +104,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Bastion</span></h1>
-<p>Bastion是一个简单的靶机，其中主要涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码的相关知识，有趣的是该靶机并没有涉及许多漏洞知识，仅靠凭证获取和密码破解可完成一系列操作。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。其中并没有涉及许多漏洞知识，而是仅靠凭证获取和密码破解即可完成靶机攻克。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0080.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-11%20%E4%B8%8B%E5%8D%884.23.32.png" alt="截屏2021-10-11 下午4.23.32"></p>
@@ -137,7 +137,7 @@
 <h3 id="ssh登录"><a href="#ssh登录" class="headerlink" title="ssh登录"></a>ssh登录</h3><p>通过之前扫描到的 ssh 端口来登录目标系统</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh L4mpje@10.10.10.134</span><br><span class="line"><span class="built_in">cd</span> Desktop</span><br><span class="line"><span class="built_in">type</span> user.txt</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.36.13.png" alt="截屏2021-10-12 上午1.36.13"></p>
-<p>在用户桌面上成功拿到第一个flag </p>
+<p>在当前用户的桌面上成功拿到第一个flag </p>
 <h2 id="0x03-权限提升-administrator"><a href="#0x03-权限提升-administrator" class="headerlink" title="0x03 权限提升[administrator]"></a>0x03 权限提升[administrator]</h2><h3 id="提取密码"><a href="#提取密码" class="headerlink" title="提取密码"></a>提取密码</h3><p><code>C:\Users\L4mpje\AppData\APPDATA</code>目录下存在一个用于管理远程连接的应用程序 mRemoteNG，而 confCons.xml 中则存放着其所有连接信息和凭据</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\Users\L4mpje\AppData\Roaming</span><br><span class="line">dir</span><br><span class="line"><span class="built_in">cd</span> mRemoteNG</span><br><span class="line">dir</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.41.58.png" alt="截屏2021-10-12 上午1.41.58"><br>通过 scp 传输 confCons.xml</p>
