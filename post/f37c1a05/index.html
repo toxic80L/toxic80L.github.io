@@ -20,14 +20,14 @@
   <title>HTB: Dropzone - T0x1c</title>
 
   
-    <meta name="description" content="Dropzone是一个困难的靶机，知识点涉及利用mof完成命令执行、tftp信息获取、NTFS数据流读取等。一般在渗透中遇到ftp上传很少会想到将mof放入自安装目录完成全县获取，这是因为将其放入自安装目录需要足够大的权限，很多 ftp 服务没有这样的权限，幸运的事最后通过NTFS数据流拿到了flag。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Dropzone是一个困难的靶机，知识点涉及利用mof完成命令执行、tftp信息获取、NTFS数据流读取等。一般在渗透中遇到ftp上传很少会想到将mof放入自安装目录完成全县获取，这是因为将其放入自安装目录需要足够大的权限，很多ftp服务没有这样的权限，幸运的事最后通过NTFS数据流拿到了flag。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Dropzone">
 <meta property="og:url" content="https://toxic80l.github.io/post/f37c1a05/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Dropzone是一个困难的靶机，知识点涉及利用mof完成命令执行、tftp信息获取、NTFS数据流读取等。一般在渗透中遇到ftp上传很少会想到将mof放入自安装目录完成全县获取，这是因为将其放入自安装目录需要足够大的权限，很多 ftp 服务没有这样的权限，幸运的事最后通过NTFS数据流拿到了flag。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Dropzone是一个困难的靶机，知识点涉及利用mof完成命令执行、tftp信息获取、NTFS数据流读取等。一般在渗透中遇到ftp上传很少会想到将mof放入自安装目录完成全县获取，这是因为将其放入自安装目录需要足够大的权限，很多ftp服务没有这样的权限，幸运的事最后通过NTFS数据流拿到了flag。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0240.gif">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0250.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/f37c1a05/%E6%88%AA%E5%B1%8F2021-11-04%20%E4%B8%8A%E5%8D%883.56.19.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/f37c1a05/%E6%88%AA%E5%B1%8F2021-11-05%20%E4%B8%8A%E5%8D%882.17.07.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/f37c1a05/%E6%88%AA%E5%B1%8F2021-11-05%20%E4%B8%8A%E5%8D%8810.16.34.png">
@@ -46,11 +46,14 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/f37c1a05/%E6%88%AA%E5%B1%8F2021-11-06%20%E4%B8%8A%E5%8D%881.50.22.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/f37c1a05/%E6%88%AA%E5%B1%8F2021-11-06%20%E4%B8%8A%E5%8D%881.47.51.png">
 <meta property="article:published_time" content="2022-02-14T02:49:36.000Z">
-<meta property="article:modified_time" content="2022-02-14T08:57:07.056Z">
+<meta property="article:modified_time" content="2022-02-15T08:09:49.354Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
+<meta property="article:tag" content="mof">
+<meta property="article:tag" content="tftp">
+<meta property="article:tag" content="NTFS数据流">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0240.gif">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0250.gif">
   
   
 
@@ -101,9 +104,9 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Dropzone</span></h1>
-<p>Dropzone是一个困难的靶机，知识点涉及利用mof完成命令执行、tftp信息获取、NTFS数据流读取等。一般在渗透中遇到ftp上传很少会想到将mof放入自安装目录完成全县获取，这是因为将其放入自安装目录需要足够大的权限，很多 ftp 服务没有这样的权限，幸运的事最后通过NTFS数据流拿到了flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Dropzone是一个困难的靶机，知识点涉及利用mof完成命令执行、tftp信息获取、NTFS数据流读取等。一般在渗透中遇到ftp上传很少会想到将mof放入自安装目录完成全县获取，这是因为将其放入自安装目录需要足够大的权限，很多ftp服务没有这样的权限，幸运的事最后通过NTFS数据流拿到了flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
-<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0240.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0250.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f37c1a05/%E6%88%AA%E5%B1%8F2021-11-04%20%E4%B8%8A%E5%8D%883.56.19.png" alt="截屏2021-11-04 上午3.56.19"></p>
 <h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.90 -oA nmap_Dropzone</span><br></pre></td></tr></table></figure>
@@ -178,7 +181,7 @@
 
 </article>
 
-<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/7522735e/">HTB: Fighter<span class="note">Older</span></a><div class="line"></div></section></div>
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/7522735e/">HTB: Fighter<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/960d5b61/">HTB: Reel<span class="note">Newer</span></a></section></div>
 
 
 

