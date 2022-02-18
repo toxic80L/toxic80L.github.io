@@ -68,7 +68,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-13%20%E4%B8%8B%E5%8D%889.21.10.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-13%20%E4%B8%8B%E5%8D%889.24.02.png">
 <meta property="article:published_time" content="2022-02-18T01:53:25.000Z">
-<meta property="article:modified_time" content="2022-02-18T08:10:22.865Z">
+<meta property="article:modified_time" content="2022-02-18T08:25:57.733Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Access">
@@ -130,8 +130,8 @@
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8B%E5%8D%883.57.45.png" alt="截屏2021-11-11 下午3.57.45"></p>
 <h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.98 -oA nmap_Access</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8B%E5%8D%884.23.41.png" alt="截屏2021-11-11 下午4.23.41"><br>通过nmap的扫描结果，我们可以发现目标开放了21、23以及80端口</p>
-<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问80端口<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-12%20%E4%B8%8A%E5%8D%888.59.35.png" alt="截屏2021-11-12 上午8.59.35"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8B%E5%8D%884.23.41.png" alt="截屏2021-11-11 下午4.23.41"><br>扫描结果显示目标开放了21、23以及80端口</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问80端口，是一个机房图片<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-12%20%E4%B8%8A%E5%8D%888.59.35.png" alt="截屏2021-11-12 上午8.59.35"></p>
 <p>使用 gobuster 对80端口进行目录扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.98 -w /usr/share/wordlists/dirb/big.txt</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-12%20%E4%B8%8A%E5%8D%889.36.22.png" alt="截屏2021-11-12 上午9.36.22"><br>但是在目录扫描并没有发现什么可利用点。</p>
