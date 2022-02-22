@@ -49,7 +49,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.58.29.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.30.33.png">
 <meta property="article:published_time" content="2022-01-26T02:47:33.000Z">
-<meta property="article:modified_time" content="2022-02-17T08:21:57.559Z">
+<meta property="article:modified_time" content="2022-02-21T01:46:28.991Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -115,7 +115,7 @@
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8A%E5%8D%889.52.52.png" alt="截屏2021-10-18 上午9.52.52"></p>
 <h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.74 -oA nmap_Chatterbox</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8812.08.00.png" alt="截屏2021-10-18 下午12.08.00"><br>扫描结果显示开放端口为9255和9256，为Achat chat system</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8812.08.00.png" alt="截屏2021-10-18 下午12.08.00"><br>扫描结果显示开放端口为9255和9256，它们对应着 Achat chat system</p>
 <h4 id="9255端口"><a href="#9255端口" class="headerlink" title="9255端口"></a>9255端口</h4><p>一般情况下 Achat 的9255端口主要网络监控，而9256端口是未分配的。访问9255端口并未返回有用的页面信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.04.37.png" alt="截屏2021-10-18 下午4.04.37"></p>
 <h2 id="0x02-上线-alfred"><a href="#0x02-上线-alfred" class="headerlink" title="0x02 上线[alfred]"></a>0x02 上线[alfred]</h2><h3 id="Achat远程代码执行漏洞"><a href="#Achat远程代码执行漏洞" class="headerlink" title="Achat远程代码执行漏洞"></a>Achat远程代码执行漏洞</h3><p>使用 searchsploit 寻找相关漏洞</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">searchsploit Achat</span><br></pre></td></tr></table></figure>

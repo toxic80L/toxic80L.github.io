@@ -55,7 +55,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%885.01.03.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-18%20%E4%B8%8B%E5%8D%885.24.23.png">
 <meta property="article:published_time" content="2022-01-18T11:31:43.000Z">
-<meta property="article:modified_time" content="2022-02-17T08:21:57.535Z">
+<meta property="article:modified_time" content="2022-02-21T01:46:28.939Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -121,7 +121,7 @@
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.36.49.png" alt="截屏2022-01-06 下午6.36.49"></p>
 <h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先使用 nmap 进行端口扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.149 -oA nmap_Heist</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.46.23.png" alt="截屏2022-01-06 下午6.46.23"><br>通过扫描结果我们可以发现目标开放了80、135、446、5985、49669端口</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-06%20%E4%B8%8B%E5%8D%886.46.23.png" alt="截屏2022-01-06 下午6.46.23"><br>扫描结果显示目前目标开放了80、135、446、5985、49669端口</p>
 <h4 id="445端口"><a href="#445端口" class="headerlink" title="445端口"></a>445端口</h4><p>使用 smbclient 进行匿名登录</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient --list 10.10.10.149 -U <span class="string">&quot;&quot;</span></span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/51597ee4/%E6%88%AA%E5%B1%8F2022-01-17%20%E4%B8%8B%E5%8D%884.37.06.png" alt="截屏2022-01-17 下午4.37.06"><br>结果显示无法连接smb服务，匿名登录失败</p>
