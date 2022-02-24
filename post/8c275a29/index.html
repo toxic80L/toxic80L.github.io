@@ -20,12 +20,12 @@
   <title>HTB: Devel - T0x1c</title>
 
   
-    <meta name="description" content="Devel是一个容易的靶机，知识点涉及ftp匿名登录、ms11-046&#x2F;ms10-015内核提权等。其中ftp漏洞可以直接上传木马文件且当前ftp目录也是webroot目录，那么可以直接拿到远控权限。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Devel是一个容易的靶机，知识点涉及ftp匿名登录、ms11-046内核提权、ms10-015内核提权等。ftp匿名登陆后发现目录也是站点目录，上传木马文件，借助木马拿到反弹shell，获取用户权限，在靶机中存在多个内核漏洞，使用ms11-046等漏洞可直接提至系统权限。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Devel">
 <meta property="og:url" content="https://toxic80l.github.io/post/8c275a29/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Devel是一个容易的靶机，知识点涉及ftp匿名登录、ms11-046&#x2F;ms10-015内核提权等。其中ftp漏洞可以直接上传木马文件且当前ftp目录也是webroot目录，那么可以直接拿到远控权限。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Devel是一个容易的靶机，知识点涉及ftp匿名登录、ms11-046内核提权、ms10-015内核提权等。ftp匿名登陆后发现目录也是站点目录，上传木马文件，借助木马拿到反弹shell，获取用户权限，在靶机中存在多个内核漏洞，使用ms11-046等漏洞可直接提至系统权限。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0030.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/8c275a29/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8A%E5%8D%889.58.41.png">
@@ -50,7 +50,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/8c275a29/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%881.16.43.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/8c275a29/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8B%E5%8D%881.19.40.png">
 <meta property="article:published_time" content="2021-12-18T15:26:15.000Z">
-<meta property="article:modified_time" content="2022-02-21T01:42:01.538Z">
+<meta property="article:modified_time" content="2022-02-23T09:45:24.956Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -109,7 +109,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Devel</span></h1>
-<p>Devel是一个容易的靶机，知识点涉及ftp匿名登录、ms11-046/ms10-015内核提权等。其中ftp漏洞可以直接上传木马文件且当前ftp目录也是webroot目录，那么可以直接拿到远控权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Devel是一个容易的靶机，知识点涉及ftp匿名登录、ms11-046内核提权、ms10-015内核提权等。ftp匿名登陆后发现目录也是站点目录，上传木马文件，借助木马拿到反弹shell，获取用户权限，在靶机中存在多个内核漏洞，使用ms11-046等漏洞可直接提至系统权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0030.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>

@@ -20,12 +20,12 @@
   <title>HTB: Arkham - T0x1c</title>
 
   
-    <meta name="description" content="Arkham是一个中等难度的靶机，但是它的难度可以和困难相媲美。知识点涉及lucks解密、JSF ViewState反序列化、ost邮件分析、UAC绕过等。其中ViewState反序列化漏洞让我学到了很多，虽然数据是加密的，但是它提供了一个用于执行攻击的密钥使得我能够成功获取权限，上线后在电子邮件中找到了管理员密码，需要绕过UAC限制拿到最后的flag。感兴趣的同学可以在HackTheBox中进行">
+    <meta name="description" content="Arkham是一个中等难度的靶机，但是它的难度可以和困难相媲美。知识点涉及lucks解密、JSF ViewState反序列化、ost邮件分析、UAC绕过等。smb匿名登陆后发现lucks镜像，成功爆破lucks密码后挂载该镜像，在其中查看相关配置信息。站点中存在JSF ViewState反序列化漏洞，虽然数据是加密的，但是它提供了一个用于执行攻击的密钥从而能够成功获取用户权限，在靶机中发现zip压">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Arkham">
 <meta property="og:url" content="https://toxic80l.github.io/post/3e37f523/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Arkham是一个中等难度的靶机，但是它的难度可以和困难相媲美。知识点涉及lucks解密、JSF ViewState反序列化、ost邮件分析、UAC绕过等。其中ViewState反序列化漏洞让我学到了很多，虽然数据是加密的，但是它提供了一个用于执行攻击的密钥使得我能够成功获取权限，上线后在电子邮件中找到了管理员密码，需要绕过UAC限制拿到最后的flag。感兴趣的同学可以在HackTheBox中进行">
+<meta property="og:description" content="Arkham是一个中等难度的靶机，但是它的难度可以和困难相媲美。知识点涉及lucks解密、JSF ViewState反序列化、ost邮件分析、UAC绕过等。smb匿名登陆后发现lucks镜像，成功爆破lucks密码后挂载该镜像，在其中查看相关配置信息。站点中存在JSF ViewState反序列化漏洞，虽然数据是加密的，但是它提供了一个用于执行攻击的密钥从而能够成功获取用户权限，在靶机中发现zip压">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0040.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-15%20%E4%B8%8B%E5%8D%882.38.20.png">
@@ -88,13 +88,15 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%885.42.49.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%885.43.06.png">
 <meta property="article:published_time" content="2021-12-20T00:58:29.000Z">
-<meta property="article:modified_time" content="2022-02-21T01:44:55.420Z">
+<meta property="article:modified_time" content="2022-02-23T09:45:08.926Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
 <meta property="article:tag" content="lucks">
-<meta property="article:tag" content="JSF ViewState反序列化">
+<meta property="article:tag" content="JSF ViewState">
+<meta property="article:tag" content="反序列化">
 <meta property="article:tag" content="ost">
+<meta property="article:tag" content="mbox">
 <meta property="article:tag" content="UAC绕过">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0040.gif">
@@ -148,7 +150,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Arkham</span></h1>
-<p>Arkham是一个中等难度的靶机，但是它的难度可以和困难相媲美。知识点涉及lucks解密、JSF ViewState反序列化、ost邮件分析、UAC绕过等。其中ViewState反序列化漏洞让我学到了很多，虽然数据是加密的，但是它提供了一个用于执行攻击的密钥使得我能够成功获取权限，上线后在电子邮件中找到了管理员密码，需要绕过UAC限制拿到最后的flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Arkham是一个中等难度的靶机，但是它的难度可以和困难相媲美。知识点涉及lucks解密、JSF ViewState反序列化、ost邮件分析、UAC绕过等。smb匿名登陆后发现lucks镜像，成功爆破lucks密码后挂载该镜像，在其中查看相关配置信息。站点中存在JSF ViewState反序列化漏洞，虽然数据是加密的，但是它提供了一个用于执行攻击的密钥从而能够成功获取用户权限，在靶机中发现zip压缩文件，解压后是一个mbox文件，打开该邮件后发现其中存储了管理员的账号密码，通过该账号密码借助powershell上线，成功获取管理员权限，但是其中存在UAC限制，最终可使用msf或本地共享绕过UAC拿到flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0040.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
@@ -245,7 +247,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">readpst alfred@arkham.local.ost</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%883.56.41.png" alt="截屏2021-12-20 上午3.56.41"><br>解压完成是一个<code>.mbox</code>文件，这是一种电子邮件邮箱文件格式，可在单个文件中存储多条消息并将其作为文本。使用 mutt 来打开它</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mutt -R -f Drafts.mbox</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%884.02.12.png" alt="截屏2021-12-20 上午4.02.12"><br>这是一封给 batman 的邮件，翻到最后存在一个附件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%884.04.16.png" alt="截屏2021-12-20 上午4.04.16"><br>通过 v 来查看附件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%884.04.44.png" alt="截屏2021-12-20 上午4.04.44"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%884.05.04.png" alt="截屏2021-12-20 上午4.05.04"><br>成功获取到账号密码为：batman/Zx^#QZX+T!123</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%884.02.12.png" alt="截屏2021-12-20 上午4.02.12"><br>这是一封给 batman 的邮件，翻到最后存在一个附件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%884.04.16.png" alt="截屏2021-12-20 上午4.04.16"><br>通过 v 来查看附件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%884.04.44.png" alt="截屏2021-12-20 上午4.04.44"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/3e37f523/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8A%E5%8D%884.05.04.png" alt="截屏2021-12-20 上午4.05.04"><br>成功获取到账号密码为<code>batman/Zx^#QZX+T!123</code></p>
 <h3 id="获取shell-1"><a href="#获取shell-1" class="headerlink" title="获取shell"></a>获取shell</h3><p>进入 powershell 来制作凭据</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">powershell</span><br><span class="line"><span class="variable">$username</span> = <span class="string">&#x27;batman&#x27;</span></span><br><span class="line"><span class="variable">$password</span> = <span class="string">&#x27;Zx^#QZX+T!123&#x27;</span></span><br><span class="line"><span class="variable">$securePassword</span> = ConvertTo-SecureString <span class="variable">$password</span> -AsPlainText -Force</span><br><span class="line"><span class="variable">$credential</span> = New-Object System.Management.Automation.PSCredential <span class="variable">$username</span>, <span class="variable">$securePassword</span></span><br></pre></td></tr></table></figure>
 <p>建立凭据后开启监听2222端口，之后执行命令以 batman 身份反弹shell</p>

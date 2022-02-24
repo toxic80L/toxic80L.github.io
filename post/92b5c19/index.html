@@ -20,12 +20,12 @@
   <title>HTB: Bastard - T0x1c</title>
 
   
-    <meta name="description" content="Bastard是一个简单的靶机，知识点涉及Drupal远程代码执行漏洞和ms15-051内核提权等。其中Drupal远程代码执行漏洞在使用msf进行利用时可能会出点问题，可通过执行利用脚本来获取权限。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Bastard是一个简单的靶机，知识点涉及Drupal远程代码执行漏洞和ms15-051内核提权等。站点中存在Drupal远程代码执行漏洞，通过该漏洞直接上传木马，借助木马执行反弹shell，成功获取用户权限，靶机中存在多个内核漏洞，使用ms15-051等漏洞可提至系统权限。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Bastard">
 <meta property="og:url" content="https://toxic80l.github.io/post/92b5c19/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Bastard是一个简单的靶机，知识点涉及Drupal远程代码执行漏洞和ms15-051内核提权等。其中Drupal远程代码执行漏洞在使用msf进行利用时可能会出点问题，可通过执行利用脚本来获取权限。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Bastard是一个简单的靶机，知识点涉及Drupal远程代码执行漏洞和ms15-051内核提权等。站点中存在Drupal远程代码执行漏洞，通过该漏洞直接上传木马，借助木马执行反弹shell，成功获取用户权限，靶机中存在多个内核漏洞，使用ms15-051等漏洞可提至系统权限。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0070.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/92b5c19/%E6%88%AA%E5%B1%8F2021-10-11%20%E4%B8%8A%E5%8D%889.14.20.png">
@@ -59,7 +59,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/92b5c19/%E6%88%AA%E5%B1%8F2021-10-11%20%E4%B8%8B%E5%8D%883.27.43.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/92b5c19/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8B%E5%8D%883.38.47.png">
 <meta property="article:published_time" content="2022-01-01T23:07:53.000Z">
-<meta property="article:modified_time" content="2022-02-21T01:45:48.442Z">
+<meta property="article:modified_time" content="2022-02-23T08:55:36.989Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -118,7 +118,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Bastard</span></h1>
-<p>Bastard是一个简单的靶机，知识点涉及Drupal远程代码执行漏洞和ms15-051内核提权等。其中Drupal远程代码执行漏洞在使用msf进行利用时可能会出点问题，可通过执行利用脚本来获取权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Bastard是一个简单的靶机，知识点涉及Drupal远程代码执行漏洞和ms15-051内核提权等。站点中存在Drupal远程代码执行漏洞，通过该漏洞直接上传木马，借助木马执行反弹shell，成功获取用户权限，靶机中存在多个内核漏洞，使用ms15-051等漏洞可提至系统权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0070.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/92b5c19/%E6%88%AA%E5%B1%8F2021-10-11%20%E4%B8%8A%E5%8D%889.14.20.png" alt="截屏2021-10-11 上午9.14.20"></p>

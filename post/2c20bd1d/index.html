@@ -20,12 +20,12 @@
   <title>HTB: Access - T0x1c</title>
 
   
-    <meta name="description" content="Access是一个简单的靶机，知识点涉及Access数据库信息收集、telnet登陆、lnk文件分析、runas提权、dpapi信用提权等。匿名登陆ftp后在其中找到一个Access数据库，通过信息收集拿到账号密码并使用telnet登陆，存在lnk文件，分析后发现可借助runas提权或使用dpapi直接提权至管理员权限。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Access是一个简单的靶机，知识点涉及Access数据库信息收集、telnet登陆、lnk文件分析、runas提权、dpapi信用提权等。匿名登陆ftp后发现一个Access数据库，在其中通过信息收集拿到账号密码并使用获取到的账号密码登陆telnet，靶机中存在lnk文件并进行分析，可借助runas至管理员权限，当然也可使用dpapi直接提至管理员权限。感兴趣的同学可以在HackTheBox中进">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Access">
 <meta property="og:url" content="https://toxic80l.github.io/post/2c20bd1d/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Access是一个简单的靶机，知识点涉及Access数据库信息收集、telnet登陆、lnk文件分析、runas提权、dpapi信用提权等。匿名登陆ftp后在其中找到一个Access数据库，通过信息收集拿到账号密码并使用telnet登陆，存在lnk文件，分析后发现可借助runas提权或使用dpapi直接提权至管理员权限。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Access是一个简单的靶机，知识点涉及Access数据库信息收集、telnet登陆、lnk文件分析、runas提权、dpapi信用提权等。匿名登陆ftp后发现一个Access数据库，在其中通过信息收集拿到账号密码并使用获取到的账号密码登陆telnet，靶机中存在lnk文件并进行分析，可借助runas至管理员权限，当然也可使用dpapi直接提至管理员权限。感兴趣的同学可以在HackTheBox中进">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0290.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8B%E5%8D%883.57.45.png">
@@ -68,7 +68,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-13%20%E4%B8%8B%E5%8D%889.21.10.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-13%20%E4%B8%8B%E5%8D%889.24.02.png">
 <meta property="article:published_time" content="2022-02-18T01:53:25.000Z">
-<meta property="article:modified_time" content="2022-02-21T07:04:40.341Z">
+<meta property="article:modified_time" content="2022-02-23T01:18:27.930Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Access">
@@ -127,7 +127,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Access</span></h1>
-<p>Access是一个简单的靶机，知识点涉及Access数据库信息收集、telnet登陆、lnk文件分析、runas提权、dpapi信用提权等。匿名登陆ftp后在其中找到一个Access数据库，通过信息收集拿到账号密码并使用telnet登陆，存在lnk文件，分析后发现可借助runas提权或使用dpapi直接提权至管理员权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Access是一个简单的靶机，知识点涉及Access数据库信息收集、telnet登陆、lnk文件分析、runas提权、dpapi信用提权等。匿名登陆ftp后发现一个Access数据库，在其中通过信息收集拿到账号密码并使用获取到的账号密码登陆telnet，靶机中存在lnk文件并进行分析，可借助runas至管理员权限，当然也可使用dpapi直接提至管理员权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0290.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2c20bd1d/%E6%88%AA%E5%B1%8F2021-11-11%20%E4%B8%8B%E5%8D%883.57.45.png" alt="截屏2021-11-11 下午3.57.45"></p>

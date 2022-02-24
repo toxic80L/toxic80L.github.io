@@ -20,12 +20,12 @@
   <title>HTB: Bastion - T0x1c</title>
 
   
-    <meta name="description" content="Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。其中并没有涉及许多漏洞知识，而是仅靠凭证获取和密码破解即可完成靶机攻克。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。smb匿名登陆后拿到vhd镜像文件，挂载至本地并在其中其中发现sam凭证文件，成功破解后拿到账号密码，通过该账号密码登陆ssh，在靶机中存在管理远程连接的应用程序mRemoteNG，其中存放着管理员密码哈希值，成功破解后使用该密码通过ssh登陆管理员。感兴趣的同学可以在HackTheBox中">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Bastion">
 <meta property="og:url" content="https://toxic80l.github.io/post/188188a3/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。其中并没有涉及许多漏洞知识，而是仅靠凭证获取和密码破解即可完成靶机攻克。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。smb匿名登陆后拿到vhd镜像文件，挂载至本地并在其中其中发现sam凭证文件，成功破解后拿到账号密码，通过该账号密码登陆ssh，在靶机中存在管理远程连接的应用程序mRemoteNG，其中存放着管理员密码哈希值，成功破解后使用该密码通过ssh登陆管理员。感兴趣的同学可以在HackTheBox中">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0080.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-11%20%E4%B8%8B%E5%8D%884.23.32.png">
@@ -48,11 +48,11 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.52.42.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.54.55.png">
 <meta property="article:published_time" content="2022-01-07T08:20:19.000Z">
-<meta property="article:modified_time" content="2022-02-21T01:45:48.430Z">
+<meta property="article:modified_time" content="2022-02-23T08:52:25.163Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
-<meta property="article:tag" content="Windows">
 <meta property="article:tag" content="smb">
+<meta property="article:tag" content="Windows">
 <meta property="article:tag" content="vhd">
 <meta property="article:tag" content="mRemoteNG">
 <meta name="twitter:card" content="summary_large_image">
@@ -107,7 +107,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Bastion</span></h1>
-<p>Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。其中并没有涉及许多漏洞知识，而是仅靠凭证获取和密码破解即可完成靶机攻克。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Bastion是一个简单的靶机，知识点涉及smb匿名登录漏洞、vhd镜像挂载和提取mRemoteNG密码等。smb匿名登陆后拿到vhd镜像文件，挂载至本地并在其中其中发现sam凭证文件，成功破解后拿到账号密码，通过该账号密码登陆ssh，在靶机中存在管理远程连接的应用程序mRemoteNG，其中存放着管理员密码哈希值，成功破解后使用该密码通过ssh登陆管理员。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0080.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-11%20%E4%B8%8B%E5%8D%884.23.32.png" alt="截屏2021-10-11 下午4.23.32"></p>
@@ -150,9 +150,9 @@
 <p>在本地打开文件发现管理员用户名和加密后的密码，我们需要借助相关脚本对 mRemoteNG 的加密值进行解密<br><strong>脚本地址：<a target="_blank" rel="noopener" href="https://github.com/kmahyyg/mremoteng-decrypt/blob/master/mremoteng_decrypt.py">https://github.com/kmahyyg/mremoteng-decrypt/blob/master/mremoteng_decrypt.py</a></strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/kmahyyg/mremoteng-decrypt</span><br><span class="line"><span class="built_in">cd</span> mremoteng-decrypt</span><br><span class="line">python3 mremoteng_decrypt.py -s aEWNFV5uGcjUHF0uS17QTdT9kVqtKCPeoC0Nw5dmaPFjNQ2kt/zO5xDqE4HdVmHAowVRdC7emf7lWWA10dQKiw==</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.52.42.png" alt="截屏2021-10-12 上午1.52.42"><br>成功拿到密码为<code>thXLHM96BeKL0ER2</code></p>
-<h3 id="管理员登录"><a href="#管理员登录" class="headerlink" title="管理员登录"></a>管理员登录</h3><p>通过 ssh 登录目标系统</p>
+<h3 id="管理员登录"><a href="#管理员登录" class="headerlink" title="管理员登录"></a>管理员登录</h3><p>通过 ssh 登录目标系统，并在管理员桌面上寻找flag</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh administrator@10.10.10.134</span><br><span class="line"><span class="built_in">cd</span> Desktop</span><br><span class="line">cat root.txt</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.54.55.png" alt="截屏2021-10-12 上午1.54.55"><br>在管理员桌面上成功拿到第二个flag</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/188188a3/%E6%88%AA%E5%B1%8F2021-10-12%20%E4%B8%8A%E5%8D%881.54.55.png" alt="截屏2021-10-12 上午1.54.55"><br>成功拿到第二个flag</p>
 
 
 <div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>

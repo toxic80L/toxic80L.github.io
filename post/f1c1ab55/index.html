@@ -20,12 +20,12 @@
   <title>HTB: Helpline - T0x1c</title>
 
   
-    <meta name="description" content="Helpline是一个困难的靶机，知识点涉及EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞等。其中虽然ME SDP相关漏洞可以上线系统最高权限，但是需要解密EFS才能读取关键flag。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Helpline是一个困难的靶机，知识点涉及EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞等。ME SDP存在XXE、任意文件下载、身份认证绕过等多个漏洞，借助其中的远程代码可获取系统权限，最终通过EFS解密读取flag。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Helpline">
 <meta property="og:url" content="https://toxic80l.github.io/post/f1c1ab55/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Helpline是一个困难的靶机，知识点涉及EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞等。其中虽然ME SDP相关漏洞可以上线系统最高权限，但是需要解密EFS才能读取关键flag。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Helpline是一个困难的靶机，知识点涉及EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞等。ME SDP存在XXE、任意文件下载、身份认证绕过等多个漏洞，借助其中的远程代码可获取系统权限，最终通过EFS解密读取flag。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0050.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8B%E5%8D%884.20.17.png">
@@ -98,7 +98,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.24.40.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-26%20%E4%B8%8B%E5%8D%887.28.08.png">
 <meta property="article:published_time" content="2021-12-26T11:32:22.000Z">
-<meta property="article:modified_time" content="2022-02-21T01:44:59.329Z">
+<meta property="article:modified_time" content="2022-02-23T09:01:13.486Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -160,7 +160,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Helpline</span></h1>
-<p>Helpline是一个困难的靶机，知识点涉及EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞等。其中虽然ME SDP相关漏洞可以上线系统最高权限，但是需要解密EFS才能读取关键flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Helpline是一个困难的靶机，知识点涉及EFS解密和ME SDP的多个漏洞，包括XXE漏洞、LFI\任意文件下载漏洞、身份认证绕过漏洞以及远程代码执行漏洞等。ME SDP存在XXE、任意文件下载、身份认证绕过等多个漏洞，借助其中的远程代码可获取系统权限，最终通过EFS解密读取flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0050.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-20%20%E4%B8%8B%E5%8D%884.20.17.png" alt="截屏2021-12-20 下午4.20.17"></p>
@@ -183,7 +183,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 xxe.py 10.10.10.132 <span class="string">&quot;C:\windows\win.ini&quot;</span></span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8B%E5%8D%884.33.20.png" alt="截屏2021-12-22 下午4.33.20"><br>发现可以直接读取到 win.ini，那么也就能读取到上面的密码文件中的密码</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 xxe.py 10.10.10.132 <span class="string">&quot;C:\temp\Password Audit\it_logins.txt&quot;</span></span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8B%E5%8D%885.03.17.png" alt="截屏2021-12-22 下午5.03.17"><br>成功拿到密码 alice/$sys4ops@megabank!</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-22%20%E4%B8%8B%E5%8D%885.03.17.png" alt="截屏2021-12-22 下午5.03.17"><br>成功拿到密码<code>alice/$sys4ops@megabank!</code></p>
 <h3 id="LFI-任意文件下载（CVE-2017-11511）"><a href="#LFI-任意文件下载（CVE-2017-11511）" class="headerlink" title="LFI/任意文件下载（CVE-2017-11511）"></a>LFI/任意文件下载（CVE-2017-11511）</h3><p>这次是通过本地文件包含漏洞来访问系统文件,但是目标文件作为与 SDP 安装关联的四个目录之一的相对路径需要给出,包括有意打开所有 SDP 安装的选项4，它允许请求所有与该路径相关的任何文件。与请求C盘的 win.ini 不同，SDP 安装在E盘。开始尝试获取数据库备份文件，首先请求日志路径为<code>E:\ManageEngine\ServiceDesk\bin\SDPbackup.log</code>，而访问路径如下</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://10.10.10.132:8080/fosagent/repl/download-file?basedir=4&amp;filepath=\..\..\..\..\..\..\manageengine\servicedesk\bin\sdpbackup.log</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f1c1ab55/%E6%88%AA%E5%B1%8F2021-12-25%20%E4%B8%8B%E5%8D%885.53.40.png" alt="截屏2021-12-25 下午5.53.40"><br>在其中记录了组成数据库备份的两个文件的位置，具体文件名如下</p>

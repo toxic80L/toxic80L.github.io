@@ -20,12 +20,12 @@
   <title>HTB: Bounty - T0x1c</title>
 
   
-    <meta name="description" content="Bounty是一个简单的靶机，知识点涉及IIS上传绕过、烂土豆内核提权、ms10-092内核提权等。当无法上传asp文件时，可以尝试将asp代码嵌入到不受文件后缀名过滤的web.config中完成权限获取。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Bounty是一个简单的靶机，知识点涉及IIS上传绕过、烂土豆内核提权、ms10-092内核提权等。站点中存在文件上传漏洞，但是无法上传asp类型文件，将包含反弹shell的asp代码嵌入到不受文件后缀名过滤的web.config中，上传该文件后成功收到反弹shell，成功获取用户权限。可通过ms10-092等多个内核漏洞提升至系统权限。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Bounty">
 <meta property="og:url" content="https://toxic80l.github.io/post/b9f7bac9/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Bounty是一个简单的靶机，知识点涉及IIS上传绕过、烂土豆内核提权、ms10-092内核提权等。当无法上传asp文件时，可以尝试将asp代码嵌入到不受文件后缀名过滤的web.config中完成权限获取。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Bounty是一个简单的靶机，知识点涉及IIS上传绕过、烂土豆内核提权、ms10-092内核提权等。站点中存在文件上传漏洞，但是无法上传asp类型文件，将包含反弹shell的asp代码嵌入到不受文件后缀名过滤的web.config中，上传该文件后成功收到反弹shell，成功获取用户权限。可通过ms10-092等多个内核漏洞提升至系统权限。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0140.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%889.58.23.png">
@@ -50,7 +50,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%885.33.19.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8B%E5%8D%885.33.43.png">
 <meta property="article:published_time" content="2022-01-20T07:03:30.000Z">
-<meta property="article:modified_time" content="2022-02-21T01:46:28.950Z">
+<meta property="article:modified_time" content="2022-02-23T07:48:15.577Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -109,7 +109,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Bounty</span></h1>
-<p>Bounty是一个简单的靶机，知识点涉及IIS上传绕过、烂土豆内核提权、ms10-092内核提权等。当无法上传asp文件时，可以尝试将asp代码嵌入到不受文件后缀名过滤的web.config中完成权限获取。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Bounty是一个简单的靶机，知识点涉及IIS上传绕过、烂土豆内核提权、ms10-092内核提权等。站点中存在文件上传漏洞，但是无法上传asp类型文件，将包含反弹shell的asp代码嵌入到不受文件后缀名过滤的web.config中，上传该文件后成功收到反弹shell，成功获取用户权限。可通过ms10-092等多个内核漏洞提升至系统权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0140.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/b9f7bac9/%E6%88%AA%E5%B1%8F2021-10-14%20%E4%B8%8A%E5%8D%889.58.23.png" alt="截屏2021-10-14 上午9.58.23"></p>

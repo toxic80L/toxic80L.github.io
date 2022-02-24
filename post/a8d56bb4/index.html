@@ -20,12 +20,12 @@
   <title>HTB: Conceal - T0x1c</title>
 
   
-    <meta name="description" content="Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。IPsec VPN在其中扮演着重要的角色，连接VPN后我们才能反弹shell并最终通过烂土豆提权。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。可读权限默认口令public可直接查询snmp信息并在其中成功获取IKE VPN预共享密钥，使用该预共享密钥连接IPsec VPN，连接VPN后发现其存在ftp和web服务，匿名登陆ftp后上传文件发现其下目录就是站点upload目录，上传木马并通过木马执行">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Conceal">
 <meta property="og:url" content="https://toxic80l.github.io/post/a8d56bb4/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。IPsec VPN在其中扮演着重要的角色，连接VPN后我们才能反弹shell并最终通过烂土豆提权。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。可读权限默认口令public可直接查询snmp信息并在其中成功获取IKE VPN预共享密钥，使用该预共享密钥连接IPsec VPN，连接VPN后发现其存在ftp和web服务，匿名登陆ftp后上传文件发现其下目录就是站点upload目录，上传木马并通过木马执行">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0160.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-16%20%E4%B8%8B%E5%8D%889.46.29.png">
@@ -63,13 +63,13 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.55.10.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-17%20%E4%B8%8A%E5%8D%885.59.28.png">
 <meta property="article:published_time" content="2022-01-25T09:49:48.000Z">
-<meta property="article:modified_time" content="2022-02-21T01:46:28.999Z">
+<meta property="article:modified_time" content="2022-02-23T03:19:14.010Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
 <meta property="article:tag" content="文件上传">
-<meta property="article:tag" content="ftp">
 <meta property="article:tag" content="烂土豆">
+<meta property="article:tag" content="ftp">
 <meta property="article:tag" content="IPsec VPN">
 <meta property="article:tag" content="snmp">
 <meta name="twitter:card" content="summary_large_image">
@@ -124,7 +124,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Conceal</span></h1>
-<p>Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。IPsec VPN在其中扮演着重要的角色，连接VPN后我们才能反弹shell并最终通过烂土豆提权。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Conceal是一个困难的靶机，知识点涉及snmp默认口令漏洞、IPsec VPN连接、ftp匿名登陆漏洞、asp文件上传、烂土豆内核提权等。可读权限默认口令public可直接查询snmp信息并在其中成功获取IKE VPN预共享密钥，使用该预共享密钥连接IPsec VPN，连接VPN后发现其存在ftp和web服务，匿名登陆ftp后上传文件发现其下目录就是站点upload目录，上传木马并通过木马执行反弹shell，成功用户权限，最终通过烂土豆成功提至系统权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0160.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a8d56bb4/%E6%88%AA%E5%B1%8F2021-10-16%20%E4%B8%8B%E5%8D%889.46.29.png" alt="截屏2021-10-16 下午9.46.29"></p>
