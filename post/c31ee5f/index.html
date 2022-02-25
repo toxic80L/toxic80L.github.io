@@ -111,7 +111,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.04.56.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.06.17.png">
 <meta property="article:published_time" content="2022-02-24T01:56:47.000Z">
-<meta property="article:modified_time" content="2022-02-24T09:39:59.644Z">
+<meta property="article:modified_time" content="2022-02-25T03:05:36.767Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="密码爆破">
@@ -173,7 +173,7 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Bighead</span></h1>
-<p>Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文件，对其进行测试并发现其存在缓冲区溢出漏洞，编写脚本上线来获取用户权限，在靶机上搭建隧道并使用注册表中破解的密码登陆ssh，登陆成功后发现运行环境为BvShell，借助code子域名中的php文件执行反弹shell，成功获取系统权限，最终以破解KeePass数据库密码，配置密钥登陆其中拿到flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文件，对其进行测试并发现其存在缓冲区溢出漏洞，编写脚本上线来获取用户权限，在靶机上搭建隧道并使用注册表中破解的密码登陆ssh，登陆成功后发现运行环境为BvShell，借助code子域名中的php文件执行反弹shell，成功获取系统权限。最终通过破解KeePass数据库密码，使用该密码并配置密钥登陆其中拿到flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%881.52.41.png" alt="截屏2021-11-21 下午1.52.41"></p>
@@ -349,7 +349,7 @@
 
 </article>
 
-<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/df640eb9/">HTB: Ethereal<span class="note">Older</span></a><div class="line"></div></section></div>
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/df640eb9/">HTB: Ethereal<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/2b6b41bb/">HTB: Sizzle<span class="note">Newer</span></a></section></div>
 
 
 

