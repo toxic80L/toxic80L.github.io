@@ -20,15 +20,16 @@
   <title>HTB: Bighead - T0x1c</title>
 
   
-    <meta name="description" content="Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文">
+    <meta name="description" content="Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Bighead">
 <meta property="og:url" content="https://toxic80l.github.io/post/c31ee5f/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文">
+<meta property="og:description" content="Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%881.52.41.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/Bighead.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%882.00.14.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%884.56.04.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%885.28.32.png">
@@ -111,7 +112,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.04.56.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.06.17.png">
 <meta property="article:published_time" content="2022-02-24T01:56:47.000Z">
-<meta property="article:modified_time" content="2022-02-25T03:05:36.767Z">
+<meta property="article:modified_time" content="2022-02-28T08:40:36.916Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="密码爆破">
@@ -122,7 +123,7 @@
 <meta property="article:tag" content="git信息泄漏">
 <meta property="article:tag" content="缓冲区溢出">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%881.52.41.png">
   
   
 
@@ -173,10 +174,11 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Bighead</span></h1>
-<p>Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文件，对其进行测试并发现其存在缓冲区溢出漏洞，编写脚本上线来获取用户权限，在靶机上搭建隧道并使用注册表中破解的密码登陆ssh，登陆成功后发现运行环境为BvShell，借助code子域名中的php文件执行反弹shell，成功获取系统权限。最终通过破解KeePass数据库密码，使用该密码并配置密钥登陆其中拿到flag。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Bighead是一个非常困难的靶机，知识点涉及zip密码爆破、子域名探测、密码爆破、git信息泄漏、缓冲区溢出、反弹shell、隧道建立、BvShell逃逸、KeePass密码破解等。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
-<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%881.52.41.png" alt="截屏2021-11-21 下午1.52.41"></p>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0310.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span><u>通关思维导图</u>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/Bighead.png" alt="Bighead"></p>
 <h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.112 -oA nmap_BigHead</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-21%20%E4%B8%8B%E5%8D%882.00.14.png" alt="截屏2021-11-21 下午2.00.14"><br>扫描结果显示目标只开放了80端口</p>
@@ -342,6 +344,7 @@
 <p>成功拿到密码为<code>darkness</code>，使用 keepass2 进行打开</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keepass2 root.txt:Zone.Identifier</span><br></pre></td></tr></table></figure>
 <p>将 admin.png 作为密钥，同时输入以上密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.03.47.png" alt="截屏2021-11-29 上午6.03.47"><br>在其中发现 Password 的值为星号<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.04.56.png" alt="截屏2021-11-29 上午6.04.56"><br>复制该密码并粘贴到本地即可成功获取第二个flag<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/c31ee5f/%E6%88%AA%E5%B1%8F2021-11-29%20%E4%B8%8A%E5%8D%886.06.17.png" alt="截屏2021-11-29 上午6.06.17"></p>
+<p><strong>总结：在子域名中发现响应服务器为BigheadWebsvr，通过谷歌搜索发现github中存在该服务器的源码，直接下载其zip压缩并通过密码破解出密码，通过该密码解压文件后存在git信息泄漏，在版本二中存在exe与dll文件，对其进行测试并发现其存在缓冲区溢出漏洞，编写脚本上线来获取用户权限，在靶机上搭建隧道并使用注册表中破解的密码登陆ssh，登陆成功后发现运行环境为BvShell，借助code子域名中的php文件执行反弹shell，成功获取系统权限。最终通过破解KeePass数据库密码，使用该密码并配置密钥登陆其中拿到flag。</strong></p>
 
 
 <div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
