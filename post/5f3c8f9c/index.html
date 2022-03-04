@@ -20,15 +20,16 @@
   <title>HTB: Hackback - T0x1c</title>
 
   
-    <meta name="description" content="Hackback是一个非常难的靶机，知识点涉及钓鱼网站、参数模糊测试、php日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识。在一系列钓鱼网站中找到管理员登陆界面，通过js代码分析发现登陆接口存在php日志中毒，在参数中插入php代码会成功执行，通过日志可以查看执行结果。通过该漏洞读取web.config.old，其中存在系统用户的账号密码，通过W">
+    <meta name="description" content="Hackback是一个非常难的靶机，知识点涉及钓鱼网站、参数模糊测试、php日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Hackback">
 <meta property="og:url" content="https://toxic80l.github.io/post/5f3c8f9c/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Hackback是一个非常难的靶机，知识点涉及钓鱼网站、参数模糊测试、php日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识。在一系列钓鱼网站中找到管理员登陆界面，通过js代码分析发现登陆接口存在php日志中毒，在参数中插入php代码会成功执行，通过日志可以查看执行结果。通过该漏洞读取web.config.old，其中存在系统用户的账号密码，通过W">
+<meta property="og:description" content="Hackback是一个非常难的靶机，知识点涉及钓鱼网站、参数模糊测试、php日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0000.gif">
 <meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/1.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0000.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/Hackback.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/2.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/3.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/4.png">
@@ -120,7 +121,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/87.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/5f3c8f9c/88.png">
 <meta property="article:published_time" content="2021-12-11T10:52:59.000Z">
-<meta property="article:modified_time" content="2022-03-01T08:46:53.105Z">
+<meta property="article:modified_time" content="2022-03-02T02:37:06.201Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -133,7 +134,7 @@
 <meta property="article:tag" content="dll">
 <meta property="article:tag" content="钓鱼网站">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0000.gif">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/5f3c8f9c/1.png">
   
   
 
@@ -184,10 +185,11 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Hackback</span></h1>
-<p>Hackback是一个非常难的靶机，知识点涉及钓鱼网站、参数模糊测试、php日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识。在一系列钓鱼网站中找到管理员登陆界面，通过js代码分析发现登陆接口存在php日志中毒，在参数中插入php代码会成功执行，通过日志可以查看执行结果。通过该漏洞读取web.config.old，其中存在系统用户的账号密码，通过WinRM登陆用户，在靶机中的隐藏文件夹里找到ps以及对应配置ini，修改配置ini文件插入反弹命令完成命令注入从而完成权限提升。分析UserLogger服务借助NTFS数据流能够成功读取flag，可制作恶意dll放入系统路径并加载diaghub帮助我们执行bat文件中的命令，最终成功获取系统权限。该靶机的主要难点还是在于php日志中毒和UserLogger服务。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Hackback是一个非常难的靶机，知识点涉及钓鱼网站、参数模糊测试、php日志中毒、HTTP代理、WinRm服务、UserLogger服务、NFTS数据流、恶意dll等知识。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
-<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0000.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/1.png"></p>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0000.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span><u>通关思维导图</u>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/Hackback.png" alt="Hackback"></p>
 <h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.128 -oA nmap_Hackback</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/2.png"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/3.png"><br>扫描结果显示目标开放了80、6666、64381端口</p>
@@ -346,6 +348,7 @@
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/87.png"><br>通过 ntfs 数据流获取flag</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dir c:\users\administrator\Desktop /a /r</span><br><span class="line"><span class="built_in">cd</span> c:\users\administrator\Desktop</span><br><span class="line">powershell -c Get-Content -stream root.txt:flag.txt</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/5f3c8f9c/88.png"></p>
+<p><strong>总结：在一系列钓鱼网站中找到管理员登陆界面，通过js代码分析发现登陆接口存在php日志中毒，在参数中插入php代码会成功执行，通过日志可以查看执行结果。通过该漏洞读取web.config.old，其中存在系统用户的账号密码，通过WinRM登陆用户，在靶机中的隐藏文件夹里找到ps以及对应配置ini，修改配置ini文件插入反弹命令完成命令注入从而完成权限提升。分析UserLogger服务借助NTFS数据流能够成功读取flag，可制作恶意dll放入系统路径并加载diaghub帮助我们执行bat文件中的命令，最终成功获取系统权限。该靶机的主要难点还是在于php日志中毒和UserLogger服务。</strong></p>
 
 
 <div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
