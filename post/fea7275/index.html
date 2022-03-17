@@ -66,7 +66,7 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/fea7275/%E6%88%AA%E5%B1%8F2022-03-03%20%E4%B8%8B%E5%8D%8810.42.15.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/fea7275/%E6%88%AA%E5%B1%8F2022-03-03%20%E4%B8%8B%E5%8D%8810.52.11.png">
 <meta property="article:published_time" content="2022-03-04T03:12:41.000Z">
-<meta property="article:modified_time" content="2022-03-04T07:11:46.343Z">
+<meta property="article:modified_time" content="2022-03-16T02:46:33.452Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
@@ -210,7 +210,7 @@
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/fea7275/%E6%88%AA%E5%B1%8F2022-03-03%20%E4%B8%8B%E5%8D%8810.23.56.png" alt="截屏2022-03-03 下午10.23.56"><br>在本地安装 FileZilla Server，以下是安装过程<br><strong>下载地址：<a target="_blank" rel="noopener" href="https://filezilla-project.org/download.php?type=server">https://filezilla-project.org/download.php?type=server</a></strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo dpkg -i FileZilla_Server_1.3.0_x86_64-linux-gnu.deb</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/fea7275/%E6%88%AA%E5%B1%8F2022-03-03%20%E4%B8%8B%E5%8D%8810.42.15.png" alt="截屏2022-03-03 下午10.42.15"><br>但是其中并没有配置地址和端口的界面，切换至 Windows 下本机又无法连接 vpn，真是个头疼的问题<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/fea7275/%E6%88%AA%E5%B1%8F2022-03-03%20%E4%B8%8B%E5%8D%8810.52.11.png" alt="截屏2022-03-03 下午10.52.11"></p>
-<p><strong>总结：通过弱口令进入后台，发现http请求头的Bearer标头存在反序列化漏洞，使用反序列化工具序列化payload，执行后拿到用户权限。在靶机中收集系统信息时发现存在许多提权漏洞，最终使用烂土豆提权至系统权限。0xdf大神还介绍了其他两种获取flag的方式，分别是FileZill和Sync2Ftp，我这边只测试了第一种情况，但是遇到vpn占用问题导致实验无法继续，想了解的朋友可以关注他的博客。</strong></p>
+<p><strong>总结：站点中存在弱口令，通过该漏洞可直接进入后台，查看http请求头信息发现Bearer标头存在反序列化漏洞，使用反序列化工具ysoserial序列化payload，执行反弹shell拿到用户权限。在靶机中检查系统信息，其中存在许多提权漏洞，最终选择烂土豆提升至系统权限。0xdf大神还介绍了其他两种获取flag的方式，分别是FileZill和Sync2Ftp，我这边只测试了第一种情况，但是遇到vpn占用问题导致实验无法继续，想了解的朋友可以关注他的博客。</strong></p>
 
 
 <div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
