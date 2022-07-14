@@ -53,11 +53,18 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/90c7e1bd/%E6%88%AA%E5%B1%8F2022-05-06%2002.20.39.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/90c7e1bd/%E6%88%AA%E5%B1%8F2022-05-06%2002.21.00.png">
 <meta property="article:published_time" content="2022-05-28T10:09:49.000Z">
-<meta property="article:modified_time" content="2022-05-28T11:16:56.499Z">
+<meta property="article:modified_time" content="2022-07-13T19:42:46.915Z">
 <meta property="article:author" content="toxic80L">
 <meta property="article:tag" content="Linux">
-<meta property="article:tag" content="靶机">
-<meta property="article:tag" content="smb">
+<meta property="article:tag" content="SMB">
+<meta property="article:tag" content="nmap">
+<meta property="article:tag" content="smbmap">
+<meta property="article:tag" content="smbclient">
+<meta property="article:tag" content="metasploit">
+<meta property="article:tag" content="searchsploit">
+<meta property="article:tag" content="RCE">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="FTP">
 <meta property="article:tag" content="vsftp">
 <meta property="article:tag" content="CVE-2007-2447">
 <meta name="twitter:card" content="summary_large_image">
@@ -186,12 +193,11 @@
 <p>使用 python 调用 bash 获得更好看的 shell</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c &#x27;import pty;pty.spawn(&quot;/bin/bash&quot;)&#x27;</span><br></pre></td></tr></table></figure>
 
-<p>分别进入<code>/home</code>目录以及<code>/root</code>下获取flag</p>
+<p>分别进入<code>/home</code>目录以及<code>/root</code>下获取flag，成功拿到flag</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /home</span><br><span class="line">find . -name user.txt -exec cat &#123;&#125; \;</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/90c7e1bd/%E6%88%AA%E5%B1%8F2022-05-06%2002.20.39.png" alt="截屏2022-05-06 02.20.39"></p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /root</span><br><span class="line">cat root.txt</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/90c7e1bd/%E6%88%AA%E5%B1%8F2022-05-06%2002.21.00.png" alt="截屏2022-05-06 02.21.00"></p>
-<p>成功拿到flag</p>
 <h2 id="0x03-总结"><a href="#0x03-总结" class="headerlink" title="0x03 总结"></a>0x03 总结</h2><p>通过基础的漏洞探测，发现目标存在两个利用点，分别是vstfp后门以及samba远程代码执行。但是经过实践后发现目标并不存在vsftp后门，虽然该版本确实存在后门。samba远程代码执行利用了Linux中的特殊符号`，通过该符号替换登录用户名可以直接调用命令执行反弹shell，成功拿到管理员权限。</p>
 
 

